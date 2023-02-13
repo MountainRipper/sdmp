@@ -1,0 +1,11 @@
+
+PIN要求:
+一个发送pin可以连接多个接收pin,但是一个接收pin,只能有一个发送pin.
+自动连接优先级:
+上游filter的发送pin,未连接的优先级高,已经连接过的优先级低,下游filter的接受pin,必须是未连接状态
+连接格式协商:
+Filter的check_input_format的实现里,返回选择到的格式index,表示接受连接.返回<0表示格式不可用,拒绝连接
+
+NOTE:
+勿将同一个硬件解码后的图像，交给多个Renderer渲染，会造成资源释放抢占（如kms和egl都映射了DRM FRAME，两边都会释放handle，造成冲突）
+软解码后的图像mmap到drm上，有rotate不能设置的问题， drm request返回EINVAL-22错误

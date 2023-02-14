@@ -31,6 +31,7 @@
 #include <filesystem>
 #include <thread>
 #include <glad/gl.h>
+//#include <glad/gles2.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLFW/glfw3.h>
@@ -181,10 +182,15 @@ int main(int argc, char* argv[]) {
   glfwMakeContextCurrent(win);
   glfwSwapInterval(1);
 
-  if (!gladLoadGL()) {
+  if (!gladLoaderLoadGL()) {
     printf("Cannot load GL.\n");
     exit(1);
   }
+
+//  if (!gladLoaderLoadGLES2()) {
+//    printf("Cannot load GLES2.\n");
+//    //exit(1);
+//  }
 
   fprintf(stderr,"GL_VENDOR : %s\n", glGetString(GL_VENDOR) );
   fprintf(stderr,"GL_VERSION  : %s\n", glGetString(GL_VERSION) );

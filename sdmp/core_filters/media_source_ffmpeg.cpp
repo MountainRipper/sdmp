@@ -1,5 +1,4 @@
 #include <chrono>
-#include <avcpp/timestamp.h>
 #include <sdpi_factory.h>
 #include "media_source_ffmpeg.h"
 
@@ -123,7 +122,7 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
             if(stream->avg_frame_rate.num+stream->avg_frame_rate.den==0)
                 format.fps = 30;
             else
-                format.fps = av::Rational(stream->avg_frame_rate).getDouble();
+                format.fps = FFRational(stream->avg_frame_rate).as_double();
             set_property("fps",format.fps);
         }
         else if(format.type == AVMEDIA_TYPE_SUBTITLE) {
@@ -138,7 +137,7 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
         }
     }
 
-    av::Timestamp duration(media_file_->duration,av::TimeBaseQ);
+    FFTimestamp duration(media_file_->duration);
     set_property("duration",duration.seconds()*1000);
 
     if(!reconnect_in_proc){
@@ -287,9 +286,8 @@ int32_t MediaSourceFFmpegFilter::do_seek(int32_t ms,int32_t flag)
 
     if(network_timeout_)
         return -1;
-    av::Timestamp timestamp = av::Timestamp(std::chrono::milliseconds(ms));
-    auto timebase_seek = timestamp.timebase().getValue();
-    int64_t pos = av_rescale_q(timestamp.timestamp(),timebase_seek,av::TimeBaseQ);
+    FFTimestamp timestamp = FFTimestamp(std::chrono::milliseconds(ms));
+    int64_t pos = timestamp.rescale();;
 
     reset_timeout();
     av_seek_frame(media_file_,-1,pos,flag);

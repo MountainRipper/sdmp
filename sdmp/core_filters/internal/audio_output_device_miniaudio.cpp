@@ -5,12 +5,9 @@
 
 namespace sdp {
 
-void on_log(ma_context* pContext, ma_device* pDevice, ma_uint32 logLevel, const char* message)
+void on_log(void* pUserData, ma_uint32 level, const char* message)
 {
-    (void)pContext;
-    (void)pDevice;
-
-    MP_LOG_DEAULT("{}: {}", ma_log_level_to_string(logLevel), message);
+    MP_LOG_DEAULT("{}: {}", ma_log_level_to_string(level), message);
 }
 
 void on_data(ma_device* pDevice, void* pFramesOut, const void* pFramesIn, ma_uint32 frameCount)
@@ -107,7 +104,7 @@ AudioOutputDeviceMiniaudioFilter::~AudioOutputDeviceMiniaudioFilter()
         ma_pcm_rb_uninit(&pull_ring_buffer_);
     }
     //static resource release in c++ runtime, logger_xxx call spdlog::set_pattern will crash
-    spdlog::info("MiniAudio Stopped");
+    MP_INFO("MiniAudio Stopped");
 }
 
 int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdp::IGraph *graph, const sol::table &config)
@@ -123,7 +120,9 @@ int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdp::IGraph *graph, const s
     int32_t bits = config["bits"].get_or(32);
 
     auto contextConfig = ma_context_config_init();
-    contextConfig.logCallback = on_log;
+    ma_log_init(NULL,&ma_log_);
+    ma_log_register_callback(&ma_log_,ma_log_callback_init(on_log,(void*)this));
+    contextConfig.pLog = &ma_log_;
 
     ma_backend chose_backend[1] = {ma_backend_null};
     auto get = try_parse_backend(backend.c_str(),chose_backend);
@@ -177,7 +176,7 @@ int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdp::IGraph *graph, const s
     channels_   = deviceConfig.playback.channels;
     samplerate_ = deviceConfig.sampleRate;
     frame_size_ = deviceConfig.periodSizeInFrames;
-    ma_pcm_rb_init(format_,channels_, frame_size_, NULL, NULL, &pull_ring_buffer_);
+    ma_pcm_rb_init(format_,channels_, frame_size_*16, NULL, NULL, &pull_ring_buffer_);
 
     Format format;
     format.type = AVMEDIA_TYPE_AUDIO;
@@ -220,15 +219,16 @@ int32_t AudioOutputDeviceMiniaudioFilter::process_command(const std::string &com
     int result = 0;
     if(command == kGraphCommandPlay && !stated){
         result = ma_device_start(device_.get());
-        if (result != MA_SUCCESS)
+        if (result != MA_SUCCESS){
             MP_LOG_DEAULT("Failed to start device.");
-        else
+        }else
             MP_LOG_DEAULT("audio device {} started  {}", device_->playback.name, (void*)this);
     }
     else if(command == kGraphCommandStop && stated){
         result = ma_device_stop(device_.get());
-        if (result != MA_SUCCESS)
-            MP_LOG_DEAULT("Failed to start device.");
+        if (result != MA_SUCCESS){
+            MP_LOG_DEAULT("Failed to start device.","");
+        }
         else
             MP_LOG_DEAULT("audio device {} stoped ", device_->playback.name);
     }
@@ -298,7 +298,7 @@ int32_t AudioOutputDeviceMiniaudioFilter::on_playback(void *pcm, int32_t frames)
             {
                 memcpy(pRunningOutput, pReadBuffer, framesToRead * ma_get_bytes_per_frame(format_, channels_));
             }
-            ma_pcm_rb_commit_read(&pull_ring_buffer_, framesToRead, pReadBuffer);
+            ma_pcm_rb_commit_read(&pull_ring_buffer_, framesToRead);
 
             //MP_LOG_DEAULT("AudioOutputMiniaudio::on_playback: read RB {}",framesToRead);
 
@@ -323,7 +323,7 @@ int32_t AudioOutputDeviceMiniaudioFilter::on_playback(void *pcm, int32_t frames)
                 pin_requare_data(pWriteBuffer,frame_size_);
                 //MP_LOG_DEAULT("AudioOutputMiniaudio::on_playback: Request RB {}",frame_size_);
             }
-            ma_pcm_rb_commit_write(&pull_ring_buffer_, framesToWrite, pWriteBuffer);
+            ma_pcm_rb_commit_write(&pull_ring_buffer_, framesToWrite);
         }
     }
     return 0;

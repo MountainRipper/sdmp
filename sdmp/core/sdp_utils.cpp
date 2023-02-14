@@ -3,8 +3,6 @@
 extern "C"{
 #include <libavcodec/bsf.h>
 }
-#include <avcpp/rational.h>
-#include <avcpp/timestamp.h>
 #include <sstream>
 #include <iomanip>
 #include <logger.h>
@@ -444,13 +442,13 @@ int32_t MediaInfoProbe::get_info(const std::string &media, Info &info)
         format.type = stream->codecpar->codec_type;
         if(format.type == AVMEDIA_TYPE_AUDIO){
             format.samplerate = stream->codecpar->sample_rate;
-            format.channels   = stream->codecpar->channels;
+            format.channels   = stream->codecpar->ch_layout.nb_channels;
             info.audio_formats.push_back(format);
         }
         else if(format.type == AVMEDIA_TYPE_VIDEO){
             format.width = stream->codecpar->width;
             format.height= stream->codecpar->height;
-            format.fps = av::Rational(stream->avg_frame_rate).getDouble();
+            format.fps = FFRational(stream->avg_frame_rate).as_double();
             info.video_format = format;
         }
         else if(format.type == AVMEDIA_TYPE_SUBTITLE) {
@@ -462,12 +460,11 @@ int32_t MediaInfoProbe::get_info(const std::string &media, Info &info)
     }
 
     info.bitrate = media_file_->bit_rate;
-    av::Timestamp duration(media_file_->duration,av::TimeBaseQ);
+    FFTimestamp duration(media_file_->duration);
     info.duration = duration.seconds() * 1000;
 
-    av::Timestamp timestamp = av::Timestamp(std::chrono::milliseconds(info.duration-1000));
-    auto timebase_seek = timestamp.timebase().getValue();
-    int64_t pos = av_rescale_q(timestamp.timestamp(),timebase_seek,av::TimeBaseQ);
+    FFTimestamp timestamp = FFTimestamp(std::chrono::milliseconds(info.duration-1000));
+    int64_t pos = timestamp.rescale(FFTimeBaseQ);
 
     ret = av_seek_frame(media_file_,-1,pos,AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_ANY);
     if( ret >= 0){

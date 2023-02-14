@@ -146,12 +146,8 @@ int32_t AudioOutputParticipantFilter::receive(IPin* input_pin,FramePointer frame
 
     if(frame->frame->format != format_input_.format)
         return -2;
-    av::AudioSamples sample(frame->frame);
-    if(sample.raw()->channel_layout == 0)
-        sample.raw()->channel_layout = av_get_default_channel_layout(sample.channelsCount());
-
     std::lock_guard<std::mutex> lock(mutex_);
-    resampler_.push_audio_samples(sample);
+    resampler_.push_audio_samples(frame->frame);
     last_push_pts_ = frame->frame->pts + frame->frame->nb_samples * 1000 / format_input_.samplerate;
     //MP_LOG_DEAULT("audio last_push_pts_:{}",last_push_pts_);
     return 0;
@@ -216,36 +212,39 @@ int32_t AudioOutputParticipantFilter::requare_samples(uint8_t *pcm, int32_t samp
         current_pts_ = last_push_pts_ - samples_has * 1000.0 / format_output_.samplerate;
         set_timeline(current_pts_);
 
-        const auto& audio = resampler_.pull(samples);
+        const auto& sample = resampler_.pull(samples);
+        if(sample == nullptr){
+            return 0;
+        }
+        auto audio = sample->frame;
         if(channel_mapping_.empty()){
             //direct copy to device
-            memcpy(pcm,audio.data(0),audio.size(0));
+            memcpy(pcm,audio->data[0],audio->linesize[0]);
         }
         else{
             //remapp and copy
             if(format_output_.format == AV_SAMPLE_FMT_S16)
-                PcmConvertor::remapping_packeted<int16_t>(audio.data(0),pcm,samples,format_output_.channels,channel_mapping_);
+                PcmConvertor::remapping_packeted<int16_t>(audio->data[0],pcm,samples,format_output_.channels,channel_mapping_);
             else if(format_output_.format == AV_SAMPLE_FMT_S32)
-                PcmConvertor::remapping_packeted<int32_t>(audio.data(0),pcm,samples,format_output_.channels,channel_mapping_);
+                PcmConvertor::remapping_packeted<int32_t>(audio->data[0],pcm,samples,format_output_.channels,channel_mapping_);
             else if(format_output_.format == AV_SAMPLE_FMT_S64)
-                PcmConvertor::remapping_packeted<int64_t>(audio.data(0),pcm,samples,format_output_.channels,channel_mapping_);
+                PcmConvertor::remapping_packeted<int64_t>(audio->data[0],pcm,samples,format_output_.channels,channel_mapping_);
             else if(format_output_.format == AV_SAMPLE_FMT_FLT)
-                PcmConvertor::remapping_packeted<float>(audio.data(0),pcm,samples,format_output_.channels,channel_mapping_);
+                PcmConvertor::remapping_packeted<float>(audio->data[0],pcm,samples,format_output_.channels,channel_mapping_);
             else if(format_output_.format == AV_SAMPLE_FMT_DBL)
-                PcmConvertor::remapping_packeted<double>(audio.data(0),pcm,samples,format_output_.channels,channel_mapping_);
+                PcmConvertor::remapping_packeted<double>(audio->data[0],pcm,samples,format_output_.channels,channel_mapping_);
             else if(format_output_.format == AV_SAMPLE_FMT_U8)
-                PcmConvertor::remapping_packeted<uint8_t>(audio.data(0),pcm,samples,format_output_.channels,channel_mapping_);
+                PcmConvertor::remapping_packeted<uint8_t>(audio->data[0],pcm,samples,format_output_.channels,channel_mapping_);
         }
 
         if(handler_){
-            AVFrame* frame = av_frame_alloc();;
-            frame->channels       = format_output_.channels;
-            frame->channel_layout = av_get_default_channel_layout(frame->channels);
+            AVFrame* frame = av_frame_alloc();
             frame->sample_rate    = format_output_.samplerate;
             frame->format         = format_output_.format;
             frame->nb_samples     = samples;
+            av_channel_layout_default(&frame->ch_layout,format_output_.channels);
             av_frame_get_buffer(frame,1);
-            memcpy(frame->data[0],pcm,audio.size(0));
+            memcpy(frame->data[0],pcm,audio->linesize[0]);
 
             std::shared_ptr<sdp::Frame> sdp_frame = sdp::Frame::make_frame(frame);
             sdp_frame->releaser = sdp_frame_free_frame_releaser;
@@ -255,8 +254,12 @@ int32_t AudioOutputParticipantFilter::requare_samples(uint8_t *pcm, int32_t samp
     }
     else if(sender_eos_){
         if(samples_has > 0){
-            const auto& audio = resampler_.pull(samples_has);
-            memcpy(pcm,audio.data(0),audio.size(0));
+            const auto& sample = resampler_.pull(samples_has);
+            if(sample == nullptr){
+                return 0;
+            }
+            auto audio = sample->frame;
+            memcpy(pcm,audio->data[0],audio->linesize[0]);
         }
 
         switch_status(kStatusEos);

@@ -2,11 +2,11 @@
 #define VAAPIFRAMEMAPPER_H
 #include <inttypes.h>
 #include <map>
-#include "glad/glad.h"
 
 #if defined(__linux__)
-#include "glad/glad_egl.h"
-#include "glad/glad_glx.h"
+#include <glad/egl.h>
+#include <glad/glx.h>
+#include <glad/gles2.h>
 #endif
 
 #if defined (HAS_VAAPI)

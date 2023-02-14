@@ -1,9 +1,9 @@
 #include <fstream>
 #include <iomanip>
 #include <list>
+#include <digest/digestpp.hpp>
 #include "media_cache_filter.h"
 #include "nlohmann/json.hpp"
-#include <list>
 using namespace nlohmann;
 
 namespace sdp {
@@ -25,7 +25,7 @@ public:
     {
         cache_dir_ = cache_dir;
         uri_original_ = uri_key;
-        uri_md5_ = fmt::format("{}", std::hash<std::string>{}(uri_original_));
+        uri_md5_ = digestpp::md5().absorb(uri_original_).hexdigest();
 
         open_mainfest();
         return 0;

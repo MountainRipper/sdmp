@@ -1,9 +1,7 @@
 #include "video_capture_ffmpeg.h"
 #include "core_includes.h"
-#include "avcpp/avutils.h"
 
 namespace sdp {
-
 
 COM_REGISTER_OBJECT(VideoCaptureFFmpegFilter)
 
@@ -83,13 +81,7 @@ int32_t VideoCaptureFFmpegFilter::open_device()
 
 
         for(int index=0; index<format_context->nb_streams; index++){
-#if !USE_CODECPAR
-            FF_DISABLE_DEPRECATION_WARNINGS
-            if(format_context->streams[index]->codecpar ->codec_type==AVMEDIA_TYPE_VIDEO)
-            FF_ENABLE_DEPRECATION_WARNINGS
-#else
             if(format_context->streams[index]->codecpar->codec_type==AVMEDIA_TYPE_VIDEO)
-#endif
             {
                 video_stream_index = index;
 //                m_inputSize = QSize(format_context->streams[index]->codec->width,format_context->streams[index]->codec->height);
@@ -106,11 +98,6 @@ int32_t VideoCaptureFFmpegFilter::open_device()
             break;
         }
 
-#if !USE_CODECPAR
-        FF_DISABLE_DEPRECATION_WARNINGS
-        codec_context=format_context->streams[video_stream_index]->codec;
-        FF_ENABLE_DEPRECATION_WARNINGS
-#else
         codec_context = avcodec_alloc_context3(nullptr);
         if (!codec_context) {
             MP_LOG_DEAULT("Could not allocate AVCodecContext.");
@@ -122,7 +109,7 @@ int32_t VideoCaptureFFmpegFilter::open_device()
             err = -3;
             break;
         }
-#endif
+
         codec=avcodec_find_decoder(codec_context->codec_id);
         if(codec==NULL)
         {

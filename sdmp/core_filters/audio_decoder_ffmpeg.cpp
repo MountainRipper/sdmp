@@ -1,6 +1,4 @@
 #include "audio_decoder_ffmpeg.h"
-#include "avcpp/packet.h"
-
 namespace sdp {
 
 COM_REGISTER_OBJECT(AudioDecoderFFmpegFilter)

@@ -2,10 +2,9 @@
 #include "sdp_factory_implement.h"
 #include "sdp_graph_implement.h"
 #include "sdp_objects.h"
-
-#include "avcpp/av.h"
 #include "sdpi_factory.h"
 
+#include <libavformat/avformat.h>
 #include <nlohmann/json.hpp>
 #include <logger.h>
 
@@ -53,7 +52,8 @@ int32_t sdp::Factory::initialnize_engine(const std::string &root_dir,
                                          const std::string& declear_file,
                                          const FeatureMap& features)
 {
-    av::init();
+    avformat_network_init();
+
     av_log_set_callback([](void*, int level, const char* format, va_list valist)
     {
         if(level > AV_LOG_INFO)

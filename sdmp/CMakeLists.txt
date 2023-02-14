@@ -61,12 +61,12 @@ search_library(va-glx HAS_VAAPI_GLX "")
 #rockchip mpp for linux
 search_library(rockchip_mpp HAS_ROCKCHIP_MPP "")
 #ffmpeg
-search_library("avutil;avutil.57" HAS_AVUTIL "")
-search_library("avdevice;avutil.59" HAS_AVUTIL "")
-search_library("avformat;avformat.59" HAS_AVFORMAT "")
-search_library("avcodec;avcodec.59" HAS_AVCODEC "")
-search_library("swscale;swscale.7" HAS_SW_SCALE "")
-search_library("swresample;swresample.4" HAS_SW_RESAMPLE "")
+search_library("avutil" HAS_AVUTIL "")
+search_library("avdevice" HAS_AVUTIL "")
+search_library("avformat" HAS_AVFORMAT "")
+search_library("avcodec" HAS_AVCODEC "")
+search_library("swscale" HAS_SW_SCALE "")
+search_library("swresample" HAS_SW_RESAMPLE "")
 #libyuv
 search_library(yuv HAS_LIBYUV "")
 #luajit
@@ -80,9 +80,7 @@ message(STATUS "INFO: LINK LIBRARIES:${SEARCHED_LIBS}")
 file( GLOB SOURCE_INTERFACE interface/*.h)
 
 file( GLOB SOURCE_DEPS core_deps/*.cpp core_deps/*.c core_deps/*.h)
-file( GLOB SOURCE_AVCPP core_deps/avcpp/*.cpp core_deps/avcpp/*.c core_deps/avcpp/*.h)
 file( GLOB SOURCE_SDL_MIXER core_deps/sdl_mixer/*.cpp core_deps/sdl_mixer/*.c core_deps/sdl_mixer/*.h)
-file( GLOB SOURCE_GLAD core_deps/glad/*.cpp core_deps/glad/*.c core_deps/glad/*.h)
 
 file( GLOB SOURCE_CORE core/*.cpp core/*.c core/*.h)
 file( GLOB SOURCE_CORE_FILTERS core_filters/*.cpp core_filters/*.c core_filters/*.h)
@@ -94,7 +92,7 @@ foreach(dir ${dirs})
   #message(STATUS "dir='${dir}'")
 endforeach()
 
-add_library(sdmp STATIC
+add_library(sdmp SHARED
     ${SOURCE_INTERFACE}
     ${SOURCE_CORE}
     ${SOURCE_SYSTEM}
@@ -102,9 +100,7 @@ add_library(sdmp STATIC
     ${SOURCE_CORE_FILTERS_INTERNAL}
     ${SOURCE_CORE_STUBS}
     ${SOURCE_DEPS}
-    ${SOURCE_AVCPP}
     ${SOURCE_SDL_MIXER}
-    ${SOURCE_GLAD}
     ${EXTERNAL_SOURCE}
 )
 target_include_directories(sdmp PUBLIC ./interface ./interface/core_stubs)

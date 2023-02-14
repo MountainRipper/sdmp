@@ -52,6 +52,7 @@ private:
     int32_t     samplerate_ = 0;
     int32_t     channels_   = 0;
     ma_format   format_     = ma_format_s16;
+    ma_log      ma_log_;
     int32_t     frame_size_ = 0;
     AVCodecParameters av_params_;
 };

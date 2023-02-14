@@ -2,7 +2,7 @@
 #define VAAPIHELPER_H
 
 #if defined (HAS_VAAPI)
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <va/va.h>
 struct VaGlxSurface{
     void*   va_display = nullptr;

@@ -61,7 +61,7 @@ int32_t sdp::AudioEncoderFFmpegFilter::receive(IPin *input_pin, FramePointer fra
 
     while(resampler_.samples() >= codec_context->frame_size){
         auto audio = resampler_.pull(codec_context->frame_size);
-        encode_a_frame(audio.raw());
+        encode_a_frame(audio->frame);
     }
     return 0;
 }

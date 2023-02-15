@@ -92,7 +92,7 @@ foreach(dir ${dirs})
   #message(STATUS "dir='${dir}'")
 endforeach()
 
-add_library(sdmp SHARED
+add_library(sdmp STATIC
     ${SOURCE_INTERFACE}
     ${SOURCE_CORE}
     ${SOURCE_SYSTEM}

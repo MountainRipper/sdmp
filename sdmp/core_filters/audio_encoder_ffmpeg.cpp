@@ -1,7 +1,7 @@
 #include "audio_encoder_ffmpeg.h"
 
 
-namespace sdp{
+namespace mr::sdmp{
 
 
 COM_REGISTER_OBJECT(AudioEncoderFFmpegFilter)
@@ -17,7 +17,7 @@ int32_t AudioEncoderFFmpegFilter::initialize(IGraph *graph, const sol::table &co
     return GeneralFilter::initialize(graph,config);
 }
 
-int32_t sdp::AudioEncoderFFmpegFilter::process_command(const std::string &command, const NativeValue &param)
+int32_t sdmp::AudioEncoderFFmpegFilter::process_command(const std::string &command, const Value &param)
 {
     GeneralFilter::process_command(command,param);
     if(command == kGraphCommandPause){
@@ -31,7 +31,7 @@ int32_t sdp::AudioEncoderFFmpegFilter::process_command(const std::string &comman
     return 0;
 }
 
-int32_t sdp::AudioEncoderFFmpegFilter::connect_match_input_format(IPin *sender_pin,IPin *input_pin)
+int32_t sdmp::AudioEncoderFFmpegFilter::connect_match_input_format(IPin *sender_pin,IPin *input_pin)
 {
     const auto& formats = sender_pin->formats();
     int index = -1;
@@ -46,17 +46,17 @@ int32_t sdp::AudioEncoderFFmpegFilter::connect_match_input_format(IPin *sender_p
     return -1;
 }
 
-int32_t sdp::AudioEncoderFFmpegFilter::connect_chose_output_format(IPin *output_pin, int32_t index)
+int32_t sdmp::AudioEncoderFFmpegFilter::connect_chose_output_format(IPin *output_pin, int32_t index)
 {
     (void)output_pin;
     (void)index;
     return 0;
 }
 
-int32_t sdp::AudioEncoderFFmpegFilter::receive(IPin *input_pin, FramePointer frame)
+int32_t sdmp::AudioEncoderFFmpegFilter::receive(IPin *input_pin, FramePointer frame)
 {
     auto av_frame = frame->frame;
-    resampler_.push_audio_samples(av_frame->sample_rate,av_frame->channels,
+    resampler_.push_audio_samples(av_frame->sample_rate,av_frame->ch_layout.nb_channels,
                           (AVSampleFormat)av_frame->format,av_frame->nb_samples,av_frame->data);
 
     while(resampler_.samples() >= codec_context->frame_size){
@@ -66,7 +66,7 @@ int32_t sdp::AudioEncoderFFmpegFilter::receive(IPin *input_pin, FramePointer fra
     return 0;
 }
 
-int32_t sdp::AudioEncoderFFmpegFilter::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
+int32_t sdmp::AudioEncoderFFmpegFilter::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
 {    
     return duration;
 }
@@ -90,9 +90,8 @@ int32_t AudioEncoderFFmpegFilter::open_encoder(const Format& format)
         return -1;
 
     codec_context = avcodec_alloc_context3(codec);
+    ff_set_context_channels(codec_context,format.channels);
     codec_context->sample_rate = format.samplerate;
-    codec_context->channels = format.channels;
-    codec_context->channel_layout = av_get_default_channel_layout(format.channels);
     codec_context->time_base.num = 1;
     codec_context->time_base.den = format.samplerate;
     codec_context->bit_rate = properties_["bitrate"];
@@ -134,7 +133,7 @@ int32_t AudioEncoderFFmpegFilter::open_encoder(const Format& format)
     format_out_.codec = codec->id;
     format_out_.format = codec_context->sample_fmt;
     format_out_.samplerate = codec_context->sample_rate;
-    format_out_.channels = codec_context->channels;
+    format_out_.channels = codec_context->ch_layout.nb_channels;
     format_out_.bitrate = int64_t(properties_["bitrate"]);
     format_out_.codec_parameters = parameters_;
     format_out_.codec_context = codec_context;

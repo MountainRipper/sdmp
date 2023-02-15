@@ -1,5 +1,5 @@
 #include "sdp_audio_resampler.h"
-namespace sdp {
+namespace mr::sdmp {
 
 
 SdpAudioResampler::SdpAudioResampler(void)
@@ -79,14 +79,14 @@ int32_t SdpAudioResampler::push_audio_samples(const AVFrame *sample)
         av_channel_layout_default(&channel_layout_in_,channels_in_);
         resampler_ = swr_alloc();
         ret = swr_alloc_set_opts2(&resampler_,
-                            &channel_layout_, // out_ch_layout
+                            &channel_layout_,   // out_ch_layout
                             format_,            // out_sample_fmt
-                            samplerate_,                // out_sample_rate
-                            &channel_layout_in_, // in_ch_layout
-                            format_in_,   // in_sample_fmt
-                            samplerate_in_,                // in_sample_rate
-                            0,                    // log_offset
-                            NULL);                // log_ctx
+                            samplerate_,        // out_sample_rate
+                            &channel_layout_in_,// in_ch_layout
+                            format_in_,         // in_sample_fmt
+                            samplerate_in_,     // in_sample_rate
+                            0,                  // log_offset
+                            NULL);              // log_ctx
         if(ret < 0){
             return ret;
         }

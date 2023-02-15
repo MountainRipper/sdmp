@@ -3,17 +3,15 @@
 #include <string>
 #include <set>
 #include <sol_lua_operator.h>
-#include "sdpi_pin.h"
-#include "sdpi_basic_declears.h"
 #include <sdpi_filter.h>
 
 using namespace sol;
-namespace sdp {
+namespace mr::sdmp {
     //base class of filters
     class GeneralFilterBase : public IFilter{
         friend class GeneralPin;
     public:
-        virtual ~GeneralFilterBase(){}
+        virtual ~GeneralFilterBase();
 
         COM_IMP_METHOD( initialize(IGraph* graph,const sol::table & config) )
 
@@ -28,14 +26,14 @@ namespace sdp {
         COM_IMP_METHOD_RET( PinPointer, get_pin(PinDirection direction, int32_t index) )
         COM_IMP_METHOD_RET( PinVector&, get_pins(PinDirection direction) )
 
-        COM_IMP_METHOD( get_property(const std::string& property,sol::NativeValue& value) )
-        COM_IMP_METHOD( set_property(const std::string& property, const sol::NativeValue& value, bool from_script = true) )
+        COM_IMP_METHOD( get_property(const std::string& property,Value& value) )
+        COM_IMP_METHOD( set_property(const std::string& property, const Value& value, bool from_script = true) )
         COM_IMP_METHOD( set_property_lua(const std::string& property,const sol::lua_value& value) )
-        COM_IMP_METHOD_RET( sol::NativeValue, call_method(const std::string& method, const sol::NativeValue& param) )
+        COM_IMP_METHOD_RET( Value, call_method(const std::string& method, const Value& param) )
         COM_IMP_METHOD_RET( sol::lua_value, call_method_lua(const std::string& method,const sol::lua_value& param) )
 
         COM_IMP_METHOD( master_loop(bool before_after) )
-        COM_IMP_METHOD( process_command(const std::string& command,const sol::NativeValue& param) )
+        COM_IMP_METHOD( process_command(const std::string& command,const Value& param) )
 
         COM_IMP_METHOD( connect_constraint_output_format(IPin* output_pin, const std::vector<Format> &format) )
         COM_IMP_METHOD( connect_before_match(IFilter *sender_filter) )
@@ -51,9 +49,6 @@ namespace sdp {
 //        virtual int32_t connect_chose_output_format(IPin* output_pin, int32_t index) = 0;
 //        virtual int32_t receive(IPin* input_pin,FramePointer frame) = 0;
 //        virtual int32_t requare(int32_t duration,const std::vector<PinIndex>& output_pins) = 0;
-
-        virtual int32_t STDMETHODCALLTYPE FinalConstruct(){return 0;}
-        virtual int32_t STDMETHODCALLTYPE FinalRelease();
     protected:
         IGraph*         graph_ = nullptr;
         sol::table      filter_state_;
@@ -68,7 +63,7 @@ namespace sdp {
         PinVector output_pins_;
     };
 
-    typedef std::map<std::string,sol::NativeValue> SolPropertiesMap;
+    typedef std::map<std::string,Value> SolPropertiesMap;
 
 }
 #endif // SDP_FILTER_BASE_H

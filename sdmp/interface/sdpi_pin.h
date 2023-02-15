@@ -1,8 +1,8 @@
 #ifndef SDPI_PIN_H_
 #define SDPI_PIN_H_
-#include "sdpi_basic_declears.h"
+#include "sdpi_objects.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_INTERFACE("63c1e0b6-a8cb-11eb-8e9a-ef4d50d48ad3",IPin)
     virtual int32_t initialize(FilterPointer filter, const std::vector<Format>& formats, PinDirection direction) = 0;

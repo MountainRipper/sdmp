@@ -2,7 +2,7 @@
 #include "sdp_general_pin.h"
 
 #include <sstream>
-namespace sdp {
+namespace mr::sdmp {
 
 
 int32_t GeneralFilter::initialize(IGraph *graph, const sol::table &config)
@@ -26,16 +26,16 @@ GeneralFilter::GeneralFilter(const TGUID & filter_clsid)
     assert(declear != nullptr);
     declears_ = *declear;
 
-    properties_[kFilterPropertyStatus]= NativeValue((double)kStatusStoped);
+    properties_[kFilterPropertyStatus]= Value((double)kStatusStoped);
     for(auto &item : declears_.properties){
-        switch (item.type) {
-            case kPorpertyNumber: properties_[item.name] = NativeValue(std::any_cast<double>(item.value));break;
-            case kPorpertyString: properties_[item.name] = NativeValue(std::any_cast<std::string>(item.value));break;
-            case kPorpertyBool: properties_[item.name] = NativeValue(std::any_cast<bool>(item.value));break;
-            case kPorpertyNumberArray: properties_[item.name] = NativeValue(std::any_cast<std::vector<double>>(item.value));break;
-            case kPorpertyStringArray: properties_[item.name] = NativeValue(std::any_cast<std::vector<std::string>>(item.value));break;
-            case kPorpertyPointer: properties_[item.name] = NativeValue(std::any_cast<void*>(item.value));break;
-            case kPorpertyLuaFunction: properties_[item.name] = NativeValue(sol::function());break;
+        switch (item.type_) {
+            case kPorpertyNumber: properties_[item.name_] = Value(std::any_cast<double>(item.value_));break;
+            case kPorpertyString: properties_[item.name_] = Value(std::any_cast<std::string>(item.value_));break;
+            case kPorpertyBool: properties_[item.name_] = Value(std::any_cast<bool>(item.value_));break;
+            case kPorpertyNumberArray: properties_[item.name_] = Value(std::any_cast<std::vector<double>>(item.value_));break;
+            case kPorpertyStringArray: properties_[item.name_] = Value(std::any_cast<std::vector<std::string>>(item.value_));break;
+            case kPorpertyPointer: properties_[item.name_] = Value(std::any_cast<void*>(item.value_));break;
+            case kPorpertyLuaFunction: properties_[item.name_] = Value(sol::function());break;
             case kPorpertyNone:
                 continue;
         }
@@ -47,7 +47,7 @@ GeneralFilter::~GeneralFilter()
     MP_INFO("### GeneralFilter Release: {} {} {}",module_,id_,(void*)this);
 }
 
-int32_t GeneralFilter::process_command(const std::string &command, const NativeValue& param)
+int32_t GeneralFilter::process_command(const std::string &command, const Value& param)
 {
     auto status = command_cause_status(command);
     if(status != kStatusNone){
@@ -56,7 +56,7 @@ int32_t GeneralFilter::process_command(const std::string &command, const NativeV
     return GeneralFilterBase::process_command(command,param);
 }
 
-int32_t GeneralFilter::get_property(const std::string &property, NativeValue &value)
+int32_t GeneralFilter::get_property(const std::string &property, Value &value)
 {
     if(property == kFilterPropertyStatus){
         value = (int64_t)status_;
@@ -72,7 +72,7 @@ int32_t GeneralFilter::get_property(const std::string &property, NativeValue &va
     return -1;
 }
 
-int32_t GeneralFilter::set_property(const std::string &property, const NativeValue &value, bool from_script)
+int32_t GeneralFilter::set_property(const std::string &property, const Value &value, bool from_script)
 {
     if(property == kFilterPropertyStatus){
         int64_t v = value;
@@ -89,16 +89,16 @@ int32_t GeneralFilter::set_property(const std::string &property, const NativeVal
         MP_ERROR("Filter {} property {} type not match",id_.c_str(),property.c_str());
         return -1;
     }
-    else if(property_value.read_only_ && from_script){
+    else if(property_value.readonly_ && from_script){
         MP_ERROR("Filter {} property {} is read only,script not allowed overwrite",id_.c_str(),property.c_str());
         return -2;
     }
     else{
-        property_value.set_value(value);
+        property_value = value;
         if(!from_script)
             put_property_to_script(property,value);
 
-        MP_LOG_DEAULT("Filter {} set property {} to {}",id_.c_str(),property.c_str(),property_value.printable().c_str());
+        MP_LOG_DEAULT("Filter {} set property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(property_value));
         property_changed(property,property_value);
         //already changed
         property_value.value_changed_ = false;
@@ -113,7 +113,7 @@ int32_t GeneralFilter::master_loop(bool before_after)
     //put async properties, from set_property_async()
     for(auto& item : properties_async_request_) {
         if(item.prop == kFilterPropertyStatus) {
-            status_ = GraphStatus(item.value.as_int64());
+            status_ = GraphStatus((int64_t)item.value);
         }
         set_property(item.prop,item.value);
     }
@@ -129,12 +129,12 @@ int32_t GeneralFilter::master_loop(bool before_after)
     return 0;
 }
 
-int32_t GeneralFilter::property_changed(const std::string &property, NativeValue &value)
+int32_t GeneralFilter::property_changed(const std::string &property, Value &value)
 {    
     return 0;
 }
 
-int32_t GeneralFilter::set_property_async(const std::string &property, const NativeValue &value, const NativeValue &call_param)
+int32_t GeneralFilter::set_property_async(const std::string &property, const Value &value, const Value &call_param)
 {
     std::lock_guard<std::mutex> lock(async_mutex_);
     PropertyAsyncRequest request = {property,value,call_param};
@@ -142,23 +142,23 @@ int32_t GeneralFilter::set_property_async(const std::string &property, const Nat
     return 0;
 }
 
-int32_t GeneralFilter::put_property_to_script(const std::string &property,const NativeValue &value)
+int32_t GeneralFilter::put_property_to_script(const std::string &property,const Value &value)
 {
-    if(value.type_ == kNumber)
+    if(value.type_ == kPorpertyNumber)
         filter_state_[property] = ANY2F64(value.value_);
-    if(value.type_ == kBool)
+    if(value.type_ == kPorpertyBool)
         filter_state_[property] = ANY2BOOL(value.value_);
-    if(value.type_ == kString)
+    if(value.type_ == kPorpertyString)
         filter_state_[property] = ANY2STR(value.value_);
-    if(value.type_ == sol::kNumberArray)
+    if(value.type_ == kPorpertyNumberArray)
         filter_state_[property] = ANY2F64ARR(value.value_);
-    if(value.type_ == sol::kStringArray)
+    if(value.type_ == kPorpertyStringArray)
         filter_state_[property] = ANY2STRARR(value.value_);
-    if(value.type_ == kPointer)
+    if(value.type_ == kPorpertyPointer)
         filter_state_[property] = ANY2PTR(value.value_);
-    if(value.type_ == kFunction)
+    if(value.type_ == kPorpertyLuaFunction)
         filter_state_[property] = ANY2LUAFUN(value.value_);
-    if(value.type_ == kTable)
+    if(value.type_ == kPorpertyLuaTable)
         filter_state_[property] = ANY2LUATABLE(value.value_);
     return 0;
 }
@@ -179,16 +179,16 @@ int32_t GeneralFilter::bind_filter_to_script()
 
     for(auto& item : properties_){
         std::string property = item.first;
-        NativeValue& symbol = item.second;
+        Value& symbol = item.second;
         auto propert_opt = filter_state_[property];
         if(propert_opt.valid()){
             sol::lua_value value = filter_state_[property];
-            symbol = value;
-            MP_LOG_DEAULT("Filter {} read pre-defined property {} to {}",id_.c_str(),property.c_str(),symbol.printable().c_str());
+            symbol = LuaOperator::lua_value_to_any(value);
+            MP_LOG_DEAULT("Filter {} read pre-defined property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(symbol));
         }
         else{
             put_property_to_script(property,symbol);
-            MP_LOG_DEAULT("Filter {} create un-defined property {} to {}",id_.c_str(),property.c_str(),symbol.printable().c_str());
+            MP_LOG_DEAULT("Filter {} create un-defined property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(symbol));
         }
     }
     return 0;
@@ -208,7 +208,7 @@ int32_t GeneralFilter::bind_pins_to_script(PinDirection direction)
         int format_index = 1;
         for(auto& format : formats){
             sol::table format_table = vm.create_table();
-            sdp::FormatUtils::to_lua_table(format,format_table);
+            sdmp::FormatUtils::to_lua_table(format,format_table);
             formats_table[format_index++] = format_table;
             type_name = format_table.get_or("type_name",std::string());
         }
@@ -258,7 +258,7 @@ int32_t GeneralFilter::switch_status(GraphStatus status)
 {
     if(status == status_)
         return 0;
-    NativeValue value((double)status);
+    Value value((double)status);
     if(graph_->in_master_loop())
         set_property(kFilterPropertyStatus,value);
     else

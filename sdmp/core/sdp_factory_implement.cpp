@@ -1,16 +1,16 @@
 #include <filesystem>
 #include "sdp_factory_implement.h"
 #include "sdp_graph_implement.h"
-#include "sdp_objects.h"
+#include "sdpi_basic_types.h"
 #include "sdpi_factory.h"
 
 #include <libavformat/avformat.h>
 #include <nlohmann/json.hpp>
 #include <logger.h>
 
-namespace sdp {
+namespace mr::sdmp {
 
-std::shared_ptr<FactoryImplement> sdp::Factory::factory_;
+std::shared_ptr<FactoryImplement> sdmp::Factory::factory_;
 
 #define DUMP_META(CLS) \
     extern int32_t g_register_filter_##CLS();\
@@ -39,7 +39,7 @@ COM_MODULE_BEGINE("5b8aab92-a452-11ed-bcb9-9b38750c5c76",SDP_INTERNAL_COM_MODULE
     COM_MODULE_OBJECT_ENTRY(MediaMuxerFFmpegFilter)
 COM_MODULE_END()
 
-int32_t sdp::Factory::initialize_factory()
+int32_t sdmp::Factory::initialize_factory()
 {
     mp::Logger::set_level(SDMP_LOG_LEVEL);
     //spdlog::set_level(spdlog::level::trace);
@@ -48,7 +48,13 @@ int32_t sdp::Factory::initialize_factory()
     return 0;
 }
 
-int32_t sdp::Factory::initialnize_engine(const std::string &root_dir,
+int32_t Factory::deinitialize()
+{
+    factory_ = nullptr;
+    return 0;
+}
+
+int32_t sdmp::Factory::initialnize_engine(const std::string &root_dir,
                                          const std::string& declear_file,
                                          const FeatureMap& features)
 {
@@ -89,16 +95,10 @@ std::shared_ptr<IGraph> Factory::create_graph_from(const std::string &declear_fi
     return std::shared_ptr<IGraph>(graph);
 }
 
+
 ISdpStub *Factory::create_stub(const std::string &class_name)
 {
-    if(class_name == "VideoRenderStubOpenGL"){
-        //return static_cast<ISdpStub*>(new VideoRenderStubOpenGL());
-    }
-# if defined(__linux__)
-    if(class_name == "VideoRenderStubKms"){
-        return static_cast<ISdpStub*>(new VideoRenderStubKms());
-    }
-#endif
+
     return nullptr;
 }
 
@@ -225,43 +225,43 @@ int32_t FactoryImplement::enum_module_filters(tinycom::IComModule *module)
 
                 auto &props = filter_meta["properties"];
                 for(auto& item : props){
-                    FilterProperty prop;
-                    prop.name = item["name"];
+                    Value prop;
+                    prop.name_ = item["name"];
                     std::string type = item["type"];
                     if(type == "number"){
-                        prop.type = PropertyType::kPorpertyNumber;
-                        prop.value = item["value"].get<double>();
+                        prop.type_ = ValueType::kPorpertyNumber;
+                        prop.value_ = item["value"].get<double>();
                     }
                     else if(type == "string"){
-                        prop.type = PropertyType::kPorpertyString;
-                        prop.value = item["value"].get<std::string>();
+                        prop.type_ = ValueType::kPorpertyString;
+                        prop.value_ = item["value"].get<std::string>();
                     }
                     else if(type == "bool"){
-                        prop.type = PropertyType::kPorpertyBool;
-                        prop.value = item["value"].get<bool>();
+                        prop.type_ = ValueType::kPorpertyBool;
+                        prop.value_ = item["value"].get<bool>();
                     }
                     else if(type == "number_array"){
-                        prop.type = PropertyType::kPorpertyNumberArray;
-                        prop.value = item["value"].get<std::vector<double>>();
+                        prop.type_ = ValueType::kPorpertyNumberArray;
+                        prop.value_ = item["value"].get<std::vector<double>>();
                     }
                     else if(type == "string_array"){
-                        prop.type = PropertyType::kPorpertyStringArray;
-                        prop.value = item["value"].get<std::vector<std::string>>();;
+                        prop.type_ = ValueType::kPorpertyStringArray;
+                        prop.value_ = item["value"].get<std::vector<std::string>>();;
                     }
                     else if(type == "pointer"){
-                        prop.type = PropertyType::kPorpertyPointer;
-                        prop.value = item["value"].get<uint64_t>();
+                        prop.type_ = ValueType::kPorpertyPointer;
+                        prop.value_ = item["value"].get<uint64_t>();
                     }
                     else if(type == "lua_function"){
-                        prop.type = PropertyType::kPorpertyLuaFunction;
-                        prop.value = sol::function();
+                        prop.type_ = ValueType::kPorpertyLuaFunction;
+                        prop.value_ = sol::function();
                     }
                     else if(type == "lua_table"){
-                        prop.type = PropertyType::kPorpertyLuaTable;
-                        prop.value = sol::table();
+                        prop.type_ = ValueType::kPorpertyLuaTable;
+                        prop.value_ = sol::table();
                     }
                     else{
-                        MP_WARN("unknown property type: {}#{}",declear.module,prop.name);
+                        MP_WARN("unknown property type: {}#{}",declear.module,prop.name_);
                         continue;
                     }
                     declear.properties.push_back(prop);

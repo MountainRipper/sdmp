@@ -5,7 +5,7 @@ extern "C"
 #include "sdl_mixer/SDL_mixer.h"
 }
 
-namespace sdp {
+namespace mr::sdmp {
 
 AudioMixerInputPin::AudioMixerInputPin()
 {
@@ -86,7 +86,7 @@ int32_t AudioMixerInputPin::requare(void *pcm, int32_t frames)
 
     if(pcm_mixer_src_size_ < bytes){
         pcm_mixer_src_size_ = bytes + 128;
-        pcm_mixer_src_ = sdp::BufferUtils::create_shared_buffer(pcm_mixer_src_size_);
+        pcm_mixer_src_ = sdmp::BufferUtils::create_shared_buffer(pcm_mixer_src_size_);
     }
     std::lock_guard<std::mutex> lock(sender_mutex_);
     for(auto pin : sender_pins_){
@@ -98,7 +98,7 @@ int32_t AudioMixerInputPin::requare(void *pcm, int32_t frames)
     return 0;
 }
 
-int32_t sdp::AudioMixerInputPin::receive(FramePointer frame)
+int32_t sdmp::AudioMixerInputPin::receive(FramePointer frame)
 {
 //    if(frame == nullptr)
 //        return -1;

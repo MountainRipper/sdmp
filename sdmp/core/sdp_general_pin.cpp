@@ -2,7 +2,7 @@
 #include <sdpi_filter.h>
 #include <logger.h>
 
-using namespace sdp;
+using namespace mr::sdmp;
 
 COM_REGISTER_OBJECT(GeneralPinObject)
 

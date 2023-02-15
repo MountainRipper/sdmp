@@ -149,5 +149,11 @@ private:
     FFRational rational_;
 };
 
+inline void ff_set_frame_channels(AVFrame* frame,int channels){
+    av_channel_layout_default(&frame->ch_layout,channels);
+}
 
+inline void ff_set_context_channels(AVCodecContext* context,int channels){
+    av_channel_layout_default(&context->ch_layout,channels);
+}
 #endif // FFMPEG_H

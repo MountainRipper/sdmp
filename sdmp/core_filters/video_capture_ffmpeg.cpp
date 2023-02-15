@@ -1,7 +1,7 @@
 #include "video_capture_ffmpeg.h"
 #include "core_includes.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(VideoCaptureFFmpegFilter)
 
@@ -16,7 +16,7 @@ int32_t VideoCaptureFFmpegFilter::initialize(IGraph *graph, const sol::table &co
     return 0;
 }
 
-int32_t VideoCaptureFFmpegFilter::process_command(const std::string &command, const NativeValue& param)
+int32_t VideoCaptureFFmpegFilter::process_command(const std::string &command, const Value& param)
 {
     return GeneralFilter::process_command(command,param);
 }
@@ -45,7 +45,7 @@ int32_t VideoCaptureFFmpegFilter::requare(int32_t duration,const std::vector<Pin
     return 0;
 }
 
-int32_t VideoCaptureFFmpegFilter::property_changed(const std::string& name,NativeValue& symbol)
+int32_t VideoCaptureFFmpegFilter::property_changed(const std::string& name,Value& symbol)
 {
     return 0;
 }

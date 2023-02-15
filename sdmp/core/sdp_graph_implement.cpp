@@ -28,7 +28,7 @@ int my_exception_handler(lua_State* L, sol::optional<const std::exception&> mayb
     return sol::stack::push(L, description);
 }
 
-namespace sdp {
+namespace mr::sdmp {
 
 GraphImplement::GraphImplement(IGraphEvent *event)
     :event_(event)
@@ -123,12 +123,12 @@ int32_t GraphImplement::in_master_loop()
     return std::this_thread::get_id() == master_thread_.get_id();
 }
 
-int32_t sdp::GraphImplement::destory()
+int32_t sdmp::GraphImplement::destory()
 {
     return 0;
 }
 
-std::shared_ptr<sol::state> sdp::GraphImplement::vm()
+std::shared_ptr<sol::state> sdmp::GraphImplement::vm()
 {
     return graph_vm_;
 }
@@ -263,7 +263,6 @@ int32_t GraphImplement::create_filters()
     sol::table filters = filters_opt.value();
 
     int32_t ret = 0;
-    //for(int index = 1; index <= count; index++){
     for(auto item : filters){
         if(item.first.get_type() != sol::type::string){
             MP_ERROR("Check filter config failed: 'filters' key not all string");
@@ -291,7 +290,7 @@ int32_t GraphImplement::check_graph_connectings()
     return 0;
 }
 
-int32_t GraphImplement::do_flow_command(const std::string &command, const NativeValue &param)
+int32_t GraphImplement::do_flow_command(const std::string &command, const Value &param)
 {
     const auto& ret = filters_flow_.process_command(command, param);
     if(ret == 0) {
@@ -307,7 +306,7 @@ int32_t GraphImplement::do_flow_command(const std::string &command, const Native
 
 int32_t GraphImplement::switch_status(GraphStatus status)
 {
-    MP_LOG_DEAULT("==== GraphImplement::switch_status {}", status);
+    MP_LOG_DEAULT("==== GraphImplement::switch_status {}", (int)status);
     if(status_ != status){
         status_ = status;
         lua_status_function_(graph_context_,status);
@@ -414,7 +413,7 @@ int32_t GraphImplement::do_connect(IFilter *sender, IFilter *receiver, int32_t s
             if(format_index >= 0){
                 sender->connect_chose_output_format(sender_pin.Get(),format_index);
                 sender->connect(sender_pin.Get(),receive_pin.Get());
-                auto str_format = sdp::FormatUtils::to_printable(sender_formats[format_index]);
+                auto str_format = sdmp::FormatUtils::printable(sender_formats[format_index]);
                 MP_LOG_DEAULT("SUCCESSED: connect filter done: [{}].",str_format.c_str());
                 connected_count++;
                 //receiver connected, match next sender pin
@@ -492,7 +491,7 @@ int32_t GraphImplement::remove_filter(const std::string &id)
 }
 
 
-int32_t GraphImplement::set_property(const std::string &property, NativeValue &value)
+int32_t GraphImplement::set_property(const std::string &property, Value &value)
 {
     if(property == kGraphPropertyCurrentPts){
         //use timeline decision , not need it anymore.
@@ -505,7 +504,7 @@ int32_t GraphImplement::set_property(const std::string &property, NativeValue &v
     return 0;
 }
 
-int32_t GraphImplement::get_property(const std::string &property, NativeValue &value)
+int32_t GraphImplement::get_property(const std::string &property, Value &value)
 {
     if(property == kGraphPropertyCurrentPts){
         current_pts_ = filters_flow_.timeline();
@@ -523,7 +522,7 @@ int32_t GraphImplement::get_property(const std::string &property, NativeValue &v
     return 0;
 }
 
-int32_t GraphHelper::append_video_observer(sdp::IGraph *graph, const std::string& video_output_filter, IFilterExtentionVideoOutputProxy::Observer* observer, bool append_remove, ComPointer<IFilterExtentionVideoOutputProxy>& filter_used){
+int32_t GraphHelper::append_video_observer(sdmp::IGraph *graph, const std::string& video_output_filter, IFilterExtentionVideoOutputProxy::Observer* observer, bool append_remove, ComPointer<IFilterExtentionVideoOutputProxy>& filter_used){
     filter_used = nullptr;
     if(graph == nullptr || observer == nullptr)
         return -1;
@@ -572,14 +571,14 @@ FilterPointer GraphHelper::get_filter(IGraph *graph, const std::string &filter_i
     return it->second;
 }
 
-int32_t  GraphHelper::get_filter_property(IGraph* graph, const std::string& filter_id, const std::string& property, sol::NativeValue &value){
+int32_t  GraphHelper::get_filter_property(IGraph* graph, const std::string& filter_id, const std::string& property, Value &value){
     FilterPointer filter = get_filter(graph,filter_id);
     if(!filter)
         return -1;
     return filter->get_property(property,value);
 }
 
-int32_t GraphHelper::set_filter_property(IGraph *graph, const std::string &filter_id, const std::string &property, NativeValue &value)
+int32_t GraphHelper::set_filter_property(IGraph *graph, const std::string &filter_id, const std::string &property, Value &value)
 {
     FilterPointer filter = get_filter(graph,filter_id);
     if(!filter)

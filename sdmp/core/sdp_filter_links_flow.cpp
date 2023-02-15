@@ -3,7 +3,7 @@
 #include "sdp_filter_helper.h"
 #include "sdpi_graph.h"
 #include "logger.h"
-namespace sdp {
+namespace mr::sdmp {
 
 FilterLinksFlow::FilterLinksFlow()
 {
@@ -86,7 +86,7 @@ int32_t FilterLinksFlow::request_flow_stream_shot()
         filter->master_loop(true);
     }
 
-    NativeValue value;
+    Value value;
     int32_t eos_tree_count = 0;
     for(auto& tree : render_filter_tree_){
         if(tree.eos){
@@ -252,7 +252,7 @@ int32_t FilterLinksFlow::check_link_eos(std::vector<FilterNode> &link)
 {
     int32_t count = link.size();
     count -= 1;
-    NativeValue value;
+    Value value;
     int32_t eos_count = 0;
     for(int32_t index = 0;index < count;index++){
         FilterPointer filter = link[index].filter;
@@ -273,14 +273,14 @@ int32_t FilterLinksFlow::check_link_eos(std::vector<FilterNode> &link)
 
 int32_t FilterLinksFlow::switch_status(GraphStatus status)
 {
-    NativeValue value(status);
+    Value value(status);
     for(auto filter : activable_filters_){
         filter->set_property(kFilterPropertyStatus,value);
     }
     return 0;
 }
 
-int32_t FilterLinksFlow::process_command(const std::string &command, const NativeValue &param)
+int32_t FilterLinksFlow::process_command(const std::string &command, const Value &param)
 {
     bool forward_direction = true;
     if(command == kGraphCommandSeek || command == kGraphCommandPlay){
@@ -337,7 +337,7 @@ int64_t FilterLinksFlow::timeline(bool in_linear)
 
 int32_t FilterLinksFlow::disable_inactivable_filters()
 {
-    NativeValue value(kStatusStoped);
+    Value value(kStatusStoped);
     for(auto filter : inactivable_filters_){
         filter->set_property(kFilterPropertyStatus,value);
     }

@@ -4,7 +4,7 @@
 #include <sdp_general_filter_base.h>
 #include "sdp_timeline_support.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 struct FilterNode{
     FilterPointer filter;
@@ -26,7 +26,7 @@ public:
     int32_t create_from_graph(IGraph* graph);
     int32_t request_flow_stream_shot();
     int32_t switch_status(GraphStatus status);
-    int32_t process_command(const std::string &command,const NativeValue& param);
+    int32_t process_command(const std::string &command,const Value& param);
     int64_t timeline(bool in_linear = true);
 private:
     int32_t push_activale_link(std::vector<FilterPointer> &link);

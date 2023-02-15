@@ -3,7 +3,7 @@
 
 #include "sdp_general_filter.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(
 "5b4c21c8-a20f-11ed-a8f0-0fe7bf0e7c84",
@@ -44,7 +44,7 @@ public:
     int32_t connect_chose_output_format(IPin *output_pin, int32_t index);
     int32_t receive(IPin *input_pin, FramePointer frame);
     int32_t requare(int32_t duration, const std::vector<PinIndex> &output_pins);
-    int32_t process_command(const std::string& command,const sol::NativeValue& param);
+    int32_t process_command(const std::string& command,const Value& param);
     // IFilterHandlerDataGrabber interface
 public:
     int32_t grabber_get_format(const std::string &id, const Format *format);

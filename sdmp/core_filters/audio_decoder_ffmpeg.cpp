@@ -1,5 +1,5 @@
 #include "audio_decoder_ffmpeg.h"
-namespace sdp {
+namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(AudioDecoderFFmpegFilter)
 
@@ -21,7 +21,7 @@ int32_t AudioDecoderFFmpegFilter::initialize(IGraph *graph, const sol::table &co
     return GeneralFilter::initialize(graph,config);
 }
 
-int32_t AudioDecoderFFmpegFilter::process_command(const std::string &command, const NativeValue& param)
+int32_t AudioDecoderFFmpegFilter::process_command(const std::string &command, const Value& param)
 {
     if(command == kGraphCommandSeek || command == kGraphCommandStop){
         std::lock_guard<std::mutex> lock(decoder_mutex_);
@@ -77,11 +77,11 @@ int32_t AudioDecoderFFmpegFilter::receive(IPin* input_pin,FramePointer frame)
 
             AVFrame* packetd_frame = av_frame_alloc();
             packetd_frame->sample_rate = format_out_.samplerate;
-            packetd_frame->channels = format_out_.channels;
             packetd_frame->format = (AVSampleFormat)format_out_.format;
             packetd_frame->pts = pcm_frame->pts;
+            ff_set_frame_channels(packetd_frame,format_out_.channels);
             av_samples_alloc(packetd_frame->data,packetd_frame->linesize,
-                             pcm_frame->channels,pcm_frame->nb_samples,(AVSampleFormat)packetd_frame->format,1);
+                             pcm_frame->ch_layout.nb_channels,pcm_frame->nb_samples,(AVSampleFormat)packetd_frame->format,1);
 
             packetd_frame->nb_samples = swr_convert(swr_to_packeted_,
                         packetd_frame->data,pcm_frame->nb_samples,
@@ -116,7 +116,7 @@ int32_t AudioDecoderFFmpegFilter::requare(int32_t duration,const std::vector<Pin
     return duration;
 }
 
-int32_t AudioDecoderFFmpegFilter::property_changed(const std::string& name,NativeValue& symbol)
+int32_t AudioDecoderFFmpegFilter::property_changed(const std::string& name,Value& symbol)
 {
     return 0;
 }
@@ -131,8 +131,8 @@ int32_t AudioDecoderFFmpegFilter::close_decoder()
         swr_free(&swr_to_packeted_);
         swr_to_packeted_ = nullptr;
     }
-    update_pin_format(kInputPin,0,0,sdp::Format());
-    update_pin_format(kOutputPin,0,0,sdp::Format());
+    update_pin_format(kInputPin,0,0,sdmp::Format());
+    update_pin_format(kOutputPin,0,0,sdmp::Format());
     return 0;
 }
 
@@ -171,18 +171,20 @@ int32_t AudioDecoderFFmpegFilter::open_decoder(const Format &format)
     format_out_.type = AVMEDIA_TYPE_AUDIO;
     format_out_.codec = pcm_codec;
     format_out_.format = packeted_format;
-    format_out_.channels = decoder_->channels;
+    format_out_.channels = decoder_->ch_layout.nb_channels;
     format_out_.samplerate = decoder_->sample_rate;
     format_out_.timebase = {1,decoder_->sample_rate};
-
     int bytes_per_second = 0;
     av_samples_get_buffer_size(&bytes_per_second,format_out_.channels,format_out_.samplerate,packeted_format,1);
     format_out_.bitrate = bytes_per_second*8;
 
-    swr_to_packeted_ = swr_alloc_set_opts(swr_to_packeted_,
-                       av_get_default_channel_layout(format_out_.channels),packeted_format,format_out_.samplerate,
-                       av_get_default_channel_layout(decoder_->channels),decoder_->sample_fmt,decoder_->sample_rate,
+    ret = swr_alloc_set_opts2(&swr_to_packeted_,
+                       &decoder_->ch_layout,packeted_format,format_out_.samplerate,
+                       &decoder_->ch_layout,decoder_->sample_fmt,decoder_->sample_rate,
                        0,nullptr);
+
+    if(ret < 0)
+        return ret;
 
     ret = swr_init(swr_to_packeted_);
     if(ret < 0)

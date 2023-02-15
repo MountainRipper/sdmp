@@ -7,7 +7,7 @@ extern "C"{
 #endif
 }
 
-namespace sdp {
+namespace mr::sdmp {
 
 #if defined (HAS_ROCKCHIP_MPP)
 FramePointer avframe_transfer_drm(AVFrame* frame){
@@ -81,7 +81,7 @@ int32_t VideoDecoderFFmpegFilter::initialize(IGraph *graph, const sol::table &co
     return 0;
 }
 
-int32_t VideoDecoderFFmpegFilter::process_command(const std::string &command, const NativeValue& param)
+int32_t VideoDecoderFFmpegFilter::process_command(const std::string &command, const Value& param)
 {
     GeneralFilter::process_command(command,param);
     if(command == kGraphCommandPause){
@@ -162,7 +162,7 @@ int32_t VideoDecoderFFmpegFilter::requare(int32_t duration,const std::vector<Pin
     return -frames_exsit*frame_interval;
 }
 
-int32_t VideoDecoderFFmpegFilter::property_changed(const std::string& name,NativeValue& symbol)
+int32_t VideoDecoderFFmpegFilter::property_changed(const std::string& name,Value& symbol)
 {
     return 0;
 }
@@ -343,8 +343,8 @@ int32_t VideoDecoderFFmpegFilter::close_decoder()
         av_buffer_unref(&hw_device_ctx_);
         hw_device_ctx_ = nullptr;
     }
-    update_pin_format(kInputPin,0,0,sdp::Format());
-    update_pin_format(kOutputPin,0,0,sdp::Format());
+    update_pin_format(kInputPin,0,0,sdmp::Format());
+    update_pin_format(kOutputPin,0,0,sdmp::Format());
     return 0;
 }
 
@@ -453,7 +453,7 @@ int32_t VideoDecoderFFmpegFilter::decode_a_frame(FramePointer frame)
 
     if(frame->packet == nullptr){
         if(frame->flag & kFrameFlagEos){
-            NativeValue status((double)kStatusEos);
+            Value status((double)kStatusEos);
             set_property_async(kFilterPropertyStatus, status);
             deliver_eos_frame();
         }

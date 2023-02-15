@@ -1,6 +1,6 @@
 #include "video_encoder_ffmpeg.h"
 
-namespace sdp{
+namespace mr::sdmp{
 
 COM_REGISTER_OBJECT(VideoEncoderFFmpegFilter)
 
@@ -22,7 +22,7 @@ int32_t VideoEncoderFFmpegFilter::initialize(IGraph *graph, const table &config)
 }
 
 
-int32_t sdp::VideoEncoderFFmpegFilter::process_command(const std::string &command, const NativeValue &param)
+int32_t sdmp::VideoEncoderFFmpegFilter::process_command(const std::string &command, const Value &param)
 {
     GeneralFilter::process_command(command,param);
     if(command == kGraphCommandPause){
@@ -37,7 +37,7 @@ int32_t sdp::VideoEncoderFFmpegFilter::process_command(const std::string &comman
     return 0;
 }
 
-int32_t sdp::VideoEncoderFFmpegFilter::connect_match_input_format(IPin *sender_pin,IPin *input_pin)
+int32_t sdmp::VideoEncoderFFmpegFilter::connect_match_input_format(IPin *sender_pin,IPin *input_pin)
 {
     const auto& formats = sender_pin->formats();
     int index = -1;
@@ -55,14 +55,14 @@ int32_t sdp::VideoEncoderFFmpegFilter::connect_match_input_format(IPin *sender_p
     return -1;
 }
 
-int32_t sdp::VideoEncoderFFmpegFilter::connect_chose_output_format(IPin *output_pin, int32_t index)
+int32_t sdmp::VideoEncoderFFmpegFilter::connect_chose_output_format(IPin *output_pin, int32_t index)
 {
     (void)output_pin;
     (void)index;
     return 0;
 }
 
-int32_t sdp::VideoEncoderFFmpegFilter::receive(IPin *input_pin, FramePointer frame)
+int32_t sdmp::VideoEncoderFFmpegFilter::receive(IPin *input_pin, FramePointer frame)
 {
     (void)input_pin;
     frames_.push(frame);
@@ -70,7 +70,7 @@ int32_t sdp::VideoEncoderFFmpegFilter::receive(IPin *input_pin, FramePointer fra
     return 0;
 }
 
-int32_t sdp::VideoEncoderFFmpegFilter::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
+int32_t sdmp::VideoEncoderFFmpegFilter::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
 {
     (void)duration;
     (void)output_pins;

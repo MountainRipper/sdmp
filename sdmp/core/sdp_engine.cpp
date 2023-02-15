@@ -2,7 +2,7 @@
 #include "sol/sol.hpp"
 #include "sdp_factory_implement.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 Engine::Engine(const std::string &root_dir, const std::string& script)
 {

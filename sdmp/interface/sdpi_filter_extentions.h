@@ -5,12 +5,12 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include "sdpi_basic_declears.h"
+#include "sdpi_objects.h"
 
 extern "C"{
 struct AVFormatContext;
 }
-namespace sdp {
+namespace mr::sdmp {
 
 ///////////// extern pin interfaces
 //filter extention interface for implement some standard function
@@ -22,7 +22,7 @@ COM_INTERFACE("40056668-a7e8-11eb-86d3-efcdd4820993",IAudioOutputParticipantPin)
 COM_INTERFACE("00dbdc6c-a7eb-11eb-b2e1-ffc673986017",IFilterExtentionVideoOutputProxy)
     class Observer{
     public:
-        virtual int32_t proxy_render_frame(std::shared_ptr<sdp::Frame> frame) = 0;
+        virtual int32_t proxy_render_frame(std::shared_ptr<sdmp::Frame> frame) = 0;
     };
 
     virtual int32_t append_observer(Observer* observer) = 0;
@@ -74,7 +74,7 @@ COM_INTERFACE("6ff5d082-a7ee-11eb-9eff-63cdc9c9d9c1",IFilterHandleMediaSourceCus
 
 COM_INTERFACE("77a31830-a7ee-11eb-addf-fba0f3c250e5",IFilterHandlerDataGrabber)
     virtual int32_t grabber_get_format(const std::string& id,const Format* format) = 0;
-    virtual int32_t grabber_get_frame(const std::string& id,std::shared_ptr<sdp::Frame> frame) = 0;
+    virtual int32_t grabber_get_frame(const std::string& id,std::shared_ptr<sdmp::Frame> frame) = 0;
 };
 
 }

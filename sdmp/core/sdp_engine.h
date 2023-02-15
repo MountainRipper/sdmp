@@ -4,7 +4,7 @@
 #include "sdpi_graph.h"
 #include "core_includes.h"
 #include "sdpi_filter_extentions.h"
-namespace sdp {
+namespace mr::sdmp {
 
 class IFilterExtentionAudioOutputParticipant;
 

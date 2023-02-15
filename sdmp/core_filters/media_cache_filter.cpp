@@ -6,7 +6,7 @@
 #include "nlohmann/json.hpp"
 using namespace nlohmann;
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(MediaCacheSaverFilter)
 
@@ -337,7 +337,7 @@ int32_t MediaCacheSaverFilter::requare(int32_t duration, const std::vector<PinIn
 }
 
 
-int32_t MediaCacheSaverFilter::process_command(const std::string &command, const NativeValue &param)
+int32_t MediaCacheSaverFilter::process_command(const std::string &command, const Value &param)
 {
     GeneralFilter::process_command(command,param);
     if(command == kGraphCommandStop){
@@ -367,12 +367,12 @@ std::string MediaCacheSaverFilter::get_cache_file_of_uri(std::string uri)
     return "";
 }
 
-int32_t sdp::MediaCacheSaverFilter::property_changed(const std::string &property, const NativeValue &value)
+int32_t sdmp::MediaCacheSaverFilter::property_changed(const std::string &property, const Value &value)
 {
     return 0;
 }
 
-NativeValue sdp::MediaCacheSaverFilter::call_method(const std::string &method, const NativeValue &param)
+Value sdmp::MediaCacheSaverFilter::call_method(const std::string &method, const Value &param)
 {
     if(method == "getCachedFileOfUri")
     {

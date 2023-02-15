@@ -1,6 +1,6 @@
 #ifndef FILTERHELPER_H
 #define FILTERHELPER_H
-namespace sdp {
+namespace mr::sdmp {
 
 namespace FilterHelper
 {

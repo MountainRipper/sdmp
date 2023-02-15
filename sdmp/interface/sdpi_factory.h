@@ -2,12 +2,12 @@
 #define SDP_FACTORY_H
 #include "sdpi_graph.h"
 // main factory for Script Describe Player
-namespace sdp {
-    typedef std::map<std::string,std::string> FeatureMap;
+namespace mr::sdmp {
     class FactoryImplement;
     class Factory{
     public:
         static int32_t initialize_factory();
+        static int32_t deinitialize();
         //create global engine for all graph. (such as audio output device...)
         //features must include:
         //graphicDriver:   egl,glx,wgl,agl,eagl,wayland,linuxfb,directfb
@@ -17,7 +17,6 @@ namespace sdp {
         static const std::string& script_root();
         //create a graph for playback
         static std::shared_ptr<IGraph> create_graph_from(const std::string& declear_file,IGraphEvent* event);
-        static int32_t release_graph(IGraph* graph);
 
         //create a stub objects
         static ISdpStub* create_stub(const std::string& class_name);

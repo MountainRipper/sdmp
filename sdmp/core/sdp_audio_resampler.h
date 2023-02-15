@@ -2,7 +2,7 @@
 #define AUDIO_RESAMPLE_POOL_H_
 #include "core_includes.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 class SdpAudioResampler
 {

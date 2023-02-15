@@ -6,7 +6,7 @@
 #include "logger.h"
 #include "sdpi_filter_extentions.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 class GeneralTimeline : public IFilterExtentionTimeline
 {

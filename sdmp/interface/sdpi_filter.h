@@ -3,35 +3,20 @@
 #include "sdpi_basic_types.h"
 #include "sdpi_pin.h"
 #include <any>
-#include <sol_lua_operator.h>//TODO: remove this use a own-var class
-namespace sdp {
+//#include <sol_lua_operator.h>//TODO: remove this use a own-var class
+
+namespace mr::sdmp {
+
 
 //declear for filter create,factory need
 typedef FilterPointer (*ObjectCreateFunction)();
-
-enum PropertyType: int32_t{
-    kPorpertyNone        = 0,
-    kPorpertyNumber      = 1,
-    kPorpertyString      = 2,
-    kPorpertyBool        = 4,
-    kPorpertyNumberArray = 8,
-    kPorpertyStringArray = 16,
-    kPorpertyPointer     = 32,
-    kPorpertyLuaFunction = 64,
-    kPorpertyLuaTable    = 128
-};
-struct FilterProperty{
-    PropertyType type;
-    std::string name;
-    std::any value;
-};
 
 struct FilterDelear{
     TGUID       clsid;
     std::string module;
     std::string describe;
     FilterType  type = kFilterTypeNone;
-    std::vector<FilterProperty>   properties;
+    std::vector<Value>   properties;
 };
 
 
@@ -50,14 +35,14 @@ public:
     COM_METHOD_RET( PinPointer, get_pin(PinDirection direction, int32_t index) )
     COM_METHOD_RET( PinVector&, get_pins(PinDirection direction) )
 
-    COM_METHOD( get_property(const std::string& property,sol::NativeValue& value) )
-    COM_METHOD( set_property(const std::string& property, const sol::NativeValue& value, bool from_script = true) )
+    COM_METHOD( get_property(const std::string& property,Value& value) )
+    COM_METHOD( set_property(const std::string& property, const Value& value, bool from_script = true) )
     COM_METHOD( set_property_lua(const std::string& property,const sol::lua_value& value) )
-    COM_METHOD_RET( sol::NativeValue, call_method(const std::string& method, const sol::NativeValue& param) )
+    COM_METHOD_RET( Value, call_method(const std::string& method, const Value& param) )
     COM_METHOD_RET( sol::lua_value, call_method_lua(const std::string& method,const sol::lua_value& param) )
 
     COM_METHOD( master_loop(bool before_after) )
-    COM_METHOD( process_command(const std::string& command,const sol::NativeValue& param) )
+    COM_METHOD( process_command(const std::string& command,const Value& param) )
 
     COM_METHOD( connect_constraint_output_format(IPin* output_pin, const std::vector<Format> &format) )
     COM_METHOD( connect_before_match(IFilter *sender_filter) )
@@ -115,10 +100,10 @@ namespace FilterHelper{
 //        return unknown.CoCreateInstance(__t_uuidof(Base) );
 //    }
 //
-//    static const sdp::FilterDelear& declear(){return declear_;}
-//    static sdp::FilterType   types(){return declear_.type;}
+//    static const sdmp::FilterDelear& declear(){return declear_;}
+//    static sdmp::FilterType   types(){return declear_.type;}
 //private:
-//    static sdp::FilterDelear declear_;
+//    static sdmp::FilterDelear declear_;
 //};
 //
 

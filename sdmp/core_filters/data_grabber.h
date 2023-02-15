@@ -2,7 +2,7 @@
 #define DATAGRABBER_H
 #include "sdp_general_filter.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(
 "d331a236-a209-11ed-85db-27bb4fb6ae05",
@@ -37,7 +37,7 @@ public:
     virtual int32_t requare(int32_t duration, const std::vector<PinIndex> &output_pins) override;
     // GeneralFilter interface
 public:
-    virtual int32_t property_changed(const std::string &property, NativeValue &symbol) override;
+    virtual int32_t property_changed(const std::string &property, Value &symbol) override;
 private:
     IFilterHandlerDataGrabber* handler_ = nullptr;
 };

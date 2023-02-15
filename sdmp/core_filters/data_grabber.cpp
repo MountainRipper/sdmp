@@ -1,6 +1,6 @@
 #include "data_grabber.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(DataGrabber)
 
@@ -10,7 +10,7 @@ DataGrabber::DataGrabber()
 }
 
 
-int32_t sdp::DataGrabber::initialize(IGraph *graph, const table &config)
+int32_t sdmp::DataGrabber::initialize(IGraph *graph, const table &config)
 {
     create_general_pin(AVMEDIA_TYPE_UNKNOWN,kInputPin);
     create_general_pin(AVMEDIA_TYPE_UNKNOWN,kOutputPin);
@@ -65,7 +65,7 @@ int32_t DataGrabber::connect_chose_output_format(IPin *output_pin, int32_t index
 }
 
 
-int32_t DataGrabber::property_changed(const std::string &property, NativeValue &symbol)
+int32_t DataGrabber::property_changed(const std::string &property, Value &symbol)
 {
     if(property == "grabber"){
         handler_ = (IFilterHandlerDataGrabber*)symbol.as_pointer();

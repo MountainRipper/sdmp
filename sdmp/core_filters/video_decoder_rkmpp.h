@@ -5,7 +5,7 @@
 typedef void* MppCtx;
 typedef void* MppParam;
 typedef void* MppFrame;
-namespace sdp {
+namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(
 "70871d5e-a20f-11ed-8bd3-03062744393b",
@@ -30,7 +30,7 @@ public:
     // FilterBase interface
 public:
     virtual int32_t initialize(IGraph *graph, const sol::table &config);
-    virtual int32_t process_command(const std::string &command, const NativeValue& param);
+    virtual int32_t process_command(const std::string &command, const Value& param);
     virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin);
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index);
     virtual int32_t receive(IPin* input_pin,FramePointer frame);
@@ -38,7 +38,7 @@ public:
 
     // FilterGeneral interface
 public:
-    virtual int32_t property_changed(const std::string& name,NativeValue& symbol);
+    virtual int32_t property_changed(const std::string& name,Value& symbol);
 private:
     int32_t open_decoder(const Format &params);
     int32_t decode_a_frame(FramePointer sdp_frame);

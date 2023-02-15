@@ -7,7 +7,7 @@
 #include "sdp_timeline_support.h"
 #include "sdp_audio_resampler.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 class AudioOutputParticipantFilter;
 
@@ -67,7 +67,7 @@ R"({
 })",
 AudioOutputParticipantFilter )
 , public GeneralFilterObjectRoot<AudioOutputParticipantFilter>
-, public sdp::GeneralTimeline
+, public sdmp::GeneralTimeline
 {
 public:
     AudioOutputParticipantFilter();
@@ -80,8 +80,8 @@ public:
     // FilterBase interface
 public:
     virtual int32_t initialize(IGraph *graph, const sol::table &config);
-    virtual int32_t get_property(const std::string &property, NativeValue &value);
-    virtual int32_t process_command(const std::string &command, const NativeValue& param);
+    virtual int32_t get_property(const std::string &property, Value &value);
+    virtual int32_t process_command(const std::string &command, const Value& param);
     virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin);
     virtual int32_t connect_constraint_output_format(IPin *output_pin, const std::vector<Format> &format);
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index);
@@ -91,7 +91,7 @@ public:
     virtual int32_t disconnect_output(int32_t output_pin,IPin* input_pin);
     // FilterGeneral interface
 public:
-    virtual int32_t property_changed(const std::string& name,NativeValue& symbol);
+    virtual int32_t property_changed(const std::string& name,Value& symbol);
     // IFilterExtentionAudioOutputParticipant interface
 public:
     virtual int32_t requare_samples(uint8_t *pcm, int32_t samples);

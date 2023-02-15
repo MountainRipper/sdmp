@@ -3,7 +3,7 @@
 #include "audio_mixer_input_pin.h"
 #include <logger.h>
 
-namespace sdp {
+namespace mr::sdmp {
 
 void on_log(void* pUserData, ma_uint32 level, const char* message)
 {
@@ -12,7 +12,7 @@ void on_log(void* pUserData, ma_uint32 level, const char* message)
 
 void on_data(ma_device* pDevice, void* pFramesOut, const void* pFramesIn, ma_uint32 frameCount)
 {
-    sdp::AudioOutputDeviceMiniaudioFilter* owner = (sdp::AudioOutputDeviceMiniaudioFilter*)pDevice->pUserData;
+    sdmp::AudioOutputDeviceMiniaudioFilter* owner = (sdmp::AudioOutputDeviceMiniaudioFilter*)pDevice->pUserData;
     owner->on_playback(pFramesOut,frameCount);
 }
 
@@ -107,7 +107,7 @@ AudioOutputDeviceMiniaudioFilter::~AudioOutputDeviceMiniaudioFilter()
     MP_INFO("MiniAudio Stopped");
 }
 
-int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdp::IGraph *graph, const sol::table &config)
+int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const sol::table &config)
 {
     if(GeneralFilterBase::initialize(graph,config) < 0)
         return -1;
@@ -129,7 +129,7 @@ int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdp::IGraph *graph, const s
 
     context_ = std::shared_ptr<ma_context>(new ma_context());
     auto result = ma_context_init(get?chose_backend:nullptr, 1, &contextConfig, context_.get());
-    MP_LOG_DEAULT("select backend: {} {} {}", backend, chose_backend[0], (void*)this);
+    MP_LOG_DEAULT("select backend: {} {} {}", backend, (int)chose_backend[0], (void*)this);
 
     int32_t select_index = -1;
     ma_device_info* playback_devices_info;
@@ -208,7 +208,7 @@ int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdp::IGraph *graph, const s
     return 0;
 }
 
-int32_t AudioOutputDeviceMiniaudioFilter::process_command(const std::string &command, const NativeValue& param)
+int32_t AudioOutputDeviceMiniaudioFilter::process_command(const std::string &command, const Value& param)
 {
     MP_LOG_DEAULT("AudioOutputDeviceMiniaudioFilter::process_command {}", command, (void*)device_.get());
     (void)param;
@@ -252,7 +252,7 @@ int32_t AudioOutputDeviceMiniaudioFilter::receive(IPin* input_pin,FramePointer f
     return 0;
 }
 
-int32_t AudioOutputDeviceMiniaudioFilter::get_property(const std::string& property,NativeValue& value)
+int32_t AudioOutputDeviceMiniaudioFilter::get_property(const std::string& property,Value& value)
 {
     if(property == kFilterPropertyDevice){
         value = std::string(device_->playback.name);

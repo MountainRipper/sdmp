@@ -4,7 +4,7 @@
 #include "sdpi_factory.h"
 #include "sdp_engine.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 class FactoryImplement{
 public:

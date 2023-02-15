@@ -1,9 +1,20 @@
 #ifndef SDPI_BASIC_TYPES_H
 #define SDPI_BASIC_TYPES_H
+#include <any>
 #include <sol/forward.hpp>
-#include "sdpi_basic_declears.h"
+#include <string>
+#include <memory>
+#include <map>
+#include <string.h>
+#include <vector>
 
-namespace sdp {
+extern "C"{
+struct AVPacket;
+struct AVFrame;
+}
+
+
+namespace mr::sdmp {
 
 
 #define kSuccessed                          0
@@ -163,6 +174,15 @@ static inline FilterType filter_type_from_string(const char* type_string){
 #define FILTER_IS_PROCESS(filter) ((filter&kFilterTypeAudioProcessor)||(filter&kFilterTypeVideoProcessor))
 #define FILTER_IS_OUTPUT(filter) ((filter&kFilterTypeAudioOutput)||(filter&kFilterTypeVideoOutput))
 
+
+class IPin;
+class IFilter;
+class IGraph;
+class Frame;
+typedef std::shared_ptr<Frame>   FramePointer;
+typedef void(*FrameReleaser)(AVFrame*,AVPacket*);
+typedef FramePointer(*FrameSoftwareTransfer)(AVFrame*);
+typedef std::map<std::string,std::string> FeatureMap;
 struct Rational{
     int numerator = 0;
     int denominator = 0;
@@ -217,6 +237,7 @@ enum RotationMode {
 
 class Frame{
 public:
+
     ~Frame(){
         if(releaser){
             releaser(frame,packet);
@@ -247,11 +268,158 @@ public:
 };
 
 
+enum ValueType: uint8_t{
+    kPorpertyNone        = 0,
+    kPorpertyNumber      = 1,
+    kPorpertyString      = 2,
+    kPorpertyBool        = 3,
+    kPorpertyNumberArray = 4,
+    kPorpertyStringArray = 5,
+    kPorpertyPointer     = 6,
+    kPorpertyLuaFunction = 7,
+    kPorpertyLuaTable    = 8
+};
+//#define ANY2S64(V)      std::any_cast<int64_t>(V)
+//#define ANY2U64(V)      std::any_cast<uint64_t>(V)
+#define ANY2F64(V)      std::any_cast<double>(V)
+#define ANY2BOOL(V)     std::any_cast<bool>(V)
+#define ANY2STR(V)      std::any_cast<const std::string&>(V)
+#define ANY2F64ARR(V)   std::any_cast<const std::vector<double>&>(V)
+#define ANY2STRARR(V)   std::any_cast<const std::vector<std::string>&>(V)
+#define ANY2PTR(V)      std::any_cast<void*>(V)
+#define ANY2LUAFUN(V)   std::any_cast<sol::function>(V)
+#define ANY2LUATABLE(V) std::any_cast<sol::table>(V)
+
+class Value{
+public:
+    Value(){
+
+    }
+    template<typename T>Value(const T& v,const std::string& name = "",bool readonly = false)
+        :name_(name)
+        ,readonly_(readonly){
+        value_ = v;
+        auto& tid = value_.type();
+        if(tid == typeid(double))
+            type_ = kPorpertyNumber;
+        else if(tid == typeid(std::string))
+            type_ = kPorpertyString;
+        else if(tid == typeid(bool))
+            type_ = kPorpertyBool;
+        else if(tid == typeid(std::vector<double>))
+            type_ = kPorpertyNumberArray;
+        else if(tid == typeid(std::vector<std::string>))
+            type_ = kPorpertyStringArray;
+        else if(tid == typeid(void*))
+            type_ = kPorpertyPointer;
+        else if(tid == typeid_of_type(kPorpertyLuaFunction))
+            type_ = kPorpertyLuaFunction;
+        else if(tid == typeid_of_type(kPorpertyLuaTable))
+            type_ = kPorpertyLuaTable;
+        else
+            type_ = kPorpertyNone;
+    }
+
+    Value(const Value& other){
+        type_ = other.type_;
+        name_ = other.name_;
+        value_ = other.value_;
+        readonly_ = other.readonly_;
+    }
+    Value& operator=(const Value& other){
+        type_ = other.type_;
+        name_ = other.name_;
+        value_ = other.value_;
+        readonly_ = other.readonly_;
+        value_changed_ = true;
+        return *this;
+    }
+    bool valid_sdmp_value() const {
+        return type_ != kPorpertyNone;
+    }
+    operator double() const{
+        return ANY2F64(value_);
+    }
+    operator int32_t() const{
+        return static_cast<int32_t>(ANY2F64(value_));
+    }
+    operator uint32_t() const{
+        return static_cast<uint32_t>(ANY2F64(value_));
+    }
+    operator int64_t() const{
+        return static_cast<int64_t>(ANY2F64(value_));
+    }
+    operator uint64_t() const{
+        return static_cast<uint64_t>(ANY2F64(value_));
+    }
+    operator bool() const{
+        return ANY2BOOL(value_);
+    }
+    operator const std::string&() const{
+        const std::string& s = ANY2STR(value_);
+        return s;
+    }
+    operator const std::vector<double>&() const{
+        return ANY2F64ARR(value_);
+    }
+    operator const std::vector<std::string>&() const{
+        return ANY2STRARR(value_);
+    }
+    operator void* () const{
+        return ANY2PTR(value_);
+    }
+
+    double as_double() const{
+        return ANY2F64(value_);
+    }
+    int64_t as_int32() const{
+        return static_cast<int32_t>(ANY2F64(value_));
+    }
+    int64_t as_int64() const{
+        return static_cast<int64_t>(ANY2F64(value_));
+    }
+    bool as_bool() const{
+        return ANY2BOOL(value_);
+    }
+    const std::string& as_string() const{
+        const std::string& s = ANY2STR(value_);
+        return s;
+    }
+    const void* as_pointer(){
+        return ANY2PTR(value_);
+    }
+    const std::vector<double>& as_double_vector() const{
+        return ANY2F64ARR(value_);
+    }
+    const std::vector<std::string>& as_string_vector() const{
+        return ANY2STRARR(value_);
+    }
+
+    template<class T>
+    operator T() const{
+        return std::any_cast<T>(value_);
+    }
+
+    template<class T>
+    T as() const{
+        return std::any_cast<T>(value_);
+    }
+
+    static const std::type_info& typeid_of_type(ValueType type);
+public:
+    ValueType type_ =kPorpertyNone;
+    bool readonly_ = false;
+    bool value_changed_ = false;
+    std::string name_;
+    std::any value_;
+};
+
 class ISdpStub{
 public:
     virtual const std::string& module_name() = 0;
     virtual int32_t destory() = 0;
 };
+
 
 }
 

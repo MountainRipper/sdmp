@@ -5,9 +5,8 @@
 #include <vector>
 #include <set>
 #include <atomic>
-#include <inttypes.h>
-
 #include "tinycom.h"
+#include "sdpi_basic_types.h"
 
 #ifdef _WIN64
    #define SDP_OS "windows"
@@ -46,26 +45,9 @@
     #define SDP_ARCH "mips"
 #endif
 
-extern "C"{
-struct AVPacket;
-struct AVFrame;
-}
 
 
-
-
-#define STDMETHODCALLTYPE
-
-#define IMPLEMENT_FAKE_COM_OBJECT \
-    virtual HRESULT QueryInterface(REFIID riid, void **ppvInterface){return S_OK;}\
-    virtual ULONG  AddRef(){return S_OK;}\
-    virtual ULONG  Release(){return S_OK;}
-
-namespace sdp {
-class IPin;
-class IFilter;
-class IGraph;
-class Frame;
+namespace mr::sdmp {
 
 typedef tinycom::TGUID TGUID;
 typedef tinycom::IUnknown IObject;
@@ -73,14 +55,8 @@ typedef tinycom::IUnknown IObject;
 typedef ComPointer<IPin>    PinPointer;
 typedef ComPointer<IFilter> FilterPointer;
 typedef ComPointer<tinycom::IUnknown> IUnknownPointer;
-typedef std::shared_ptr<Frame>   FramePointer;
-
 typedef  std::vector<PinPointer> PinVector;
-
-typedef void(*FrameReleaser)(AVFrame*,AVPacket*);
-typedef FramePointer(*FrameSoftwareTransfer)(AVFrame*);
 
 }
 
-#include "sdpi_basic_types.h"
 #endif // SDP_FORWARD_DECLEAR_H

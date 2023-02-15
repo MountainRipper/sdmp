@@ -3,7 +3,7 @@
 #include "sdpi_factory.h"
 
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(AudioOutputParticipantFilter)
 
@@ -51,7 +51,7 @@ int32_t AudioOutputParticipantFilter::initialize(IGraph *graph, const sol::table
     return 0;
 }
 
-int32_t AudioOutputParticipantFilter::get_property(const std::string &property, sol::NativeValue &value)
+int32_t AudioOutputParticipantFilter::get_property(const std::string &property, Value &value)
 {
     if(property == kFilterPropertyCurrentPts){
         value = current_pts_;        
@@ -62,7 +62,7 @@ int32_t AudioOutputParticipantFilter::get_property(const std::string &property, 
     return 0;
 }
 
-int32_t AudioOutputParticipantFilter::process_command(const std::string &command, const NativeValue& param)
+int32_t AudioOutputParticipantFilter::process_command(const std::string &command, const Value& param)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if(command == kGraphCommandPlay){
@@ -100,7 +100,7 @@ int32_t AudioOutputParticipantFilter::connect_match_input_format(IPin *sender_pi
 
         return index;
     }
-    update_pin_format(kInputPin,0,0,sdp::Format());
+    update_pin_format(kInputPin,0,0,sdmp::Format());
     return -1;
 }
 
@@ -175,7 +175,7 @@ int32_t AudioOutputParticipantFilter::disconnect_output(int32_t output_pin, IPin
     return GeneralFilter::disconnect_output(output_pin,input_pin);
 }
 
-int32_t AudioOutputParticipantFilter::property_changed(const std::string& name,NativeValue& symbol)
+int32_t AudioOutputParticipantFilter::property_changed(const std::string& name,Value& symbol)
 {
     if(name == "cacheDuration"){
         cache_need_ms_ = properties_["cacheDuration"];
@@ -204,7 +204,8 @@ int32_t AudioOutputParticipantFilter::requare_samples(uint8_t *pcm, int32_t samp
 
     std::lock_guard<std::mutex> lock(mutex_);
 
-    int32_t volume = properties_["volume"].as_double() * 100;
+    double volume_percent = properties_["volume"];
+    int32_t volume = volume_percent * 100;
     int32_t samples_has = resampler_.samples();
     //MP_LOG_DEAULT("### audio output cur:{}  samples:{}",last_push_pts_,samples_has);
 
@@ -246,7 +247,7 @@ int32_t AudioOutputParticipantFilter::requare_samples(uint8_t *pcm, int32_t samp
             av_frame_get_buffer(frame,1);
             memcpy(frame->data[0],pcm,audio->linesize[0]);
 
-            std::shared_ptr<sdp::Frame> sdp_frame = sdp::Frame::make_frame(frame);
+            std::shared_ptr<sdmp::Frame> sdp_frame = sdmp::Frame::make_frame(frame);
             sdp_frame->releaser = sdp_frame_free_frame_releaser;
             handler_->grabber_get_frame(id_,sdp_frame);
         }
@@ -288,7 +289,7 @@ int32_t AudioOutputParticipantFilter::connect_to_device()
         return  -2;
     }
     graph_->do_connect(this,device_filter.Get(),0,0);
-    auto& vec = properties_["channelMapping"].as_double_vector();
+    std::vector<double> vec = properties_["channelMapping"];
     if(vec.size())
         PcmConvertor::valid_channel_mapping(vec,channel_mapping_,format_output_.channels);
     return 0;

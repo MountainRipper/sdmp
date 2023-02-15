@@ -3,7 +3,7 @@
 #include "sdp_general_filter_base.h"
 #include "sdpi_graph.h"
 #include "sdpi_pin.h"
-namespace sdp {
+namespace mr::sdmp {
 
 FilterType GeneralFilterBase::type()
 {
@@ -59,13 +59,13 @@ PinVector &GeneralFilterBase::get_pins(PinDirection direction)
         return output_pins_;
 }
 
-int32_t GeneralFilterBase::get_property(const std::string& property, NativeValue &value){
+int32_t GeneralFilterBase::get_property(const std::string& property, Value &value){
     (void)property;
     (void)value;
     return 0;
 }
 
-int32_t GeneralFilterBase::set_property(const std::string &property, const NativeValue &value, bool from_script)
+int32_t GeneralFilterBase::set_property(const std::string &property, const Value &value, bool from_script)
 {
     (void)property;
     (void)value;
@@ -74,16 +74,15 @@ int32_t GeneralFilterBase::set_property(const std::string &property, const Nativ
 }
 
 int32_t GeneralFilterBase::set_property_lua(const std::string& property,const sol::lua_value& value){
-    NativeValue native_value;
-    int32_t ret = native_value.create_from_lua_value(value);
-    if(ret < 0){
+    Value native_value(LuaOperator::lua_value_to_any(value));
+    if(native_value.valid_sdmp_value()){
         MP_ERROR("FilterBase::set_property_lua bad property type,must[double,double[],string,void*-pointer,lua-function] prop:{} type:{}",property.c_str(),(int)value.value().get_type());
-        return ret;
+        return -1;
     }
     return set_property(property,native_value,true);
 }
 
-NativeValue GeneralFilterBase::call_method(const std::string &method, const NativeValue &param)
+Value GeneralFilterBase::call_method(const std::string &method, const Value &param)
 {
     (void)method;
     (void)param;
@@ -92,15 +91,14 @@ NativeValue GeneralFilterBase::call_method(const std::string &method, const Nati
 
 lua_value GeneralFilterBase::call_method_lua(const std::string &method, const lua_value &param)
 {
-    NativeValue native_value;
-    int32_t ret = native_value.create_from_lua_value(param);
-    if(ret < 0){
+    Value native_value(LuaOperator::lua_value_to_any(param));
+    if(native_value.valid_sdmp_value()){
         MP_ERROR("FilterBase::call_method_lua bad param type,must[double,double[],string,void*-pointer,lua-function] prop:{} type:{}",method.c_str(),(int)param.value().get_type());
-        return ret;
+        return -1;
     }
-    NativeValue return_value = call_method(method,native_value);
+    Value return_value = call_method(method,native_value);
 
-    return return_value.create_lua_value(*graph_->vm());
+    return LuaOperator::any_to_lua_value(*graph_->vm(),return_value.value_);
 }
 
 int32_t GeneralFilterBase::master_loop(bool before_after)
@@ -109,7 +107,7 @@ int32_t GeneralFilterBase::master_loop(bool before_after)
     return 0;
 }
 
-int32_t GeneralFilterBase::process_command(const std::string &command, const NativeValue &param)
+int32_t GeneralFilterBase::process_command(const std::string &command, const Value &param)
 {
     if(command == kFilterCommandActive)
         activable_ = true;
@@ -182,13 +180,6 @@ int32_t GeneralFilterBase::disconnect_input(int32_t input_pin)
     return 0;
 }
 
-int32_t GeneralFilterBase::FinalRelease()
-{
-    remove_pin(kInputPin,kPinIndexAll);
-    remove_pin(kOutputPin,kPinIndexAll);
-    return 0;
-}
-
 const std::string& GeneralFilterBase::id()
 {
     return id_;
@@ -243,5 +234,9 @@ int32_t GeneralFilterBase::remove_pin(PinDirection direction, int32_t index)
     return 0;
 }
 
+GeneralFilterBase::~GeneralFilterBase(){
+    this->remove_pin(kInputPin,kPinIndexAll);
+    this->remove_pin(kOutputPin,kPinIndexAll);
+}
 
 }

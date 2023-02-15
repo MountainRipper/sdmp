@@ -2,7 +2,7 @@
 #define MEDIAMUXERFFMPEG_H
 
 #include "sdp_general_filter.h"
-namespace sdp {
+namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(
 "4a58d1e0-a20f-11ed-a6b8-1b1bd03f2ac3",
@@ -50,10 +50,10 @@ public:
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index);
     virtual int32_t receive(IPin *input_pin, FramePointer frame);
     virtual int32_t requare(int32_t duration, const std::vector<PinIndex> &output_pins);
-    virtual int32_t process_command(const std::string &command, const NativeValue &param);
+    virtual int32_t process_command(const std::string &command, const Value &param);
 private:
     int32_t open_muxer();
-    int32_t add_stream(const sdp::Format& format);
+    int32_t add_stream(const sdmp::Format& format);
     int32_t write_header();
 
     int32_t write_proc();
@@ -63,7 +63,7 @@ private:
     AVFormatContext*                muxer_ = nullptr;
     bool                            header_writed_ = false;
     std::map<int32_t,int32_t>       pin_stream_map_;
-    std::map<int32_t,sdp::Rational> pin_timebase_map_;
+    std::map<int32_t,sdmp::Rational> pin_timebase_map_;
     std::mutex                      write_mutex_;
 
     std::thread                     write_thread_;

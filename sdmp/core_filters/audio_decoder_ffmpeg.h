@@ -2,7 +2,7 @@
 #define AUDIODECODERFFMPEG_H
 #include "sdp_general_filter.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(
 "98c87260-a203-11ed-9bd9-bfba9c9e5f53",
@@ -28,7 +28,7 @@ public:
     // FilterBase interface
 public:
     virtual int32_t initialize(IGraph *graph, const sol::table &config);
-    virtual int32_t process_command(const std::string &command, const NativeValue& param);
+    virtual int32_t process_command(const std::string &command, const Value& param);
     virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin);
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index);
     virtual int32_t receive(IPin* input_pin,FramePointer frame);
@@ -36,7 +36,7 @@ public:
 
     // FilterGeneral interface
 public:
-    virtual int32_t property_changed(const std::string& name,NativeValue& symbol);
+    virtual int32_t property_changed(const std::string& name,Value& symbol);
 private:
     int32_t close_decoder();
     int32_t open_decoder(const Format& format);

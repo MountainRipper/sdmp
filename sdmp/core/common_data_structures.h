@@ -6,7 +6,7 @@
 #include <string>
 using namespace std;
 
-namespace sdp_commom {
+namespace mr::sdmp::commom {
 
 template <typename T>
 class TreeNode{

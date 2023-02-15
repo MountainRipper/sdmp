@@ -3,7 +3,7 @@
 
 #include "sdp_general_filter.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(
 "81e64228-a20f-11ed-bf09-eb12fed8b6b8",
@@ -98,7 +98,7 @@ public:
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index);
     virtual int32_t receive(IPin *input_pin, FramePointer frame);
     virtual int32_t requare(int32_t duration, const std::vector<PinIndex> &output_pins);
-    virtual int32_t process_command(const std::string &command, const NativeValue &param);
+    virtual int32_t process_command(const std::string &command, const Value &param);
 
 private:
     void    encode_proc();

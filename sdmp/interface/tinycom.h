@@ -173,6 +173,7 @@ struct InterfaceEntry {
 const char* const IID_IUnknown = "10000000-0000-0000-0000-000000000000";
 class IUnknown{
 public:
+    virtual ~IUnknown(){}
     virtual int32_t AddRef() = 0;
     virtual int32_t Release() = 0;
     virtual int32_t QueryInterface(REFIID iid,void **interface) = 0;

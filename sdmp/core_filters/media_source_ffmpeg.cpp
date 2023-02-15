@@ -3,7 +3,7 @@
 #include "media_source_ffmpeg.h"
 
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(MediaSourceFFmpegFilter)
 
@@ -58,7 +58,7 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
     std::string final_uri = uri;
     auto custom_io_clsid = properties_["customIO"].as_string();
     if(!custom_io_clsid.empty()){
-        auto custom_io_check_function = properties_["customIOCheckHandler"].as_function();
+        auto custom_io_check_function = properties_["customIOCheckHandler"].as<sol::function>();
         if(custom_io_check_function.valid()){
             std::string io_uri = custom_io_check_function(id_,final_uri);
             if(!io_uri.empty()){
@@ -104,7 +104,7 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
     size_t streams = media_file_->nb_streams;
     for(size_t index = 0; index < streams; index++){
         auto stream = media_file_->streams[index];
-        sdp::Format format;
+        sdmp::Format format;
         format.codec = stream->codecpar->codec_id;
         format.format = stream->codecpar->format;
         format.type = stream->codecpar->codec_type;
@@ -114,7 +114,7 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
         format.timebase = {1,1000};
         if(format.type == AVMEDIA_TYPE_AUDIO){
             format.samplerate = stream->codecpar->sample_rate;
-            format.channels   = stream->codecpar->channels;
+            format.channels   = stream->codecpar->ch_layout.nb_channels;
         }
         else if(format.type == AVMEDIA_TYPE_VIDEO){
             format.width = stream->codecpar->width;
@@ -160,7 +160,7 @@ int32_t MediaSourceFFmpegFilter::initialize(IGraph *graph, const sol::table &con
     return 0;
 }
 
-int32_t MediaSourceFFmpegFilter::process_command(const std::string &command, const NativeValue& param)
+int32_t MediaSourceFFmpegFilter::process_command(const std::string &command, const Value& param)
 {
     std::string real_command = command;
     if(caching_mode_){
@@ -219,7 +219,7 @@ int32_t MediaSourceFFmpegFilter::requare(int32_t duration,const std::vector<PinI
     if(status_ == kStatusEos)
         return kErrorFilterEos;
 
-    int32_t pre_buffer = properties_["preBufferMs"].as_int();
+    int32_t pre_buffer = properties_["preBufferMs"].as_int32();
     int32_t want_read_to = current_read_pts_ + duration + pre_buffer;
 
     if(want_read_to > request_read_to_)
@@ -229,10 +229,10 @@ int32_t MediaSourceFFmpegFilter::requare(int32_t duration,const std::vector<PinI
     return 0;
 }
 
-int32_t MediaSourceFFmpegFilter::property_changed(const std::string& name,NativeValue& symbol)
+int32_t MediaSourceFFmpegFilter::property_changed(const std::string& name,Value& symbol)
 {
     if(name == "uri"){
-        MP_LOG_DEAULT("MediaSourceFFmpegFilter uri changed: {} ", symbol.printable().c_str());
+        MP_LOG_DEAULT("MediaSourceFFmpegFilter uri changed: {} ", StringUtils::printable(symbol));
         const auto& new_uri = symbol.as_string();
         if(!new_uri.size() && !uri_.size())
             return 0;
@@ -315,7 +315,7 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
             if(network_timeout_) {
                 MP_LOG_DEAULT("WARNING:Network timeout...");
                 //can't call lua functions throw_job_error("timeout");
-                NativeValue status((double)kStatusEos);
+                Value status((double)kStatusEos);
                 set_property_async(kFilterPropertyStatus, status);
                 deliver_eos_frame();
                 break;
@@ -348,7 +348,7 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                 }
                 MP_LOG_DEAULT("MediaSourceFFmpegFilter::reading_proc() eof");
 
-                NativeValue status((double)kStatusEos);
+                Value status((double)kStatusEos);
                 set_property_async(kFilterPropertyStatus, status);
                 deliver_eos_frame();
                 break;
@@ -464,7 +464,7 @@ int32_t MediaSourceFFmpegFilter::reset_position()
 
 int32_t MediaSourceFFmpegFilter::throw_job_error(const std::string &reson)
 {
-    auto exception_function = properties_["exceptionHandler"].as_function();
+    auto exception_function = properties_["exceptionHandler"].as<sol::function>();
     if(exception_function.valid()) {
         exception_function(filter_state_,id_, reson);
     }

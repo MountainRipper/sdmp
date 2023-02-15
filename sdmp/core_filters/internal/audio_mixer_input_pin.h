@@ -4,7 +4,7 @@
 #include "sdp_general_pin.h"
 #include "sdp_general_filter_base.h"
 #include "sdpi_filter_extentions.h"
-namespace sdp {
+namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT("0ef73af8-a212-11ed-b92f-775b7675e60a", "", AudioMixerInputPin)
                          , public GeneralPin

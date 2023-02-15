@@ -1,6 +1,6 @@
 #include "media_source_memory.h"
 
-namespace sdp{
+namespace mr::sdmp{
 
 COM_REGISTER_OBJECT(MediaSourceMemoryFilter)
 
@@ -38,13 +38,13 @@ int32_t MediaSourceMemoryFilter::receive(IPin *input_pin, FramePointer frame)
 
 int32_t MediaSourceMemoryFilter::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
 {
-    frames_.pop_each([this](std::shared_ptr<sdp::Frame> frame){
+    frames_.pop_each([this](std::shared_ptr<sdmp::Frame> frame){
         this->get_pin(kOutputPin,0)->deliver(frame);
     });
     return 0;
 }
 
-int32_t MediaSourceMemoryFilter::process_command(const std::string &command, const NativeValue &param)
+int32_t MediaSourceMemoryFilter::process_command(const std::string &command, const Value &param)
 {
     GeneralFilter::process_command(command,param);
     if(command == kGraphCommandStop || command == kGraphCommandPlay){
@@ -85,7 +85,7 @@ int32_t MediaSourceMemoryFilter::grabber_get_frame(const std::string &id, FrameP
             output_format_.width != av_frame->width ||
             output_format_.height != av_frame->height||
             output_format_.samplerate != av_frame->sample_rate ||
-            output_format_.channels != av_frame->channels){
+            output_format_.channels != av_frame->ch_layout.nb_channels){
             MP_ERROR("MediaSourceMemoryFilter::grabber_get_frame get frame not match format set");
             return kErrorConnectFailedNotMatchFormat;
         }

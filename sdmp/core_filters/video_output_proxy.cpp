@@ -1,6 +1,6 @@
 #include "video_output_proxy.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(VideoOutputProxyFilter)
 
@@ -33,7 +33,7 @@ int32_t VideoOutputProxyFilter::initialize(IGraph *graph, const sol::table &conf
     return 0;
 }
 
-int32_t VideoOutputProxyFilter::process_command(const std::string &command, const NativeValue& param)
+int32_t VideoOutputProxyFilter::process_command(const std::string &command, const Value& param)
 {
     std::lock_guard<std::mutex> lock(cache_mutex_);
     if(command == kGraphCommandSeek || command == kGraphCommandStop){
@@ -61,7 +61,7 @@ int32_t VideoOutputProxyFilter::connect_match_input_format(IPin *sender_pin,IPin
         }
         index++;
     }
-    update_pin_format(kInputPin,0,0,sdp::Format());    
+    update_pin_format(kInputPin,0,0,sdmp::Format());    
     return -1;
 }
 
@@ -120,19 +120,19 @@ int32_t VideoOutputProxyFilter::requare(int32_t duration,const std::vector<PinIn
     return 0;
 }
 
-int32_t VideoOutputProxyFilter::property_changed(const std::string& name,NativeValue& symbol)
+int32_t VideoOutputProxyFilter::property_changed(const std::string& name,Value& symbol)
 {
     return 0;
 }
 
-int32_t VideoOutputProxyFilter::append_observer(sdp::IFilterExtentionVideoOutputProxy::Observer *observer)
+int32_t VideoOutputProxyFilter::append_observer(sdmp::IFilterExtentionVideoOutputProxy::Observer *observer)
 {
     if(observer)
         observers_.insert(observer);
     return 0;
 }
 
-int32_t VideoOutputProxyFilter::remove_observer(sdp::IFilterExtentionVideoOutputProxy::Observer *observer)
+int32_t VideoOutputProxyFilter::remove_observer(sdmp::IFilterExtentionVideoOutputProxy::Observer *observer)
 {
     if(observer)
         observers_.erase(observer);
@@ -144,7 +144,7 @@ int32_t VideoOutputProxyFilter::pull_render_sync()
     if(status_ != kStatusRunning)
         return 0;
 
-    NativeValue graph_pts;
+    Value graph_pts;
     graph_->get_property(kGraphPropertyCurrentPts,graph_pts);
 
     std::lock_guard<std::mutex> lock(cache_mutex_);

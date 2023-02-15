@@ -3,15 +3,15 @@
 
 #include "core_includes.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 class GeneralFilter : public GeneralFilterBase
 {
 public:
     struct PropertyAsyncRequest{
         std::string prop;
-        NativeValue value;
-        NativeValue call_param;
+        Value value;
+        Value call_param;
     };
 
     GeneralFilter(const TGUID & filter_clsid);
@@ -22,16 +22,16 @@ public:
     //virtual function implements of GeneralFilterBase
     virtual FilterType type();
     virtual int32_t initialize(IGraph *graph, const sol::table &config);
-    virtual int32_t process_command(const std::string& command,const sol::NativeValue& param);
-    virtual int32_t get_property(const std::string& property,NativeValue& value);
-    virtual int32_t set_property(const std::string& property, const NativeValue& value, bool from_script = false);
+    virtual int32_t process_command(const std::string& command,const Value& param);
+    virtual int32_t get_property(const std::string& property,Value& value);
+    virtual int32_t set_property(const std::string& property, const Value& value, bool from_script = false);
     virtual int32_t master_loop(bool before_after);
 
     //virtual function declear by GeneralFilter
-    virtual int32_t property_changed(const std::string& property, NativeValue& symbol);
+    virtual int32_t property_changed(const std::string& property, Value& symbol);
 protected:
-    int32_t set_property_async(const std::string& property, const NativeValue& value,const NativeValue& call_param = 0);
-    int32_t put_property_to_script(const std::string& property, const NativeValue &value);
+    int32_t set_property_async(const std::string& property, const Value& value,const Value& call_param = 0);
+    int32_t put_property_to_script(const std::string& property, const Value &value);
 
     int32_t bind_filter_to_script();
     int32_t bind_pins_to_script(PinDirection direction);

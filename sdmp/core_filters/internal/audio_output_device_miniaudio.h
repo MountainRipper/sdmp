@@ -3,7 +3,7 @@
 #include "miniaudio.h"
 #include "core_includes.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(
 "cbdb4bb8-b881-11eb-a370-7b276191dfef",
@@ -28,8 +28,8 @@ public:
     // FilterBase interface
 public:
     virtual int32_t initialize(IGraph *graph, const sol::table &config);
-    virtual int32_t get_property(const std::string& property,NativeValue& value);
-    virtual int32_t process_command(const std::string &command, const NativeValue& param);
+    virtual int32_t get_property(const std::string& property,Value& value);
+    virtual int32_t process_command(const std::string &command, const Value& param);
     virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin);
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index);
     virtual int32_t receive(IPin* input_pin,FramePointer frame);

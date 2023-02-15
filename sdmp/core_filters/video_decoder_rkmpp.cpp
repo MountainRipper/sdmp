@@ -81,7 +81,7 @@ static void rkmpp_release_decoder(void *opaque, uint8_t *data)
     av_free(decoder);
 }
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(VideoDecoderRkmppFilter)
 
@@ -104,7 +104,7 @@ int32_t VideoDecoderRkmppFilter::initialize(IGraph *graph, const sol::table &con
     return 0;
 }
 
-int32_t VideoDecoderRkmppFilter::process_command(const std::string &command, const NativeValue& param)
+int32_t VideoDecoderRkmppFilter::process_command(const std::string &command, const Value& param)
 {
     if(command == kGraphCommandSeek){
         RKMPPDecoder *decoder = (RKMPPDecoder *)decoder_ref->data;
@@ -154,7 +154,7 @@ int32_t VideoDecoderRkmppFilter::receive(IPin* input_pin,FramePointer frame)
         if(frame->flag & kFrameFlagEos){
             //decode eos frame
             decode_a_frame(frame);
-            NativeValue status((double)kStatusEos);
+            Value status((double)kStatusEos);
             set_property_async(kFilterPropertyStatus, status);
             deliver_eos_frame();
             return kSuccessed;
@@ -190,7 +190,7 @@ int32_t VideoDecoderRkmppFilter::requare(int32_t duration,const std::vector<PinI
     return duration;
 }
 
-int32_t VideoDecoderRkmppFilter::property_changed(const std::string& name,NativeValue& symbol)
+int32_t VideoDecoderRkmppFilter::property_changed(const std::string& name,Value& symbol)
 {
     return 0;
 }

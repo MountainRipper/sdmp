@@ -2,7 +2,7 @@
 #define MEDIACACHESAVEFILTER_H
 
 #include "sdp_general_filter.h"
-namespace sdp {
+namespace mr::sdmp {
 
 class MediaCacheManager;
 COM_MULTITHREADED_OBJECT(
@@ -38,10 +38,10 @@ public:
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index) override;
     virtual int32_t receive(IPin *input_pin, FramePointer frame) override;
     virtual int32_t requare(int32_t duration, const std::vector<PinIndex> &output_pins) override;
-    virtual int32_t process_command(const std::string &command, const NativeValue &param) override;
+    virtual int32_t process_command(const std::string &command, const Value &param) override;
 
-    virtual int32_t property_changed(const std::string &property, const NativeValue &value);
-    virtual NativeValue call_method(const std::string &method, const NativeValue &param);
+    virtual int32_t property_changed(const std::string &property, const Value &value);
+    virtual Value call_method(const std::string &method, const Value &param);
 private:
     std::string get_cache_file_of_uri(std::string uri);
 private:

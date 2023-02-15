@@ -7,9 +7,9 @@
 #include <sdp_general_filter_base.h>
 #include "common_data_structures.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
-using namespace sdp_commom;
+using namespace mr::sdmp::commom;
 
 
 int32_t enum_receivers(TreeNode<FilterPointer>& node,std::set<FilterPointer>& all_filters){
@@ -29,7 +29,7 @@ int32_t enum_receivers(TreeNode<FilterPointer>& node,std::set<FilterPointer>& al
     return 0;
 };
 
-int32_t get_filter_receiver_tree(sdp_commom::TreeNode<FilterPointer>& root)
+int32_t get_filter_receiver_tree(sdmp::commom::TreeNode<FilterPointer>& root)
 {
     std::set<FilterPointer> all_filters;
     return enum_receivers(root,all_filters);
@@ -51,7 +51,7 @@ int32_t FilterHelper::print_filter_list(const std::vector<FilterPointer> &list, 
     return 0;
 }
 
-std::set<FilterPointer> FilterHelper::get_filter_near(sdp::FilterPointer filter, PinDirection direction)
+std::set<FilterPointer> FilterHelper::get_filter_near(sdmp::FilterPointer filter, PinDirection direction)
 {
     std::set<FilterPointer> filters_near;
     int index = 0;
@@ -96,7 +96,7 @@ std::set<FilterPointer> FilterHelper::get_filter_receivers(FilterPointer filter)
 
 int32_t FilterHelper::get_filter_receiver_links(FilterPointer filter,std::vector<std::vector<FilterPointer> >& links)
 {
-    sdp_commom::TreeNode<FilterPointer> root(filter);
+    sdmp::commom::TreeNode<FilterPointer> root(filter);
     int32_t ret = get_filter_receiver_tree(root);
     if(ret < 0)
         return ret;
@@ -126,7 +126,7 @@ int32_t FilterHelper::get_filter_linked_pin(FilterPointer sender, FilterPointer 
 }
 
 
-int32_t FilterHelper::connect(sdp::FilterPointer sender, int32_t output_pin_index, sdp::FilterPointer receiver, int32_t input_pin_index)
+int32_t FilterHelper::connect(sdmp::FilterPointer sender, int32_t output_pin_index, sdmp::FilterPointer receiver, int32_t input_pin_index)
 {
     auto output_pin = sender->get_pin(kOutputPin,output_pin_index);
     auto input_pin = receiver->get_pin(kInputPin,input_pin_index);
@@ -141,7 +141,7 @@ int32_t FilterHelper::connect(sdp::FilterPointer sender, int32_t output_pin_inde
 }
 
 
-int32_t FilterHelper::disconnect_output(sdp::FilterPointer filter, int32_t output_pin)
+int32_t FilterHelper::disconnect_output(sdmp::FilterPointer filter, int32_t output_pin)
 {
     auto pin = filter->get_pin(kOutputPin,output_pin);
     if(pin == nullptr)
@@ -154,7 +154,7 @@ int32_t FilterHelper::disconnect_output(sdp::FilterPointer filter, int32_t outpu
     return 0;
 }
 
-int32_t FilterHelper::disconnect_output(sdp::FilterPointer filter)
+int32_t FilterHelper::disconnect_output(sdmp::FilterPointer filter)
 {
     auto output_pins = filter->get_pins(kOutputPin);
     for(auto pin : output_pins){

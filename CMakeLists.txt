@@ -68,4 +68,5 @@ endif()
 
 
 add_subdirectory(sdmp)
+add_subdirectory(easy)
 add_subdirectory(test)

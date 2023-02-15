@@ -2,9 +2,8 @@
 #define GRAPHIMPLEMENT_H
 #include <thread>
 #include "sdpi_graph.h"
-#include "core_includes.h"
 #include "sdp_filter_links_flow.h"
-namespace sdp {
+namespace mr::sdmp {
 
 class GraphImplement : public IGraph
 {
@@ -19,8 +18,8 @@ public:
     virtual std::shared_ptr<sol::state> vm();
     virtual sol::table& graph();
 
-    virtual int32_t set_property(const std::string& property,NativeValue& value);
-    virtual int32_t get_property(const std::string& property,NativeValue& value);
+    virtual int32_t set_property(const std::string& property,Value& value);
+    virtual int32_t get_property(const std::string& property,Value& value);
 
     virtual int32_t cmd_connect();    
     virtual int32_t cmd_play();
@@ -52,7 +51,7 @@ private:
     int32_t check_graph_connectings();
 
     //status manage
-    int32_t do_flow_command(const std::string &command, const NativeValue &param);
+    int32_t do_flow_command(const std::string &command, const Value &param);
     int32_t notify_cmd();
     int32_t switch_status(GraphStatus status);
 

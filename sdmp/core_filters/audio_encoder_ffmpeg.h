@@ -3,7 +3,7 @@
 
 #include "sdp_general_filter.h"
 #include "sdp_audio_resampler.h"
-namespace sdp {
+namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(
 "5b092074-b87f-11eb-addf-b73fe5092442",
@@ -52,7 +52,7 @@ public:
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index);
     virtual int32_t receive(IPin *input_pin, FramePointer frame);
     virtual int32_t requare(int32_t duration, const std::vector<PinIndex> &output_pins);
-    virtual int32_t process_command(const std::string &command, const NativeValue &param);
+    virtual int32_t process_command(const std::string &command, const Value &param);
 
 private:
     void    encode_proc();

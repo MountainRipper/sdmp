@@ -9,9 +9,29 @@ extern "C"{
 #include <spdlog/fmt/bin_to_hex.h>
 #include "core_includes.h"
 #include "libyuv.h"
-namespace sdp {
+namespace mr::sdmp {
 
 using namespace std;
+
+struct FackerForNullTypeinfo{
+
+};
+
+const std::type_info &Value::typeid_of_type(ValueType type)
+{
+    switch(type){
+    case kPorpertyNumber      : return typeid(double);
+    case kPorpertyString      : return typeid(std::string);
+    case kPorpertyBool        : return typeid(bool);
+    case kPorpertyNumberArray : return typeid(std::vector<double>);
+    case kPorpertyStringArray : return typeid(std::vector<std::string>);
+    case kPorpertyPointer     : return typeid(void*);
+    case kPorpertyLuaFunction : return typeid(sol::function);
+    case kPorpertyLuaTable    : return typeid(sol::table);
+    default: return typeid(FackerForNullTypeinfo);
+    }
+}
+
 
 void sdp_frame_free_packet_releaser(AVFrame*,AVPacket* packet){
     if(packet){
@@ -86,9 +106,9 @@ FramePointer sdp_frame_make_color_frame(int32_t av_format, int32_t width, int32_
 #define PIX_FMT_BGR24 3
 
 #define TEST_PIXEL_FORMAT 23
-FramePointer make_test_frame_from_yuv420p(std::shared_ptr<sdp::Frame> src_frame)
+FramePointer make_test_frame_from_yuv420p(std::shared_ptr<sdmp::Frame> src_frame)
 {
-    std::shared_ptr<sdp::Frame> sdp_frame= std::shared_ptr<sdp::Frame>(new sdp::Frame());
+    std::shared_ptr<sdmp::Frame> sdp_frame= std::shared_ptr<sdmp::Frame>(new sdmp::Frame());
 #if (TEST_PIXEL_FORMAT > 0)
 
         int32_t width = src_frame->frame->width;
@@ -234,7 +254,7 @@ void FormatUtils::to_lua_table(const Format &format, sol::table &table){
 
 }
 
-string FormatUtils::to_printable(const Format &format)
+string FormatUtils::printable(const Format &format)
 {
     std::ostringstream stream;
     stream<<"type:"<<(const char*)((format.type>=0)?av_get_media_type_string((AVMediaType)format.type):"unknown");
@@ -312,6 +332,47 @@ inline std::string StringUtils::bytes_to_hex(const std::vector<uint8_t>& bytes) 
 std::string StringUtils::fourcc(uint32_t fourcc){
     char* fourcc_bytes = (char*)&fourcc;
     return fmt::format("{}{}{}{}",fourcc_bytes[0], fourcc_bytes[1], fourcc_bytes[2],fourcc_bytes[3]);
+}
+
+std::string StringUtils::printable(const Value& value) {
+    const char* type_names[]{
+        "None",
+        "Number",
+        "String",
+        "Bool",
+        "NumberArray",
+        "StringArray",
+        "Pointer",
+        "LuaFunction",
+        "LuaTable"
+    };
+    if(!value.valid_sdmp_value())
+        return fmt::format("unknown value type:{}",value.value_.type().name());
+
+    auto type_ = value.type_;
+    const char* type_name = type_names[type_];
+
+    if(type_ == ValueType::kPorpertyNumber)
+        return fmt::format("{}:{}",type_name,ANY2F64(value.value_));
+    else if(type_ == ValueType::kPorpertyBool)
+        return fmt::format("{}:{}",type_name,ANY2BOOL(value.value_));
+    else if(type_ == ValueType::kPorpertyString)
+        return fmt::format("{}:{}",type_name,ANY2STR(value.value_));
+    else if(type_ == ValueType::kPorpertyNumberArray){
+        return fmt::format("{}:{}",type_name,fmt::join(ANY2F64ARR(value.value_), ","));
+    }
+    else if(type_ == ValueType::kPorpertyStringArray){
+        return fmt::format("{}:{}",type_name,fmt::join(ANY2STRARR(value.value_), ","));
+    }
+    else if(type_ == ValueType::kPorpertyPointer)
+        return fmt::format("{}:{}",type_name,ANY2PTR(value.value_));
+    else if(type_ == ValueType::kPorpertyLuaFunction)
+        return fmt::format("{}:{}",type_name,ANY2LUAFUN(value.value_).valid());
+        //ss<<"Function:"<<(ANY2LUAFUN(value_).valid()?"valid":"nil");
+    else if(type_ == ValueType::kPorpertyLuaTable)
+        return fmt::format("{}:{}",type_name,ANY2LUATABLE(value.value_).valid());
+        //ss<<"Table:"<<(ANY2LUATABLE(value_).valid()?"valid":"nil");
+    return "unknown";
 }
 
 BitStreamConvert::BitStreamConvert(const std::string &type)
@@ -436,7 +497,7 @@ int32_t MediaInfoProbe::get_info(const std::string &media, Info &info)
     size_t streams = media_file_->nb_streams;
     for(size_t index = 0; index < streams; index++){
         auto stream = media_file_->streams[index];
-        sdp::Format format;
+        sdmp::Format format;
         format.codec = stream->codecpar->codec_id;
         format.format = stream->codecpar->format;
         format.type = stream->codecpar->codec_type;

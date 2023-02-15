@@ -2,7 +2,7 @@
 
 #include "logger.h"
 #include "sdp_timeline_support.h"
-using namespace sdp;
+using namespace mr::sdmp;
 
 
 GeneralTimeline::GeneralTimeline()

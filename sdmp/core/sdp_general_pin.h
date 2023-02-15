@@ -2,7 +2,7 @@
 #define GENERALPIN_H
 #include <sdpi_pin.h>
 
-namespace sdp {
+namespace mr::sdmp {
 
 class GeneralPin : public IPin{
     friend class FilterBase;

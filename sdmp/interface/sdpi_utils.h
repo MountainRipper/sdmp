@@ -9,7 +9,7 @@
 #include <mutex>
 #include <functional>
 #include <condition_variable>
-#include "sdpi_basic_declears.h"
+#include "sdpi_basic_types.h"
 
 extern "C"{
     struct AVRational;
@@ -19,7 +19,7 @@ typedef struct AVCodecParameters AVCodecParameters;
 
 #define CHECK_ANNEXB_START_CODE(data) (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3]==1)
 
-namespace sdp {
+namespace mr::sdmp {
 
 void sdp_frame_free_packet_releaser(AVFrame*, AVPacket* packet);
 void sdp_frame_unref_packet_releaser(AVFrame*,AVPacket* packet);
@@ -27,7 +27,7 @@ void sdp_frame_free_frame_releaser(AVFrame*frame, AVPacket*);
 void sdp_frame_unref_frame_releaser(AVFrame* frame,AVPacket*);
 void sdp_frame_free_both_releaser(AVFrame*frame, AVPacket* packet);
 FramePointer sdp_frame_make_color_frame(int32_t av_format,int32_t width,int32_t height,uint8_t r,uint8_t g,uint8_t b,uint8_t a);
-FramePointer make_test_frame_from_yuv420p(std::shared_ptr<sdp::Frame> src_frame);
+FramePointer make_test_frame_from_yuv420p(std::shared_ptr<sdmp::Frame> src_frame);
 
 const char* sdp_os();
 const char* sdp_arch();
@@ -37,8 +37,8 @@ namespace FormatUtils {
     int32_t sample_format_to_codec_id(int sample_format);
     int32_t get_audio_sample_format_from_bytes(uint8_t bytes);
 
-    void to_lua_table(const sdp::Format& format, sol::table& table_ptr);
-    std::string to_printable(const sdp::Format& format);
+    void to_lua_table(const sdmp::Format& format, sol::table& table_ptr);
+    std::string printable(const sdmp::Format& format);
 };
 //helper function to convert vector/string
 namespace StringUtils{
@@ -48,6 +48,8 @@ namespace StringUtils{
     std::vector<uint8_t> hex_to_bytes(const std::string& hex);
     std::string bytes_to_hex(const std::vector<uint8_t>& bytes);
     std::string fourcc(uint32_t fourcc);
+
+    std::string printable(const Value& value);
 };
 
 namespace BufferUtils{

@@ -38,6 +38,7 @@
 #include <GLFW/glfw3native.h>
 
 #include <sdpi_factory.h>
+#include <sol/sol.hpp>
 /* -------------------------------------------- */
 
 void button_callback(GLFWwindow* win, int bt, int action, int mods);
@@ -416,9 +417,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) { }
 void button_callback(GLFWwindow* win, int bt, int action, int mods) { }
 void char_callback(GLFWwindow* win, unsigned int key) { }
 
-class PlayerEvent : public sdp::IGraphEvent{
+using namespace mr;
+class PlayerEvent : public   mr::sdmp::IGraphEvent{
 public:
-    int32_t on_graph_init(sdp::IGraph *graph) override {
+    int32_t on_graph_init(mr::sdmp::IGraph *graph) override {
         auto& vm = *graph->vm();
         vm["qsdpContext"] = this;
         vm["qsdpStatusEvent"] = &PlayerEvent::on_status;
@@ -426,18 +428,18 @@ public:
         return 0;
     }
 
-    int32_t on_graph_created(sdp::IGraph *graph) override {
+    int32_t on_graph_created(mr::sdmp::IGraph *graph) override {
         graph->cmd_play();
         fprintf(stderr,"Graph created\n");
         return 0;
     }
 
-    int32_t on_graph_error(sdp::IGraph *graph, int32_t error_code) override {
+    int32_t on_graph_error(mr::sdmp::IGraph *graph, int32_t error_code) override {
         fprintf(stderr,"Graph errored\n");
         return 0;
     }
 
-    int32_t on_graph_master_loop(sdp::IGraph *graph) override {
+    int32_t on_graph_master_loop(mr::sdmp::IGraph *graph) override {
         return 0;
     }
 
@@ -448,17 +450,17 @@ public:
 };
 
 PlayerEvent *event = nullptr;
-std::shared_ptr<sdp::IGraph> graph;
+std::shared_ptr<sdmp::IGraph> graph;
 void init_callback(GLFWwindow* window){
-    sdp::Factory::initialize_factory();
+    sdmp::Factory::initialize_factory();
 
     std::filesystem::path script_path = std::filesystem::path(CMAKE_FILE_DIR) / ".." / "script";
 
-    sdp::FeatureMap features;
-    sdp::Factory::initialnize_engine(script_path.string(),script_path/"engine.lua",features);
+    sdmp::FeatureMap features;
+    sdmp::Factory::initialnize_engine(script_path.string(),script_path/"engine.lua",features);
 
     event  = new PlayerEvent();
-    graph = sdp::Factory::create_graph_from(script_path/"player.lua",static_cast<sdp::IGraphEvent*>(event));
+    graph = sdmp::Factory::create_graph_from(std::filesystem::path(CMAKE_FILE_DIR)/"../easy/script-easy/player.lua",static_cast<sdmp::IGraphEvent*>(event));
 }
 void frame_callback(GLFWwindow* window){
 
@@ -467,6 +469,8 @@ void deinit_callback(GLFWwindow* window){
     graph->cmd_stop();
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     graph = nullptr;
+
+    sdmp::Factory::deinitialize();
 }
 
 /* -------------------------------------------- */

@@ -1,6 +1,6 @@
 #include "media_muxer_ffmpeg.h"
 
-namespace sdp {
+namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(MediaMuxerFFmpegFilter)
 
@@ -37,12 +37,12 @@ int32_t MediaMuxerFFmpegFilter::connect_match_input_format(IPin *sender_pin,IPin
     return -1;
 }
 
-int32_t MediaMuxerFFmpegFilter::connect_chose_output_format(sdp::IPin *output_pin, int32_t index)
+int32_t MediaMuxerFFmpegFilter::connect_chose_output_format(sdmp::IPin *output_pin, int32_t index)
 {
     return 0;
 }
 
-int32_t MediaMuxerFFmpegFilter::receive(sdp::IPin *input_pin, std::shared_ptr<sdp::Frame> frame)
+int32_t MediaMuxerFFmpegFilter::receive(sdmp::IPin *input_pin, std::shared_ptr<sdmp::Frame> frame)
 {
     if(status_ != kStatusRunning)
         return 0;
@@ -75,13 +75,13 @@ int32_t MediaMuxerFFmpegFilter::receive(sdp::IPin *input_pin, std::shared_ptr<sd
     return 0;
 }
 
-int32_t MediaMuxerFFmpegFilter::requare(int32_t duration, const std::vector<sdp::PinIndex> &output_pins)
+int32_t MediaMuxerFFmpegFilter::requare(int32_t duration, const std::vector<sdmp::PinIndex> &output_pins)
 {
     //always requaire
     return 1000;
 }
 
-int32_t MediaMuxerFFmpegFilter::process_command(const std::string &command, const NativeValue &param)
+int32_t MediaMuxerFFmpegFilter::process_command(const std::string &command, const Value &param)
 {
     GeneralFilter::process_command(command,param);
     if(command == kGraphCommandPause){
@@ -206,7 +206,7 @@ int32_t MediaMuxerFFmpegFilter::write_proc()
         if(!quit_flag_)
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-        std::shared_ptr<sdp::Frame> frame;
+        std::shared_ptr<sdmp::Frame> frame;
         if(packet_cache_.size()){
 
             if(!header_writed_)
@@ -230,7 +230,7 @@ int32_t MediaMuxerFFmpegFilter::write_proc()
             if(muxer_->streams[stream_index]->time_base.den == 24)
                 muxer_->streams[stream_index]->time_base = {1,1000};
 
-            sdp::Rational pin_timebase = pin_timebase_map_[pin_index];
+            sdmp::Rational pin_timebase = pin_timebase_map_[pin_index];
             AVRational stream_timebase = muxer_->streams[stream_index]->time_base;
             AVRational frame_timebase  = {pin_timebase.numerator, pin_timebase.denominator};
 

@@ -3,7 +3,7 @@
 #include "sdpi_basic_types.h"
 #include "sdpi_pin.h"
 #include <any>
-//#include <sol_lua_operator.h>//TODO: remove this use a own-var class
+#include <sol/forward.hpp>//TODO: remove this use a own-var class
 
 namespace mr::sdmp {
 

@@ -145,21 +145,21 @@ int32_t GeneralFilter::set_property_async(const std::string &property, const Val
 int32_t GeneralFilter::put_property_to_script(const std::string &property,const Value &value)
 {
     if(value.type_ == kPorpertyNumber)
-        filter_state_[property] = ANY2F64(value.value_);
+        filter_state_[property] = value.as_double();
     if(value.type_ == kPorpertyBool)
-        filter_state_[property] = ANY2BOOL(value.value_);
+        filter_state_[property] = value.as_bool();
     if(value.type_ == kPorpertyString)
-        filter_state_[property] = ANY2STR(value.value_);
+        filter_state_[property] = value.as_string();
     if(value.type_ == kPorpertyNumberArray)
-        filter_state_[property] = ANY2F64ARR(value.value_);
+        filter_state_[property] = value.as_double_vector();
     if(value.type_ == kPorpertyStringArray)
-        filter_state_[property] = ANY2STRARR(value.value_);
+        filter_state_[property] = value.as_string_vector();
     if(value.type_ == kPorpertyPointer)
-        filter_state_[property] = ANY2PTR(value.value_);
+        filter_state_[property] = value.as_pointer();
     if(value.type_ == kPorpertyLuaFunction)
-        filter_state_[property] = ANY2LUAFUN(value.value_);
+        filter_state_[property] = value.as<sol::function>();
     if(value.type_ == kPorpertyLuaTable)
-        filter_state_[property] = ANY2LUATABLE(value.value_);
+        filter_state_[property] = value.as<sol::table>();
     return 0;
 }
 

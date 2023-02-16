@@ -1,7 +1,6 @@
 #ifndef SDPI_BASIC_TYPES_H
 #define SDPI_BASIC_TYPES_H
 #include <any>
-#include <sol/forward.hpp>
 #include <string>
 #include <memory>
 #include <map>
@@ -13,6 +12,7 @@ struct AVPacket;
 struct AVFrame;
 }
 namespace sol {
+class state;
 class lua_value;
 }
 
@@ -281,8 +281,7 @@ enum ValueType: uint8_t{
     kPorpertyLuaFunction = 7,
     kPorpertyLuaTable    = 8
 };
-//#define ANY2S64(V)      std::any_cast<int64_t>(V)
-//#define ANY2U64(V)      std::any_cast<uint64_t>(V)
+
 #define ANY2F64(V)      std::any_cast<double>(V)
 #define ANY2STR(V)      std::any_cast<const std::string&>(V)
 #define ANY2BOOL(V)     std::any_cast<bool>(V)
@@ -291,6 +290,39 @@ enum ValueType: uint8_t{
 #define ANY2PTR(V)      std::any_cast<void*>(V)
 #define ANY2LUAFUN(V)   std::any_cast<sol::function>(V)
 #define ANY2LUATABLE(V) std::any_cast<sol::table>(V)
+
+#define VALUE_OPERATOR_TYPE(T)\
+operator T () const{\
+    return std::any_cast<T>(value_);\
+}
+
+#define VALUE_CONSTRUCTOR(T,ASNAME)\
+Value(const T& v,const std::string& name = "",bool readonly = false)\
+    :name_(name)\
+    ,readonly_(readonly){\
+    value_ = v;\
+    type_ = type_of_typeid(value_.type());\
+}\
+operator T () const{\
+    return std::any_cast<T>(value_);\
+}\
+const T as_##ASNAME () const{\
+    return std::any_cast<T>(value_);\
+}
+
+#define VALUE_CONSTRUCTOR_TYPE(FROM,TO,ASNAME) \
+Value(const FROM& v,const std::string& name = "",bool readonly = false)\
+    :name_(name)\
+    ,readonly_(readonly){\
+    value_ = static_cast<TO>(v);\
+    type_ = type_of_typeid(value_.type());\
+}\
+operator FROM () const{\
+    return static_cast<FROM>(std::any_cast<TO>(value_));\
+}\
+const FROM as_##ASNAME () const{\
+    return static_cast<FROM>(std::any_cast<TO>(value_));\
+}
 
 class Value{
 public:
@@ -303,6 +335,24 @@ public:
         value_ = v;
         type_ = type_of_typeid(value_.type());
     }
+
+    VALUE_CONSTRUCTOR_TYPE(float   ,double,float)
+    VALUE_CONSTRUCTOR_TYPE(int8_t  ,double,int8)
+    VALUE_CONSTRUCTOR_TYPE(uint8_t ,double,uint8)
+    VALUE_CONSTRUCTOR_TYPE(int16_t ,double,int16)
+    VALUE_CONSTRUCTOR_TYPE(uint16_t,double,uint16)
+    VALUE_CONSTRUCTOR_TYPE(int32_t ,double,int32)
+    VALUE_CONSTRUCTOR_TYPE(uint32_t,double,uint32)
+    VALUE_CONSTRUCTOR_TYPE(int64_t ,double,int64)
+    VALUE_CONSTRUCTOR_TYPE(uint64_t,double,uint64)
+
+    VALUE_CONSTRUCTOR(double,double)
+    VALUE_CONSTRUCTOR(bool,bool)
+    VALUE_CONSTRUCTOR(void*,pointer)
+    VALUE_CONSTRUCTOR(std::string,string)
+    VALUE_CONSTRUCTOR(std::vector<double>,double_vector)
+    VALUE_CONSTRUCTOR(std::vector<std::string>,string_vector)
+
     Value(sol::lua_value* lua_value,const std::string& name = "",bool readonly = false)
         :name_(name)
         ,readonly_(readonly){
@@ -323,75 +373,7 @@ public:
         value_changed_ = true;
         return *this;
     }
-    bool valid_sdmp_value() const {
-        return type_ != kPorpertyNone;
-    }
-    operator double() const{
-        return ANY2F64(value_);
-    }
-    operator int32_t() const{
-        return static_cast<int32_t>(ANY2F64(value_));
-    }
-    operator uint32_t() const{
-        return static_cast<uint32_t>(ANY2F64(value_));
-    }
-    operator int64_t() const{
-        return static_cast<int64_t>(ANY2F64(value_));
-    }
-    operator uint64_t() const{
-        return static_cast<uint64_t>(ANY2F64(value_));
-    }
-    operator bool() const{
-        return ANY2BOOL(value_);
-    }
-    operator const std::string&() const{
-        const std::string& s = ANY2STR(value_);
-        return s;
-    }
-    operator const std::vector<double>&() const{
-        return ANY2F64ARR(value_);
-    }
-    operator const std::vector<std::string>&() const{
-        return ANY2STRARR(value_);
-    }
-    operator void* () const{
-        return ANY2PTR(value_);
-    }
 
-    double as_double() const{
-        return ANY2F64(value_);
-    }
-    int64_t as_int32() const{
-        return static_cast<int32_t>(ANY2F64(value_));
-    }
-    int64_t as_int64() const{
-        return static_cast<int64_t>(ANY2F64(value_));
-    }
-    bool as_bool() const{
-        return ANY2BOOL(value_);
-    }
-    const std::string& as_string() const{
-        const std::string& s = ANY2STR(value_);
-        return s;
-    }
-    const void* as_pointer(){
-        return ANY2PTR(value_);
-    }
-    const std::vector<double>& as_double_vector() const{
-        return ANY2F64ARR(value_);
-    }
-    const std::vector<std::string>& as_string_vector() const{
-        return ANY2STRARR(value_);
-    }
-
-    int32_t to_lua_value(sol::state* state,sol::lua_value* lua_value_ptr){
-        return any_to_lua(value_,state,lua_value_ptr);
-    }
-    int32_t from_lua_value(sol::lua_value* lua_value_ptr){
-        lua_to_any(lua_value_ptr,value_);
-        type_ = type_of_typeid(value_.type());
-        return 0;
-    }
     template<class T>
     operator T() const{
         return std::any_cast<T>(value_);
@@ -402,6 +384,18 @@ public:
         return std::any_cast<T>(value_);
     }
 
+    bool valid_sdmp_value() const {
+        return type_ != kPorpertyNone;
+    }
+
+    int32_t to_lua_value(sol::state* state,sol::lua_value* lua_value_ptr){
+        return any_to_lua(value_,state,lua_value_ptr);
+    }
+    int32_t from_lua_value(sol::lua_value* lua_value_ptr){
+        lua_to_any(lua_value_ptr,value_);
+        type_ = type_of_typeid(value_.type());
+        return 0;
+    }
     static const std::type_info& typeid_of_type(ValueType type);
     static ValueType type_of_typeid(const std::type_info &typeinfo);
     static int32_t lua_to_any(sol::lua_value* lua_value_ptr,std::any& any_value);

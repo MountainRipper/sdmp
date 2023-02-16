@@ -4,6 +4,7 @@
 #include "sdpi_graph.h"
 #include "core_includes.h"
 #include "sdpi_filter_extentions.h"
+#include "sol_lua_operator.h"
 namespace mr::sdmp {
 
 class IFilterExtentionAudioOutputParticipant;

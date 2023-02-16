@@ -74,7 +74,7 @@ int32_t GeneralFilterBase::set_property(const std::string &property, const Value
 }
 
 int32_t GeneralFilterBase::set_property_lua(const std::string& property,const sol::lua_value& value){
-    Value native_value(LuaOperator::lua_value_to_any(value));
+    Value native_value(&value);
     if(native_value.valid_sdmp_value()){
         MP_ERROR("FilterBase::set_property_lua bad property type,must[double,double[],string,void*-pointer,lua-function] prop:{} type:{}",property.c_str(),(int)value.value().get_type());
         return -1;
@@ -91,14 +91,15 @@ Value GeneralFilterBase::call_method(const std::string &method, const Value &par
 
 lua_value GeneralFilterBase::call_method_lua(const std::string &method, const lua_value &param)
 {
-    Value native_value(LuaOperator::lua_value_to_any(param));
+    Value native_value(&param);
     if(native_value.valid_sdmp_value()){
         MP_ERROR("FilterBase::call_method_lua bad param type,must[double,double[],string,void*-pointer,lua-function] prop:{} type:{}",method.c_str(),(int)param.value().get_type());
         return -1;
     }
     Value return_value = call_method(method,native_value);
-
-    return LuaOperator::any_to_lua_value(*graph_->vm(),return_value.value_);
+    lua_value value_lua(sol::nil);
+    return_value.to_lua_value(graph_->vm().get(),&value_lua);
+    return value_lua;
 }
 
 int32_t GeneralFilterBase::master_loop(bool before_after)

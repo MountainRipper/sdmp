@@ -12,7 +12,9 @@ extern "C"{
 struct AVPacket;
 struct AVFrame;
 }
-
+namespace sol {
+class lua_value;
+}
 
 namespace mr::sdmp {
 
@@ -282,8 +284,8 @@ enum ValueType: uint8_t{
 //#define ANY2S64(V)      std::any_cast<int64_t>(V)
 //#define ANY2U64(V)      std::any_cast<uint64_t>(V)
 #define ANY2F64(V)      std::any_cast<double>(V)
-#define ANY2BOOL(V)     std::any_cast<bool>(V)
 #define ANY2STR(V)      std::any_cast<const std::string&>(V)
+#define ANY2BOOL(V)     std::any_cast<bool>(V)
 #define ANY2F64ARR(V)   std::any_cast<const std::vector<double>&>(V)
 #define ANY2STRARR(V)   std::any_cast<const std::vector<std::string>&>(V)
 #define ANY2PTR(V)      std::any_cast<void*>(V)
@@ -299,27 +301,14 @@ public:
         :name_(name)
         ,readonly_(readonly){
         value_ = v;
-        auto& tid = value_.type();
-        if(tid == typeid(double))
-            type_ = kPorpertyNumber;
-        else if(tid == typeid(std::string))
-            type_ = kPorpertyString;
-        else if(tid == typeid(bool))
-            type_ = kPorpertyBool;
-        else if(tid == typeid(std::vector<double>))
-            type_ = kPorpertyNumberArray;
-        else if(tid == typeid(std::vector<std::string>))
-            type_ = kPorpertyStringArray;
-        else if(tid == typeid(void*))
-            type_ = kPorpertyPointer;
-        else if(tid == typeid_of_type(kPorpertyLuaFunction))
-            type_ = kPorpertyLuaFunction;
-        else if(tid == typeid_of_type(kPorpertyLuaTable))
-            type_ = kPorpertyLuaTable;
-        else
-            type_ = kPorpertyNone;
+        type_ = type_of_typeid(value_.type());
     }
-
+    Value(sol::lua_value* lua_value,const std::string& name = "",bool readonly = false)
+        :name_(name)
+        ,readonly_(readonly){
+        lua_to_any(lua_value,value_);
+        type_ = type_of_typeid(value_.type());
+    }
     Value(const Value& other){
         type_ = other.type_;
         name_ = other.name_;
@@ -395,6 +384,14 @@ public:
         return ANY2STRARR(value_);
     }
 
+    int32_t to_lua_value(sol::state* state,sol::lua_value* lua_value_ptr){
+        return any_to_lua(value_,state,lua_value_ptr);
+    }
+    int32_t from_lua_value(sol::lua_value* lua_value_ptr){
+        lua_to_any(lua_value_ptr,value_);
+        type_ = type_of_typeid(value_.type());
+        return 0;
+    }
     template<class T>
     operator T() const{
         return std::any_cast<T>(value_);
@@ -406,6 +403,9 @@ public:
     }
 
     static const std::type_info& typeid_of_type(ValueType type);
+    static ValueType type_of_typeid(const std::type_info &typeinfo);
+    static int32_t lua_to_any(sol::lua_value* lua_value_ptr,std::any& any_value);
+    static int32_t any_to_lua(const std::any& any_value,sol::state* state,sol::lua_value* lua_value_ptr);
 public:
     ValueType type_ =kPorpertyNone;
     bool readonly_ = false;

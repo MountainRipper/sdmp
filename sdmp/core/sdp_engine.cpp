@@ -1,5 +1,4 @@
 #include "sdp_engine.h"
-#include "sol/sol.hpp"
 #include "sdp_factory_implement.h"
 
 namespace mr::sdmp {

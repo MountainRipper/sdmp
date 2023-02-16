@@ -3,6 +3,7 @@
 #include <thread>
 #include "sdpi_graph.h"
 #include "sdp_filter_links_flow.h"
+#include "sol_lua_operator.h"
 namespace mr::sdmp {
 
 class GraphImplement : public IGraph

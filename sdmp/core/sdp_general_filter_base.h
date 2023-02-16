@@ -2,8 +2,8 @@
 #define SDP_FILTER_BASE_H
 #include <string>
 #include <set>
-#include <sol_lua_operator.h>
 #include <sdpi_filter.h>
+#include <sol/sol.hpp>
 
 using namespace sol;
 namespace mr::sdmp {

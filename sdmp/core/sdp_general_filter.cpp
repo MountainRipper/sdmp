@@ -183,7 +183,7 @@ int32_t GeneralFilter::bind_filter_to_script()
         auto propert_opt = filter_state_[property];
         if(propert_opt.valid()){
             sol::lua_value value = filter_state_[property];
-            symbol = LuaOperator::lua_value_to_any(value);
+            symbol = Value(&value);
             MP_LOG_DEAULT("Filter {} read pre-defined property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(symbol));
         }
         else{

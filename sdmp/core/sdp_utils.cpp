@@ -1,14 +1,15 @@
-#include "sdpi_utils.h"
-#include <sol_lua_operator.h>
-extern "C"{
-#include <libavcodec/bsf.h>
-}
 #include <sstream>
 #include <iomanip>
 #include <logger.h>
 #include <spdlog/fmt/bin_to_hex.h>
+#include <libyuv.h>
+#include <sol/sol.hpp>
+
+#include "sdpi_utils.h"
+extern "C"{
+#include <libavcodec/bsf.h>
+}
 #include "core_includes.h"
-#include "libyuv.h"
 namespace mr::sdmp {
 
 using namespace std;
@@ -31,7 +32,76 @@ const std::type_info &Value::typeid_of_type(ValueType type)
     default: return typeid(FackerForNullTypeinfo);
     }
 }
+ValueType Value::type_of_typeid(const std::type_info & typeinfo){
+    if(typeinfo == typeid(double))
+        return kPorpertyNumber;
+    else if(typeinfo == typeid(std::string))
+        return  kPorpertyString;
+    else if(typeinfo == typeid(bool))
+        return  kPorpertyBool;
+    else if(typeinfo == typeid(std::vector<double>))
+        return  kPorpertyNumberArray;
+    else if(typeinfo == typeid(std::vector<std::string>))
+        return  kPorpertyStringArray;
+    else if(typeinfo == typeid(void*))
+        return  kPorpertyPointer;
+    else if(typeinfo == typeid(sol::function))
+        return  kPorpertyLuaFunction;
+    else if(typeinfo == typeid(sol::table))
+        return kPorpertyLuaTable;
+    else if(typeinfo == typeid(sol::lua_value)){
+        MP_ERROR("ERROR: sdmp::Value can't use sol::lua_value directly, use Value(sol::lua_value*) or Value::from_lua_value instead");
+    }
+    return kPorpertyNone;
+}
+int32_t Value::lua_to_any(sol::lua_value* lua_value_ptr,std::any& any_value){
+    int32_t ret = 0;
+    sol::lua_value& value = *lua_value_ptr;
+    auto value_type = value.value().get_type();
+    switch (value_type) {
+    case sol::type::number:any_value = value.as<double>();break;
+    case sol::type::string:any_value = value.as<std::string>();break;
+    case sol::type::boolean:any_value = value.as<bool>();break;
+    case sol::type::userdata:
+    case sol::type::lightuserdata:any_value = value.as<void*>();break;
+    case sol::type::table:{
+        auto tb = value.as<sol::table>();
+        if(tb.size()){
+            if(tb[0].get_type() == sol::type::number){
+                any_value = tb.as<std::vector<double>>();
+            }
+            else if(tb[0].get_type() == sol::type::string){
+                any_value = tb.as<std::vector<std::string>>();
+            }
+            else{
+                any_value = tb;
+            }
+        }
+        else
+            any_value = tb;
+        break;
+    }
+    case sol::type::function:any_value = value.as<sol::function>();break;
+    default: ret = -1;break;
+    }
+    return ret;
+}
 
+int32_t Value::any_to_lua(const std::any& any_value,sol::state* state,sol::lua_value* lua_value_ptr){
+    int32_t ret = 0;
+    auto& lua_state = *state;
+    auto& type_id = any_value.type();
+    if(type_id == typeid(double)) *lua_value_ptr = sol::lua_value(lua_state,ANY2F64(any_value));
+    else if(type_id == typeid(std::string)) *lua_value_ptr = sol::lua_value(lua_state,ANY2STR(any_value));
+    else if(type_id == typeid(bool)) *lua_value_ptr = sol::lua_value(lua_state,ANY2BOOL(any_value));
+    else if(type_id == typeid(std::vector<double>)) *lua_value_ptr = sol::lua_value(lua_state,ANY2F64ARR(any_value));
+    else if(type_id == typeid(std::vector<std::string>)) *lua_value_ptr = sol::lua_value(lua_state,ANY2STRARR(any_value));
+    else if(type_id == typeid(void*)) *lua_value_ptr = sol::lua_value(lua_state,ANY2PTR(any_value));
+    else if(type_id == typeid(sol::function)) *lua_value_ptr = sol::lua_value(lua_state,ANY2LUAFUN(any_value));
+    else if(type_id == typeid(sol::table)) *lua_value_ptr = sol::lua_value(lua_state,ANY2LUATABLE(any_value));
+    else {*lua_value_ptr = sol::lua_value(lua_state,0);ret = -1;}
+    return ret;
+}
 
 void sdp_frame_free_packet_releaser(AVFrame*,AVPacket* packet){
     if(packet){

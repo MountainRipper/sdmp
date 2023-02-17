@@ -19,7 +19,6 @@ class IGraph{
 public:
     virtual ~IGraph(){}
     virtual std::shared_ptr<sol::state> vm() = 0;
-    virtual sol::table& graph() = 0;
 
     virtual int32_t set_property(const std::string& property,Value& value) = 0;
     virtual int32_t get_property(const std::string& property,Value& value) = 0;
@@ -37,7 +36,7 @@ public:
     virtual int32_t do_connect(IFilter* sender, IFilter* receiver, int32_t sender_pin_index, int32_t receiver_pin_index) = 0;
 
     virtual const std::map<std::string, FilterPointer> &filters() = 0;
-    virtual int32_t create_filter(const std::string& id,const sol::table &filter) = 0;
+    virtual int32_t create_filter(const std::string& id,const Value &filter) = 0;
     virtual int32_t remove_filter(const std::string& id) = 0;
 
     virtual int32_t emit_error(const std::string& objectId, int32_t code, bool to_script = true) = 0;
@@ -61,4 +60,7 @@ public:
                                 Value& value);
 };
 }
+
+#define SDMP_GRAPH_GET_CONTEXT(G) ((*G->vm())[kGraphKey])
+
 #endif // SDP_GRAPH_H

@@ -239,9 +239,9 @@ MediaCacheSaverFilter::MediaCacheSaverFilter()
     manager_ = std::shared_ptr<MediaCacheManager>(new MediaCacheManager());
 }
 
-int32_t MediaCacheSaverFilter::initialize(IGraph *graph, const table &config)
+int32_t MediaCacheSaverFilter::initialize(IGraph *graph, const Value &config_value)
 {
-    GeneralFilter::initialize(graph,config);
+    GeneralFilter::initialize(graph,config_value);
     return 0;
 }
 

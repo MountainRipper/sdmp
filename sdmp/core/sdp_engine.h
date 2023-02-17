@@ -22,7 +22,7 @@ public:
 private:
     int32_t create_device(sol::table &config);
 private:
-    LuaOperator engine_state_;
+    sol::LuaOperator engine_state_;
     std::string root_dir_;
     std::map<std::string,FilterPointer> audio_outputs_devices_;
     std::set<IFilterExtentionAudioOutputParticipant*> audio_output_participant_;

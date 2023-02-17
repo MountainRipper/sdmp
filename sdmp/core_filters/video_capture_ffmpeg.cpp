@@ -10,9 +10,9 @@ VideoCaptureFFmpegFilter::VideoCaptureFFmpegFilter()
 
 }
 
-int32_t VideoCaptureFFmpegFilter::initialize(IGraph *graph, const sol::table &config)
+int32_t VideoCaptureFFmpegFilter::initialize(IGraph *graph, const Value &config_value)
 {
-    GeneralFilter::initialize(graph,config);
+    GeneralFilter::initialize(graph,config_value);
     return 0;
 }
 

@@ -5,7 +5,7 @@
 
 namespace mr::sdmp {
 
-class GeneralFilter : public GeneralFilterBase
+class GeneralFilter : public IFilter
 {
 public:
     struct PropertyAsyncRequest{
@@ -19,13 +19,45 @@ public:
 
     // IFilter interface
 public:
-    //virtual function implements of GeneralFilterBase
-    virtual FilterType type();
-    virtual int32_t initialize(IGraph *graph, const sol::table &config);
-    virtual int32_t process_command(const std::string& command,const Value& param);
-    virtual int32_t get_property(const std::string& property,Value& value);
-    virtual int32_t set_property(const std::string& property, const Value& value, bool from_script = false);
-    virtual int32_t master_loop(bool before_after);
+    //////init
+    COM_IMP_METHOD( initialize(IGraph* graph,const Value & config_value) )
+
+    //////basic info
+    COM_IMP_METHOD_RET( const std::string&, id() )
+    COM_IMP_METHOD_RET( FilterType, type() )
+    COM_IMP_METHOD( level() )
+    COM_IMP_METHOD( set_level(int32_t level) )
+    COM_IMP_METHOD( activable() )
+
+    //////pins operator
+    COM_IMP_METHOD( add_pin(PinPointer pin) )
+    COM_IMP_METHOD( remove_pin(PinDirection direction,int32_t index) )//remove a pin, <0 for clear
+    COM_IMP_METHOD_RET( PinPointer, get_pin(PinDirection direction, int32_t index) )
+    COM_IMP_METHOD_RET( PinVector&, get_pins(PinDirection direction) )
+
+    //////property and methods call
+    COM_IMP_METHOD( get_property(const std::string& property,Value& value) )
+    COM_IMP_METHOD( set_property(const std::string& property, const Value& value, bool from_script = true) )
+    COM_IMP_METHOD_RET( Value, call_method(const std::string& method, const Value& param) )
+
+    //////pins connecting operators
+    COM_IMP_METHOD( connect_constraint_output_format(IPin* output_pin, const std::vector<Format> &format) )
+    COM_IMP_METHOD( connect_before_match(IFilter *sender_filter) )
+    COM_IMP_METHOD( connect(IPin* output_pin,IPin* input_pin) )
+    /*basic disconnect output pin method #disconnect_output(int32_t output_pin) #disconnect_output() use this implement*/
+    COM_IMP_METHOD( disconnect_output(int32_t output_pin,IPin* input_pin) )
+    /*disconnect a input pin's  sender, -1 for disconnect all*/
+    COM_IMP_METHOD( disconnect_input(int32_t input_pin) )
+
+    //running loop
+    COM_IMP_METHOD( master_loop(bool before_after) )
+    COM_IMP_METHOD( process_command(const std::string& command,const Value& param) )
+
+    // method must implement by final filters
+    // virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin) = 0;
+    // virtual int32_t connect_chose_output_format(IPin* output_pin, int32_t index) = 0;
+    // virtual int32_t receive(IPin* input_pin,FramePointer frame) = 0;
+    // virtual int32_t requare(int32_t duration,const std::vector<PinIndex>& output_pins) = 0;
 
     //virtual function declear by GeneralFilter
     virtual int32_t property_changed(const std::string& property, Value& symbol);
@@ -45,13 +77,26 @@ protected:
     //-1 for all output pin
     int32_t deliver_eos_frame(int32_t pin_index = -1);
 protected:
-    FilterDelear declears_;
-    SolPropertiesMap properties_;
+    IGraph*         graph_ = nullptr;
+    sol::table      filter_state_;
+    std::string     id_;
+    std::string     module_;
+
+    FilterDelear    declears_;
+    std::map<std::string,Value> properties_;
 
     std::mutex  async_mutex_;
     std::vector<PropertyAsyncRequest> properties_async_request_;
     //a direct member of status for simple access
     GraphStatus status_ = kStatusNone;
+
+    //activable
+    bool            activable_ = true;
+    //pin level,from render=0 source=n
+    int32_t         level_     = 0;
+private:
+    PinVector input_pins_;
+    PinVector output_pins_;
 };
 
 template<class PinClass>
@@ -86,13 +131,13 @@ public:
 };
 
 template<class FilterImplement>
-class GeneralFilterObjectRoot : public GeneralFilter{
+class GeneralFilterTypedAs : public GeneralFilter{
 public:
 
-    GeneralFilterObjectRoot()
+    GeneralFilterTypedAs()
         :GeneralFilter(__t_uuidof(FilterImplement)){
     }
-    ~GeneralFilterObjectRoot(){}
+    ~GeneralFilterTypedAs(){}
 };
 
 }

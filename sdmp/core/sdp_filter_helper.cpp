@@ -4,8 +4,8 @@
 #include <logger.h>
 
 #include <sdpi_pin.h>
-#include <sdp_general_filter_base.h>
-#include "common_data_structures.h"
+#include <sdpi_filter.h>
+#include "tree_recursive.h"
 
 namespace mr::sdmp {
 

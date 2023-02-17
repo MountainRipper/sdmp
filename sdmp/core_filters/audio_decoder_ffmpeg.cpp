@@ -14,11 +14,11 @@ AudioDecoderFFmpegFilter::~AudioDecoderFFmpegFilter()
     close_decoder();
 }
 
-int32_t AudioDecoderFFmpegFilter::initialize(IGraph *graph, const sol::table &config)
+int32_t AudioDecoderFFmpegFilter::initialize(IGraph *graph, const Value &config_value)
 {
     create_general_pin(AVMEDIA_TYPE_AUDIO,kInputPin);
     create_general_pin(AVMEDIA_TYPE_AUDIO,kOutputPin);
-    return GeneralFilter::initialize(graph,config);
+    return GeneralFilter::initialize(graph,config_value);
 }
 
 int32_t AudioDecoderFFmpegFilter::process_command(const std::string &command, const Value& param)

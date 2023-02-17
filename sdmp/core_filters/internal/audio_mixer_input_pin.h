@@ -2,7 +2,7 @@
 #define AUDIO_MIXER_INPUT_PIN_H
 #include <mutex>
 #include "sdp_general_pin.h"
-#include "sdp_general_filter_base.h"
+#include "sdpi_objects.h"
 #include "sdpi_filter_extentions.h"
 namespace mr::sdmp {
 

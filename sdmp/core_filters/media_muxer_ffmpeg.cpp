@@ -11,11 +11,11 @@ MediaMuxerFFmpegFilter::MediaMuxerFFmpegFilter()
 }
 
 
-int32_t MediaMuxerFFmpegFilter::initialize(IGraph *graph, const table &config)
+int32_t MediaMuxerFFmpegFilter::initialize(IGraph *graph, const Value &config_value)
 {
     //add a default pin for accept first stream connect
     create_general_pin(AVMEDIA_TYPE_UNKNOWN,kInputPin);
-    return GeneralFilter::initialize(graph,config);
+    return GeneralFilter::initialize(graph,config_value);
 }
 
 int32_t MediaMuxerFFmpegFilter::connect_match_input_format(IPin *sender_pin,IPin *input_pin)

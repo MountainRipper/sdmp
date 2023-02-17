@@ -7,13 +7,51 @@
 #include <string.h>
 #include <vector>
 
+#ifdef _WIN64
+   #define SDP_OS "windows"
+#elif _WIN32
+   #define SDP_OS "windows"
+#elif __APPLE__
+    #include "TargetConditionals.h"
+    #if TARGET_OS_IPHONE && TARGET_IPHONE_SIMULATOR
+        #define SDP_OS "ios"
+    #elif TARGET_OS_IPHONE
+        #define SDP_OS "ios"
+    #else
+        #define TARGET_OS_OSX 1
+        #define SDP_OS "macos"
+    #endif
+#elif __ANDROID__
+    #define SDP_OS "android"
+#elif __linux__
+    #define SDP_OS "linux"
+#elif __unix__
+    #define SDP_OS "unix"
+#elif __posix
+    #define SDP_OS "posix"
+#endif
+
+//https://sourceforge.net/p/predef/wiki/Architectures/
+#if (__arm__ || _M_ARM)
+    #define SDP_ARCH "arm"
+#elif (__aarch64__)
+    #define SDP_ARCH "aarch64"
+#elif (__x86_64__ || __amd64__ || _M_AMD64 || _M_X64)
+    #define SDP_ARCH "x86_64"
+#elif (__X86__ || _X86_ || __i386__ || __i386 || _M_IX86)
+    #define SDP_ARCH "x86"
+#elif (__MIPS__ || __mips__ || __mips )
+    #define SDP_ARCH "mips"
+#endif
+
+
 extern "C"{
 struct AVPacket;
 struct AVFrame;
 }
 namespace sol {
 class state;
-class lua_value;
+struct lua_value;
 }
 
 namespace mr::sdmp {
@@ -66,23 +104,25 @@ Error Codes
 /*
  * internal properties for Graph, with prop-* for read only
 */
-#define kGraphPropertyCurrentPts "prop-pts"
+#define kGraphPropertyCurrentPts        "prop-pts"
 
 /*
  * commands for Lua call to C++ graph
 */
-#define kGraphCommandConnect     "cmdConnect"
-#define kGraphCommandDisconnect  "cmdDisconnect"
+#define kGraphCommandConnect            "cmdConnect"
+#define kGraphCommandDisconnect         "cmdDisconnect"
 //control commands also pass to filter
-#define kGraphCommandPlay        "cmdPlay"
-#define kGraphCommandPause       "cmdPause"
-#define kGraphCommandStop        "cmdStop"
-#define kGraphCommandSeek        "cmdSeek"
-#define kGraphCommandClose       "cmdClose"
+#define kGraphCommandPlay               "cmdPlay"
+#define kGraphCommandPause              "cmdPause"
+#define kGraphCommandStop               "cmdStop"
+#define kGraphCommandSeek               "cmdSeek"
+#define kGraphCommandClose              "cmdClose"
 
-#define kGraphOperatorConnect      "doConnect"
-#define kGraphOperatorCreateFilter "doCreateFilter"
-#define kGraphOperatorRemoveFilter "doRemoveFilter"
+#define kGraphOperatorConnect           "doConnect"
+#define kGraphOperatorCreateFilter      "doCreateFilter"
+#define kGraphOperatorRemoveFilter      "doRemoveFilter"
+#define kGraphOperatorSetFilterProperty "setFilterProperty"
+#define kGraphOperatorCallFilterMethod  "callFilterMethod"
 
 #define kGraphInvalidPts         INT32_MIN
 enum GraphStatus {
@@ -353,12 +393,6 @@ public:
     VALUE_CONSTRUCTOR(std::vector<double>,double_vector)
     VALUE_CONSTRUCTOR(std::vector<std::string>,string_vector)
 
-    Value(sol::lua_value* lua_value,const std::string& name = "",bool readonly = false)
-        :name_(name)
-        ,readonly_(readonly){
-        lua_to_any(lua_value,value_);
-        type_ = type_of_typeid(value_.type());
-    }
     Value(const Value& other){
         type_ = other.type_;
         name_ = other.name_;
@@ -391,14 +425,19 @@ public:
     int32_t to_lua_value(sol::state* state,sol::lua_value* lua_value_ptr){
         return any_to_lua(value_,state,lua_value_ptr);
     }
-    int32_t from_lua_value(sol::lua_value* lua_value_ptr){
+    int32_t from_lua_value(const sol::lua_value* lua_value_ptr){
         lua_to_any(lua_value_ptr,value_);
         type_ = type_of_typeid(value_.type());
         return 0;
     }
+    static Value create_from_lua_value(const sol::lua_value* lua_value_ptr){
+        Value value;
+        value.from_lua_value(lua_value_ptr);
+        return value;
+    }
     static const std::type_info& typeid_of_type(ValueType type);
     static ValueType type_of_typeid(const std::type_info &typeinfo);
-    static int32_t lua_to_any(sol::lua_value* lua_value_ptr,std::any& any_value);
+    static int32_t lua_to_any(const sol::lua_value *lua_value_ptr, std::any& any_value);
     static int32_t any_to_lua(const std::any& any_value,sol::state* state,sol::lua_value* lua_value_ptr);
 public:
     ValueType type_ =kPorpertyNone;

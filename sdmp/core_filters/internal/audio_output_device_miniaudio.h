@@ -1,7 +1,7 @@
 #ifndef AUDIOOUTPUTDEVICEMINIAUDIO_H
 #define AUDIOOUTPUTDEVICEMINIAUDIO_H
 #include "miniaudio.h"
-#include "core_includes.h"
+#include "sdp_general_filter.h"
 
 namespace mr::sdmp {
 
@@ -16,7 +16,7 @@ R"({
   "type": "sdp-filter"
 })",
 AudioOutputDeviceMiniaudioFilter)
-, public GeneralFilterBase
+, public GeneralFilter
 {
 public:
     AudioOutputDeviceMiniaudioFilter();
@@ -27,7 +27,7 @@ public:
     COM_MAP_END()
     // FilterBase interface
 public:
-    virtual int32_t initialize(IGraph *graph, const sol::table &config);
+    virtual int32_t initialize(IGraph *graph, const Value &config_value);
     virtual int32_t get_property(const std::string& property,Value& value);
     virtual int32_t process_command(const std::string &command, const Value& param);
     virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin);
@@ -36,8 +36,6 @@ public:
     virtual int32_t requare(int32_t duration,const std::vector<PinIndex>& output_pins);
     virtual int32_t master_loop(bool before_after);
 
-    //COM object support
-    virtual int32_t FinalRelease();
     int32_t on_playback(void* pcm,int32_t frames);
 private:
     int32_t pin_requare_data(void* pcm,int32_t frames);

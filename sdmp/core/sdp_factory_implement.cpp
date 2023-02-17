@@ -12,10 +12,6 @@ namespace mr::sdmp {
 
 std::shared_ptr<FactoryImplement> sdmp::Factory::factory_;
 
-#define DUMP_META(CLS) \
-    extern int32_t g_register_filter_##CLS();\
-    g_register_filter_##CLS();
-
 COM_MODULE_BEGINE("5b8aab92-a452-11ed-bcb9-9b38750c5c76",SDP_INTERNAL_COM_MODULE)
     COM_MODULE_OBJECT_ENTRY(AudioOutputDeviceMiniaudioFilter)
 

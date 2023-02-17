@@ -3,7 +3,7 @@
 #include "sdpi_basic_types.h"
 #include "sdpi_pin.h"
 #include <any>
-#include <sol/forward.hpp>//TODO: remove this use a own-var class
+//#include <sol/forward.hpp>//TODO: remove this use a own-var class
 
 namespace mr::sdmp {
 
@@ -22,38 +22,41 @@ struct FilterDelear{
 
 COM_INTERFACE("db2baffc-a7ee-11eb-8b91-d7dc2a399837",IFilter)
 public:
-    COM_METHOD( initialize(IGraph* graph,const sol::table & config) )
+    //////init
+    COM_METHOD( initialize(IGraph* graph,const Value & config_value) )
 
+    //////basic info
     COM_METHOD_RET( const std::string&, id() )
     COM_METHOD_RET( FilterType, type() )
     COM_METHOD( level() )
     COM_METHOD( set_level(int32_t level) )
     COM_METHOD( activable() )
 
+    //////pins operator
     COM_METHOD( add_pin(PinPointer pin) )
     COM_METHOD( remove_pin(PinDirection direction,int32_t index) )//remove a pin, <0 for clear
     COM_METHOD_RET( PinPointer, get_pin(PinDirection direction, int32_t index) )
     COM_METHOD_RET( PinVector&, get_pins(PinDirection direction) )
 
+    //////property and methods call
     COM_METHOD( get_property(const std::string& property,Value& value) )
     COM_METHOD( set_property(const std::string& property, const Value& value, bool from_script = true) )
-    COM_METHOD( set_property_lua(const std::string& property,const sol::lua_value& value) )
     COM_METHOD_RET( Value, call_method(const std::string& method, const Value& param) )
-    COM_METHOD_RET( sol::lua_value, call_method_lua(const std::string& method,const sol::lua_value& param) )
 
+    //////pins connecting operators
+    COM_METHOD( connect_constraint_output_format(IPin* output_pin, const std::vector<Format> &format) )
+    COM_METHOD( connect_before_match(IFilter *sender_filter) )
+    COM_METHOD( connect(IPin* output_pin,IPin* input_pin) )
+    /*basic disconnect output pin method #disconnect_output(int32_t output_pin) #disconnect_output() use this implement*/
+    COM_METHOD( disconnect_output(int32_t output_pin,IPin* input_pin) )
+    /*disconnect a input pin's  sender, -1 for disconnect all*/
+    COM_METHOD( disconnect_input(int32_t input_pin) )
+
+    //running loop
     COM_METHOD( master_loop(bool before_after) )
     COM_METHOD( process_command(const std::string& command,const Value& param) )
 
-    COM_METHOD( connect_constraint_output_format(IPin* output_pin, const std::vector<Format> &format) )
-    COM_METHOD( connect_before_match(IFilter *sender_filter) )
-
-    COM_METHOD( connect(IPin* output_pin,IPin* input_pin) )
-    //basic disconnect output pin method #disconnect_output(int32_t output_pin) #disconnect_output() use this implement
-    COM_METHOD( disconnect_output(int32_t output_pin,IPin* input_pin) )
-    //disconnect a input pin's  sender, -1 for disconnect all
-    COM_METHOD( disconnect_input(int32_t input_pin) )
-
-
+    //format match and data stream io
     COM_METHOD( connect_match_input_format(IPin *sender_pin,IPin *input_pin) )
     COM_METHOD( connect_chose_output_format(IPin* output_pin, int32_t index) )
     COM_METHOD( receive(IPin* input_pin,FramePointer frame) )
@@ -86,27 +89,6 @@ namespace FilterHelper{
     int32_t disconnect_output(FilterPointer filter);
 
 };
-
-//template<class Base>
-//class FilterFactory : public Base{
-//public:
-//    static FilterPointer create_instance(){
-//        FilterPointer ptr;
-//        ptr.CoCreateInstance(__t_uuidof(Base) );
-//        return ptr;
-//    }
-//
-//    static HRESULT create_unknown(IUnknownPointer& unknown){
-//        return unknown.CoCreateInstance(__t_uuidof(Base) );
-//    }
-//
-//    static const sdmp::FilterDelear& declear(){return declear_;}
-//    static sdmp::FilterType   types(){return declear_.type;}
-//private:
-//    static sdmp::FilterDelear declear_;
-//};
-//
-
 
 }
 

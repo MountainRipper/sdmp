@@ -14,11 +14,11 @@ VideoEncoderFFmpegFilter::~VideoEncoderFFmpegFilter()
     close_encoder();
 }
 
-int32_t VideoEncoderFFmpegFilter::initialize(IGraph *graph, const table &config)
+int32_t VideoEncoderFFmpegFilter::initialize(IGraph *graph, const Value &config_value)
 {
     create_general_pin(AVMEDIA_TYPE_VIDEO,kInputPin);
     create_general_pin(AVMEDIA_TYPE_VIDEO,kOutputPin);
-    return GeneralFilter::initialize(graph,config);
+    return GeneralFilter::initialize(graph,config_value);
 }
 
 

@@ -9,7 +9,8 @@
 #include <mutex>
 #include <functional>
 #include <condition_variable>
-#include "sdpi_basic_types.h"
+#include <sol/forward.hpp>
+#include "sdpi_objects.h"
 
 extern "C"{
     struct AVRational;

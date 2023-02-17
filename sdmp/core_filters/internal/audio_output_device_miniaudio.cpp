@@ -90,6 +90,7 @@ done:
 COM_REGISTER_OBJECT(AudioOutputDeviceMiniaudioFilter)
 
 AudioOutputDeviceMiniaudioFilter::AudioOutputDeviceMiniaudioFilter()
+    :GeneralFilter(CLSID_AudioOutputDeviceMiniaudioFilter)
 {
     memset(&pull_ring_buffer_,0,sizeof (pull_ring_buffer_));
 }
@@ -107,10 +108,15 @@ AudioOutputDeviceMiniaudioFilter::~AudioOutputDeviceMiniaudioFilter()
     MP_INFO("MiniAudio Stopped");
 }
 
-int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const sol::table &config)
+int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const Value &config_value)
 {
-    if(GeneralFilterBase::initialize(graph,config) < 0)
-        return -1;
+    //NOTE, do not call GeneralFilter::init because it not in read graph
+    auto config = config_value.as<sol::table>();
+    id_ = config["id"].get_or(std::string(""));
+    module_ = config["module"].get_or(std::string(""));
+
+    if(id_.empty() || module_.empty())
+        return kErrorInvalidParameter;
 
     std::string selector = config["selector"].get_or(std::string(""));
     std::string backend = config["backend"].get_or(std::string(""));
@@ -266,11 +272,6 @@ int32_t AudioOutputDeviceMiniaudioFilter::requare(int32_t duration,const std::ve
 }
 
 int32_t AudioOutputDeviceMiniaudioFilter::master_loop(bool before_after)
-{
-    return 0;
-}
-
-int32_t AudioOutputDeviceMiniaudioFilter::FinalRelease()
 {
     return 0;
 }

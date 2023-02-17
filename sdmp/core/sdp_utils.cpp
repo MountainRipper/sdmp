@@ -4,12 +4,11 @@
 #include <spdlog/fmt/bin_to_hex.h>
 #include <libyuv.h>
 #include <sol/sol.hpp>
-
+#include "core_includes.h"
 #include "sdpi_utils.h"
 extern "C"{
 #include <libavcodec/bsf.h>
 }
-#include "core_includes.h"
 namespace mr::sdmp {
 
 using namespace std;
@@ -49,14 +48,16 @@ ValueType Value::type_of_typeid(const std::type_info & typeinfo){
         return  kPorpertyLuaFunction;
     else if(typeinfo == typeid(sol::table))
         return kPorpertyLuaTable;
-    else if(typeinfo == typeid(sol::lua_value)){
-        MP_ERROR("ERROR: sdmp::Value can't use sol::lua_value directly, use Value(sol::lua_value*) or Value::from_lua_value instead");
+    else if(typeinfo == typeid(sol::lua_value) || typeinfo == typeid(sol::lua_value*)){
+        MP_ERROR("ERROR: sdmp::Value can't use sol::lua_value directly, "
+                 "plese use Value(sol::table) or Value(sol::function) for sol data"
+                 "or Value::from_lua_value(),Value::create_from_lua_value() to use it's c++ compatible data");
     }
     return kPorpertyNone;
 }
-int32_t Value::lua_to_any(sol::lua_value* lua_value_ptr,std::any& any_value){
+int32_t Value::lua_to_any(const sol::lua_value* lua_value_ptr,std::any& any_value){
     int32_t ret = 0;
-    sol::lua_value& value = *lua_value_ptr;
+    const sol::lua_value& value = *lua_value_ptr;
     auto value_type = value.value().get_type();
     switch (value_type) {
     case sol::type::number:any_value = value.as<double>();break;

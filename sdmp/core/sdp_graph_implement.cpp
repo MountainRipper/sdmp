@@ -133,11 +133,6 @@ std::shared_ptr<sol::state> sdmp::GraphImplement::vm()
     return graph_vm_;
 }
 
-sol::table &GraphImplement::graph()
-{
-    return graph_context_;
-}
-
 int32_t GraphImplement::master_requare_shot()
 {
     if(event_)
@@ -199,8 +194,10 @@ int32_t GraphImplement::master_thread_proc()
 
 
     graph_context_[kGraphOperatorConnect] = &GraphImplement::do_connect;
-    graph_context_[kGraphOperatorCreateFilter] = &GraphImplement::create_filter;
+    graph_context_[kGraphOperatorCreateFilter] = &GraphImplement::create_filter_lua;
     graph_context_[kGraphOperatorRemoveFilter] = &GraphImplement::remove_filter;
+    graph_context_[kGraphOperatorSetFilterProperty] = &GraphImplement::set_filter_property_lua;
+    graph_context_[kGraphOperatorCallFilterMethod] = &GraphImplement::call_filter_method_lua;
 
     loop_interval_ms_   = graph_context_.get_or("loopsInterval",10);
 
@@ -250,6 +247,29 @@ int32_t GraphImplement::emit_error(const std::string &objectId, int32_t code, bo
         lua_error_function_(graph_context_,objectId,code);
 
     return code;
+}
+
+int32_t GraphImplement::create_filter_lua(const std::string &id, const sol::lua_value &filter_config)
+{
+    return create_filter(id,Value(&filter_config));
+}
+
+int32_t GraphImplement::set_filter_property_lua(const std::string &filter_id, const std::string &property, const sol::lua_value &value)
+{
+    if(filters_.find(filter_id) == filters_.end())
+        return kErrorFilterInvalid;
+    filters_[filter_id]->set_property(property,Value(&value));
+    return 0;
+}
+
+sol::lua_value GraphImplement::call_filter_method_lua(const std::string &filter_id, const std::string &method, const sol::lua_value &param)
+{
+    if(filters_.find(filter_id) == filters_.end())
+        return kErrorFilterInvalid;
+    Value ret = filters_[filter_id]->call_method(method,Value(&param));
+    sol::lua_value lua_value{};
+    ret.to_lua_value(&graph_vm_.state(),&lua_value);
+    return lua_value;
 }
 
 int32_t GraphImplement::create_filters()
@@ -314,7 +334,7 @@ int32_t GraphImplement::switch_status(GraphStatus status)
     return 0;
 }
 
-table GraphImplement::make_features_table()
+sol::table GraphImplement::make_features_table()
 {
     features_ = Factory::factory()->features();
     sol::state& vm = graph_vm_;
@@ -453,9 +473,10 @@ const std::map<std::string ,FilterPointer> &GraphImplement::filters()
     return filters_;
 }
 
-int32_t GraphImplement::create_filter(const std::string &id,const  sol::table &filter)
+int32_t GraphImplement::create_filter(const std::string &id, const Value &filter_config)
 {
     MP_LOG_DEAULT("-------- GraphImplement::create_filter: {} ", id.data());
+    auto filter = filter_config.as<sol::table>();
     std::string module = filter.get_or("module",std::string());
     if(module.empty() || id.empty() || filters_.find(id) != filters_.end()){
         MP_ERROR("Check filter [id:{}][module:{}] failed: property unset",id,module);

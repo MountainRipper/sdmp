@@ -10,11 +10,11 @@ AudioEncoderFFmpegFilter::AudioEncoderFFmpegFilter()
 {
 }
 
-int32_t AudioEncoderFFmpegFilter::initialize(IGraph *graph, const sol::table &config)
+int32_t AudioEncoderFFmpegFilter::initialize(IGraph *graph, const Value &config_value)
 {
     create_general_pin(AVMEDIA_TYPE_AUDIO,kInputPin);
     create_general_pin(AVMEDIA_TYPE_AUDIO,kOutputPin);
-    return GeneralFilter::initialize(graph,config);
+    return GeneralFilter::initialize(graph,config_value);
 }
 
 int32_t sdmp::AudioEncoderFFmpegFilter::process_command(const std::string &command, const Value &param)

@@ -17,7 +17,6 @@ public:
     // Graph interface
     virtual int32_t destory();
     virtual std::shared_ptr<sol::state> vm();
-    virtual sol::table& graph();
 
     virtual int32_t set_property(const std::string& property,Value& value);
     virtual int32_t get_property(const std::string& property,Value& value);
@@ -38,10 +37,14 @@ public:
     virtual int32_t do_disconnet_all();    
 
     virtual const std::map<std::string, FilterPointer> &filters();
-    virtual int32_t create_filter(const std::string& id,const sol::table &filter);
+    virtual int32_t create_filter(const std::string& id, const Value &filter_config);
     virtual int32_t remove_filter(const std::string& id);
 
     virtual int32_t emit_error(const std::string& objectId, int32_t code, bool to_script = true);
+
+    int32_t create_filter_lua(const std::string& id, const sol::lua_value &filter_config);
+    int32_t set_filter_property_lua(const std::string& filter_id,const std::string& property,const sol::lua_value& value);
+    sol::lua_value call_filter_method_lua(const std::string& filter_id,const std::string &method, const sol::lua_value &param);
 private:
     int32_t master_thread_proc();
     int32_t master_requare_shot();
@@ -62,17 +65,17 @@ private:
 private:
     std::string root_dir_;
     std::string script_file_;    
-    LuaOperator graph_vm_;
+    sol::LuaOperator graph_vm_;
     sol::table  graph_context_;
     std::thread master_thread_;    
 
-    SolPropertiesMap properties_;
+    std::map<std::string,Value> properties_;
     std::map<std::string ,FilterPointer> filters_;
     FilterLinksFlow filters_flow_;
 
     bool        quit_flag_        = false;
     int32_t     loop_interval_ms_ = 10;
-    GraphStatus      status_           = kStatusNone;
+    GraphStatus status_           = kStatusNone;
 
     IGraphEvent  *event_           = nullptr;
 

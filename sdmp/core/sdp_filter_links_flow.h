@@ -1,7 +1,7 @@
 #ifndef AUDIOOUTPUTPARTICIPANTFILTER_H
 #define AUDIOOUTPUTPARTICIPANTFILTER_H
 
-#include <sdp_general_filter_base.h>
+#include <sdpi_filter.h>
 #include "sdp_timeline_support.h"
 
 namespace mr::sdmp {

@@ -95,54 +95,6 @@ public:
         }
 };
 
-
-static void test(){
-
-    TreeNode<string> root("A");
-    // 第二层
-    root.childrens_.push_back(TreeNode<string>("B"));
-    root.childrens_.push_back(TreeNode<string>("C"));
-    // 第三层
-    root.childrens_[0].childrens_.push_back(TreeNode<string>("D"));
-    root.childrens_[0].childrens_.push_back(TreeNode<string>("E"));
-    root.childrens_[1].childrens_.push_back(TreeNode<string>("F"));
-    root.childrens_[1].childrens_.push_back(TreeNode<string>("H"));
-    root.childrens_[1].childrens_.push_back(TreeNode<string>("G"));
-    // 第四层
-    root.childrens_[0].childrens_[1].childrens_.push_back(TreeNode<string>("I"));
-
-    TreeNode<string>  end("END");
-    root.childrens_[0].childrens_[1].childrens_.push_back(end);
-    root.childrens_[1].childrens_[1].childrens_.push_back(end);
-
-    std::vector<std::vector<string>> result;
-    TreeRecursive::recurTree<string>(root,result);
-    for (auto& item : result) {
-        fprintf(stderr,"recur:");
-        for (auto i : item) {
-            fprintf(stderr,"%s ",i.c_str());
-        }
-        fprintf(stderr,"\n");
-    }
-
-    auto result2 = TreeRecursive::dfsTree<string>(root);
-    for (auto& item : result2) {
-        fprintf(stderr,"stack depth:");
-        for (auto i : item) {
-            fprintf(stderr,"%s ",i.value_.c_str());
-        }
-        fprintf(stderr,"\n");
-    }
-
-    result2 = TreeRecursive::bfsTree<string>(root);
-    for (auto& item : result2) {
-        fprintf(stderr,"stack width:");
-        for (auto i : item) {
-            fprintf(stderr,"%s ",i.value_.c_str());
-        }
-        fprintf(stderr,"\n");
-    }
-}
 }
 
 #endif // COMMON_DATA_STRUCTURES_H

@@ -33,6 +33,8 @@ kGraphCommandClose         = "cmdClose"
 kGraphOperatorConnect      = "doConnect"
 kGraphOperatorCreateFilter = "doCreateFilter"
 kGraphOperatorRemoveFilter = "doRemoveFilter"
+kGraphOperatorSetFilterProperty = "setFilterProperty"
+kGraphOperatorCallFilterMethod = "callFilterMethod"
 
 --Object Oriented declear
 local Graph = oo.class("Graph", BaseClase)
@@ -78,13 +80,22 @@ end
 
 function Graph:setFilterProperty(filter,property,value )	
 	if(filter ~= nil) then
-		filter.setProperty(filter.context,property,value)
+                self:invoke(self,kGraphOperatorSetFilterProperty,filter.id,property,value)
 	end
 end
 
 function Graph:setFilterPropertyById(id,property,value )	
-	local filter = self:getFilter(id)
-	self:setFilterProperty(filter,property,value)
+        self:invoke(self,kGraphOperatorSetFilterProperty,id,property,value)
+end
+
+function Graph:callFilterMethod(filter,method,param )
+        if(filter ~= nil) then
+                self:invoke(self,kGraphOperatorCallFilterMethod,filter.id,method,param)
+        end
+end
+
+function Graph:callFilterMethodById(id,method,param )
+        self:invoke(self,kGraphOperatorCallFilterMethod,id,method,param)
 end
 
 function Graph:getFilterPin(filter,inOut,pinIndex)

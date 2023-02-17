@@ -8,11 +8,11 @@ MediaSourceMemoryFilter::MediaSourceMemoryFilter()
 {    
     properties_["pushGrabber"] = (void*)static_cast<IFilterHandlerDataGrabber*>(this);
 }
-int32_t MediaSourceMemoryFilter::initialize(IGraph *graph, const table &config)
+int32_t MediaSourceMemoryFilter::initialize(IGraph *graph, const Value &config_value)
 {
     //add a default pin for accept first stream connect
     create_general_pin(AVMEDIA_TYPE_UNKNOWN,kOutputPin);
-    GeneralFilter::initialize(graph,config);
+    GeneralFilter::initialize(graph,config_value);
     return 0;
 }
 

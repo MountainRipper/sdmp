@@ -149,9 +149,9 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
     return 0;
 }
 
-int32_t MediaSourceFFmpegFilter::initialize(IGraph *graph, const sol::table &config)
+int32_t MediaSourceFFmpegFilter::initialize(IGraph *graph, const Value &config_value)
 {
-    GeneralFilter::initialize(graph,config);
+    GeneralFilter::initialize(graph,config_value);
     std::string uri = filter_state_.get_or("uri",std::string());
     MP_INFO("MediaSourceFFmpegFilter::init with uri : {} ", uri.c_str());
     if(uri.size())

@@ -43,7 +43,7 @@ R"({
   "type": "sdp-filter"
 })",
 VideoOutputProxyFilter)
-    , public GeneralFilterObjectRoot<VideoOutputProxyFilter>
+    , public GeneralFilterTypedAs<VideoOutputProxyFilter>
     , public IFilterExtentionVideoOutputProxy
 {
 public:
@@ -55,7 +55,7 @@ public:
     COM_MAP_END()
     // FilterBase interface
 public:
-    virtual int32_t initialize(IGraph *graph, const sol::table &config);
+    virtual int32_t initialize(IGraph *graph, const Value &config_value);
     virtual int32_t process_command(const std::string &command, const Value& param);
     virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin);
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index);

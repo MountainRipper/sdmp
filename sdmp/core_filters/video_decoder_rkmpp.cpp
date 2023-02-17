@@ -96,11 +96,11 @@ VideoDecoderRkmppFilter::~VideoDecoderRkmppFilter()
     close_decoder();
 }
 
-int32_t VideoDecoderRkmppFilter::initialize(IGraph *graph, const sol::table &config)
+int32_t VideoDecoderRkmppFilter::initialize(IGraph *graph, const Value &config_value)
 {
     create_general_pin(AVMEDIA_TYPE_VIDEO,kInputPin);
     create_general_pin(AVMEDIA_TYPE_VIDEO,kOutputPin);
-    GeneralFilter::initialize(graph,config);
+    GeneralFilter::initialize(graph,config_value);
     return 0;
 }
 

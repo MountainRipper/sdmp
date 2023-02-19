@@ -36,10 +36,21 @@ public:
         return 0;
     }
 
+    int32_t apply_script_file(const std::string &script_file)
+    {
+        try{
+            lua_state_->safe_script_file(script_file);
+        }
+        catch(sol::error& error){
+            fprintf(stderr,"LUA RUN SCRIPT FILE ERROR: %s\n\t",error.what());
+            return -1;
+        }
+        return 0;
+    }
     int32_t apply_script(const std::string &script)
     {
         try{
-            lua_state_->safe_script_file(script);
+            lua_state_->safe_script(script);
         }
         catch(sol::error& error){
             fprintf(stderr,"LUA RUN SCRIPT ERROR: %s\n\t",error.what());

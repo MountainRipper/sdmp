@@ -10,9 +10,9 @@ VideoCaptureFFmpegFilter::VideoCaptureFFmpegFilter()
 
 }
 
-int32_t VideoCaptureFFmpegFilter::initialize(IGraph *graph, const Value &config_value)
+int32_t VideoCaptureFFmpegFilter::initialize(IGraph *graph, const Value &filter_values)
 {
-    GeneralFilter::initialize(graph,config_value);
+    GeneralFilter::initialize(graph,filter_values);
     return 0;
 }
 

@@ -2,8 +2,6 @@
 #include <chrono>
 #include "sdp_graph_implement.h"
 #include "sdp_factory_implement.h"
-#include "sdp_filter_helper.h"
-#include "core_includes.h"
 
 int my_exception_handler(lua_State* L, sol::optional<const std::exception&> maybe_exception, sol::string_view description) {
     // L is the lua state, which you can wrap in a state_view if necessary
@@ -33,7 +31,9 @@ namespace mr::sdmp {
 GraphImplement::GraphImplement(IGraphEvent *event)
     :event_(event)
 {
-
+    async_queue_.appendListener(kGraphAsyncExecuteCommandEvent,[](GraphImplement * graph, const std::string & command, const Value &param){
+        graph->execute_command(command,param);
+    });
 }
 
 GraphImplement::~GraphImplement()
@@ -63,7 +63,7 @@ int32_t GraphImplement::cmd_connect()
     return 0;
 }
 
-int32_t GraphImplement::do_disconnect()
+int32_t GraphImplement::cmd_disconnect()
 {
     MP_LOG_DEAULT("{}",__FUNCTION__);
     do_disconnet_all();
@@ -74,12 +74,12 @@ int32_t GraphImplement::do_disconnect()
 int32_t GraphImplement::cmd_play()
 {
     MP_LOG_DEAULT("{}",__FUNCTION__);
-    return do_flow_command(kGraphCommandPlay,.0);
+    return workflow_execute_command(kGraphCommandPlay,.0);
 }
 
 int32_t GraphImplement::cmd_pause()
 {
-    do_flow_command(kGraphCommandPause,.0);
+    workflow_execute_command(kGraphCommandPause,.0);
     MP_LOG_DEAULT("{}",__FUNCTION__);
     return 0;
 }
@@ -87,8 +87,8 @@ int32_t GraphImplement::cmd_pause()
 int32_t GraphImplement::cmd_stop()
 {
     cmd_pause();
-    do_flow_command(kGraphCommandStop,.0);
-    do_disconnect();
+    workflow_execute_command(kGraphCommandStop,.0);
+    cmd_disconnect();
     current_pts_ = kGraphInvalidPts;
     //emit a invalid position manually
     lua_position_function_(graph_context_,(double)current_pts_);
@@ -99,8 +99,8 @@ int32_t GraphImplement::cmd_stop()
 int32_t GraphImplement::cmd_seek(int64_t millisecond)
 {    
     MP_LOG_DEAULT("{}: {}",__FUNCTION__,millisecond);
-    do_flow_command(kGraphCommandPause,millisecond);
-    do_flow_command(kGraphCommandSeek,millisecond);
+    workflow_execute_command(kGraphCommandPause,millisecond);
+    workflow_execute_command(kGraphCommandSeek,millisecond);
     current_pts_ = kGraphInvalidPts;
     return 0;
 }
@@ -110,6 +110,58 @@ int32_t GraphImplement::cmd_close()
     MP_LOG_DEAULT("{}",__FUNCTION__);
     cmd_stop();
     filters_flow_.reset();
+    return 0;
+}
+
+int32_t GraphImplement::execute_command(const std::string &command,const  Arguments &param)
+{
+    if(command == kGraphCommandPlay){
+        cmd_play();
+    }
+    else if(command == kGraphCommandPause){
+        cmd_pause();
+    }
+    else if(command == kGraphCommandStop){
+        cmd_stop();
+    }
+    else if(command == kGraphCommandSeek){
+        int64_t pos = 0;
+        if(!param.params().empty())
+            pos = param.params()[0];
+        cmd_seek(pos);
+    }
+    else if(command == kGraphCommandClose){
+        cmd_close();
+    }
+    else if(command == kGraphCommandConnect){
+        cmd_connect();
+    }
+    else if(command == kGraphCommandDisconnect){
+        cmd_connect();
+    }
+    else if(command == kGraphCommandCallLuaFunction){
+        std::vector<sol::lua_value> lua_values;
+        ValueUtils::arguments_to_lua_values(param,graph_vm_.state(),lua_values);
+        sol::protected_function func = graph_vm_.get_function(param.method());
+        if(func){
+            func(sol::as_args(lua_values));
+        }
+    }
+    else if(command == kGraphCommandRunLuaScript){
+        std::string script;
+        if(!param.params().empty())
+            script = param.params()[0].as_string();
+
+        if(script.size()){
+            graph_vm_.apply_script(script);
+        }
+    }
+    return 0;
+}
+
+int32_t GraphImplement::execute_command_async(const std::string &command, const Arguments &param)
+{
+    async_queue_.enqueue(kGraphAsyncExecuteCommandEvent,this,command,param);
     return 0;
 }
 
@@ -123,10 +175,6 @@ int32_t GraphImplement::in_master_loop()
     return std::this_thread::get_id() == master_thread_.get_id();
 }
 
-int32_t sdmp::GraphImplement::destory()
-{
-    return 0;
-}
 
 std::shared_ptr<sol::state> sdmp::GraphImplement::vm()
 {
@@ -135,6 +183,8 @@ std::shared_ptr<sol::state> sdmp::GraphImplement::vm()
 
 int32_t GraphImplement::master_requare_shot()
 {
+    async_queue_.process();
+
     if(event_)
         event_->on_graph_master_loop(this);
     if(lua_master_function_.valid())
@@ -163,10 +213,10 @@ int32_t GraphImplement::master_thread_proc()
 
     sol::state& vm = graph_vm_;
     vm["rootPath"] = root_dir_;
-    vm["hostOS"] = std::string(SDP_OS);
-    vm["hostARCH"] = std::string(SDP_ARCH);
+    vm["hostOs"] = std::string(SDP_OS);
+    vm["hostArch"] = std::string(SDP_ARCH);
     vm["hostFeature"] = make_features_table();
-    int32_t ret = graph_vm_.apply_script(script_file_);
+    int32_t ret = graph_vm_.apply_script_file(script_file_);
     if(ret < 0){
         return emit_error("graph",kErrorBadScript,false);
     }
@@ -185,15 +235,9 @@ int32_t GraphImplement::master_thread_proc()
     vm[kGraphKey] = graph_context_;
 
     graph_context_["context"] = this;    
-    graph_context_[kGraphCommandConnect] = &GraphImplement::cmd_connect;
-    graph_context_[kGraphCommandPlay] = &GraphImplement::cmd_play;
-    graph_context_[kGraphCommandPause] = &GraphImplement::cmd_pause;
-    graph_context_[kGraphCommandStop] = &GraphImplement::cmd_stop;
-    graph_context_[kGraphCommandSeek] = &GraphImplement::cmd_seek;
-    graph_context_[kGraphCommandClose] = &GraphImplement::cmd_close;
 
-
-    graph_context_[kGraphOperatorConnect] = &GraphImplement::do_connect;
+    graph_context_[kGraphOperatorExecuteCommand] = &GraphImplement::execute_command_lua;
+    graph_context_[kGraphOperatorConnectFilter] = &GraphImplement::do_connect;
     graph_context_[kGraphOperatorCreateFilter] = &GraphImplement::create_filter_lua;
     graph_context_[kGraphOperatorRemoveFilter] = &GraphImplement::remove_filter;
     graph_context_[kGraphOperatorSetFilterProperty] = &GraphImplement::set_filter_property_lua;
@@ -208,6 +252,8 @@ int32_t GraphImplement::master_thread_proc()
     lua_connect_function_       = graph_vm_.get_member_function(graph_context_,kLuaConnectEventFunctionName);
     lua_connect_done_function_  = graph_vm_.get_member_function(graph_context_,kLuaConnectDoneEventFunctionName);
     lua_position_function_      = graph_vm_.get_member_function(graph_context_,kLuaPositionEventFunctionName);
+
+    execute_command(kGraphCommandCallLuaFunction,Arguments("args_test").add(1).add("SSSS").add(3.14));
 
     ret = create_filters();
     if(ret < 0){
@@ -249,6 +295,16 @@ int32_t GraphImplement::emit_error(const std::string &objectId, int32_t code, bo
     return code;
 }
 
+int32_t GraphImplement::execute_command_lua(const std::string &command, sol::variadic_args args)
+{
+    //lua Arguments has no method set,the method param is used for c++ call lua
+    Arguments args_values("");
+    for (const sol::lua_value &v : args) {
+        args_values.add(Value::create_from_lua_value(&v));
+    }
+    return execute_command(command,args_values);
+}
+
 int32_t GraphImplement::create_filter_lua(const std::string &id, const sol::lua_value &filter_config)
 {
     return create_filter(id,Value(&filter_config));
@@ -262,11 +318,16 @@ int32_t GraphImplement::set_filter_property_lua(const std::string &filter_id, co
     return 0;
 }
 
-sol::lua_value GraphImplement::call_filter_method_lua(const std::string &filter_id, const std::string &method, const sol::lua_value &param)
+sol::lua_value GraphImplement::call_filter_method_lua(const std::string &filter_id, const std::string &method, sol::variadic_args args)
 {
     if(filters_.find(filter_id) == filters_.end())
         return kErrorFilterInvalid;
-    Value ret = filters_[filter_id]->call_method(method,Value(&param));
+
+    Arguments args_values(method);
+    for (const sol::lua_value &v : args) {
+        args_values.add(Value::create_from_lua_value(&v));
+    }
+    Value ret = filters_[filter_id]->call_method(args_values);
     sol::lua_value lua_value{};
     ret.to_lua_value(&graph_vm_.state(),&lua_value);
     return lua_value;
@@ -310,7 +371,7 @@ int32_t GraphImplement::check_graph_connectings()
     return 0;
 }
 
-int32_t GraphImplement::do_flow_command(const std::string &command, const Value &param)
+int32_t GraphImplement::workflow_execute_command(const std::string &command, const Value &param)
 {
     const auto& ret = filters_flow_.process_command(command, param);
     if(ret == 0) {

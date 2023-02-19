@@ -26,10 +26,10 @@ VideoOutputProxyFilter::VideoOutputProxyFilter()
 
 }
 
-int32_t VideoOutputProxyFilter::initialize(IGraph *graph, const Value &config_value)
+int32_t VideoOutputProxyFilter::initialize(IGraph *graph, const Value &filter_values)
 {
     create_general_pin(AVMEDIA_TYPE_AUDIO,kInputPin);
-    GeneralFilter::initialize(graph,config_value);
+    GeneralFilter::initialize(graph,filter_values);
     return 0;
 }
 

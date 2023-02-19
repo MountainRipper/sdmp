@@ -84,21 +84,21 @@ COM_IMPLEMENT_INTERFACE(IYellow)
 COM_REGISTER_OBJECT(Pear)
 
 int main(){
-    //tinycom::ComFactory::factory()->RegisterObject(__uuidof(Apple),&tinycom::CComCoClass<Apple>::Create);
-    tinycom::IUnknownPtr i1;
+    //mr::tinycom::ComFactory::factory()->RegisterObject(__uuidof(Apple),&mr::tinycom::CComCoClass<Apple>::Create);
+    mr::tinycom::IUnknownPtr i1;
     i1.CoCreateInstanceDirectly<Apple>();
 
-    tinycom::ComPtr<IFruit> f1;
+    mr::tinycom::ComPtr<IFruit> f1;
     i1->QueryInterface(__t_uuidof(IFruit),(void**)&f1);
     f1->name();
     f1->count(2);
 
-    tinycom::ComPtr<IRed> r;
+    mr::tinycom::ComPtr<IRed> r;
     f1->QueryInterface(__t_uuidof(IRed),(void**)&r);
     r->red();
 
 
-    tinycom::IUnknownPtr i2;
+    mr::tinycom::IUnknownPtr i2;
     i2.CoCreateInstanceDirectly<Pear>();
 
     IFruit* f2 = nullptr;
@@ -106,7 +106,7 @@ int main(){
     f2->name();
     f2->count(20);
 
-    tinycom::ComPtr<IYellow> y;
+    mr::tinycom::ComPtr<IYellow> y;
     f2->QueryInterface(__t_uuidof(IYellow),(void**)&y);
     y->yellow();
     f2->Release();

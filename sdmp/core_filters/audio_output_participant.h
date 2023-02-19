@@ -38,6 +38,11 @@ R"({
     "name": "audioOutputParticipant",
     "properties": [
      {
+       "name": "idEngine",
+       "type": "string",
+       "value": ""
+     },
+     {
        "name": "cacheDuration",
        "type": "number",
        "value": 500.0
@@ -79,7 +84,7 @@ public:
     COM_MAP_END()
     // FilterBase interface
 public:
-    virtual int32_t initialize(IGraph *graph, const Value &config_value);
+    virtual int32_t initialize(IGraph *graph, const Value &filter_values);
     virtual int32_t get_property(const std::string &property, Value &value);
     virtual int32_t process_command(const std::string &command, const Value& param);
     virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin);
@@ -105,7 +110,7 @@ private:
     int32_t                     cache_need_ms_          = 0;
     int32_t                     hunger_need_ms_         = 0;
     std::string                 output_engine_;
-    SdpAudioResampler              resampler_;
+    SdpAudioResampler           resampler_;
     std::mutex                  mutex_;
     IFilterHandlerDataGrabber*  handler_                = nullptr;
     std::vector<int32_t>        channel_mapping_;

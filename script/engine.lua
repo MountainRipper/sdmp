@@ -18,3 +18,7 @@ audioOutputs={
 		bits=32,
 	}
 }	
+
+function test()
+print_dump(defaultAudioPlaybackDevice,"defaultAudioPlaybackDevice")
+end

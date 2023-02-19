@@ -34,21 +34,19 @@ AudioOutputParticipantFilter::~AudioOutputParticipantFilter()
     quit_flag_ = true;    
 }
 
-int32_t AudioOutputParticipantFilter::initialize(IGraph *graph, const Value &config_value)
+int32_t AudioOutputParticipantFilter::initialize(IGraph *graph, const Value &filter_values)
 {
     create_general_pin(AVMEDIA_TYPE_AUDIO,kInputPin);
 
     FilterPointer filter = FilterPointer(static_cast<IFilter*>(this));
     FilterPinFactory<AudioOutputParticipanOutputPin>::filter_create_pin(filter,AVMEDIA_TYPE_AUDIO,kOutputPin);
 
-    GeneralFilter::initialize(graph,config_value);
+    GeneralFilter::initialize(graph,filter_values);
 
     cache_need_ms_ = properties_["cacheDuration"];
     hunger_need_ms_ = properties_["cacheHungerDuration"];
+    output_engine_ = properties_["idEngine"].as_string();
     handler_ = (IFilterHandlerDataGrabber*)(void*)properties_["grabber"];
-
-    auto config = config_value.as<sol::table>();
-    output_engine_ = config.get_or("idEngine",std::string());
     return 0;
 }
 

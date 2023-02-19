@@ -429,7 +429,7 @@ public:
     }
 
     int32_t on_graph_created(mr::sdmp::IGraph *graph) override {
-        graph->cmd_play();
+        graph->execute_command(kGraphCommandPlay);
         fprintf(stderr,"Graph created\n");
         return 0;
     }
@@ -466,7 +466,7 @@ void frame_callback(GLFWwindow* window){
 
 }
 void deinit_callback(GLFWwindow* window){
-    graph->cmd_stop();
+    graph->execute_command(kGraphCommandStop);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     graph = nullptr;
 

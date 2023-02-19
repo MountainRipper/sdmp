@@ -45,7 +45,7 @@ public:
     COM_MAP_END()
     // FilterBase interface
 public:
-    virtual int32_t initialize(IGraph *graph, const Value &config_value) override;
+    virtual int32_t initialize(IGraph *graph, const Value &filter_values) override;
     virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin);
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index);
     virtual int32_t receive(IPin *input_pin, FramePointer frame);

@@ -108,15 +108,13 @@ AudioOutputDeviceMiniaudioFilter::~AudioOutputDeviceMiniaudioFilter()
     MP_INFO("MiniAudio Stopped");
 }
 
-int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const Value &config_value)
+int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const Value &filter_values)
 {
     //NOTE, do not call GeneralFilter::init because it not in read graph
-    auto config = config_value.as<sol::table>();
-    id_ = config["id"].get_or(std::string(""));
-    module_ = config["module"].get_or(std::string(""));
-
-    if(id_.empty() || module_.empty())
+    if(GeneralFilter::initialize(graph,filter_values)){
         return kErrorInvalidParameter;
+    }
+    auto config = filter_values.as<sol::table>();
 
     std::string selector = config["selector"].get_or(std::string(""));
     std::string backend = config["backend"].get_or(std::string(""));

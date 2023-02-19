@@ -33,6 +33,10 @@ FramePointer make_test_frame_from_yuv420p(std::shared_ptr<sdmp::Frame> src_frame
 const char* sdp_os();
 const char* sdp_arch();
 
+namespace ValueUtils {
+    int32_t arguments_to_lua_values(const Arguments& args, sol::state& state, std::vector<sol::lua_value> &lua_values);
+}
+
 namespace FormatUtils {
     //AVSampleFormat to AVCodecID
     int32_t sample_format_to_codec_id(int sample_format);

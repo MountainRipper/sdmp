@@ -194,7 +194,7 @@ const FeatureMap &FactoryImplement::features()
     return features_;
 }
 
-int32_t FactoryImplement::enum_module_filters(tinycom::IComModule *module)
+int32_t FactoryImplement::enum_module_filters(mr::tinycom::IComModule *module)
 {
     int index = 0;
     const char* metadata = nullptr;
@@ -208,7 +208,7 @@ int32_t FactoryImplement::enum_module_filters(tinycom::IComModule *module)
                     continue;
 
                 FilterDelear declear;
-                declear.clsid = tinycom::TGUID(filter_meta["clsid"].get<std::string>().c_str());
+                declear.clsid = mr::tinycom::TGUID(filter_meta["clsid"].get<std::string>().c_str());
                 declear.describe = filter_meta["describe"].get<std::string>();
                 declear.module = filter_meta["name"].get<std::string>();
 

@@ -23,7 +23,7 @@ struct FilterDelear{
 COM_INTERFACE("db2baffc-a7ee-11eb-8b91-d7dc2a399837",IFilter)
 public:
     //////init
-    COM_METHOD( initialize(IGraph* graph,const Value & config_value) )
+    COM_METHOD( initialize(IGraph* graph,const Value & filter_values) )
 
     //////basic info
     COM_METHOD_RET( const std::string&, id() )
@@ -41,13 +41,13 @@ public:
     //////property and methods call
     COM_METHOD( get_property(const std::string& property,Value& value) )
     COM_METHOD( set_property(const std::string& property, const Value& value, bool from_script = true) )
-    COM_METHOD_RET( Value, call_method(const std::string& method, const Value& param) )
+    COM_METHOD_RET( Value, call_method(const Arguments& args) )
 
     //////pins connecting operators
     COM_METHOD( connect_constraint_output_format(IPin* output_pin, const std::vector<Format> &format) )
     COM_METHOD( connect_before_match(IFilter *sender_filter) )
     COM_METHOD( connect(IPin* output_pin,IPin* input_pin) )
-    /*basic disconnect output pin method #disconnect_output(int32_t output_pin) #disconnect_output() use this implement*/
+    /*disconnect output pin's receiver pin*/
     COM_METHOD( disconnect_output(int32_t output_pin,IPin* input_pin) )
     /*disconnect a input pin's  sender, -1 for disconnect all*/
     COM_METHOD( disconnect_input(int32_t input_pin) )
@@ -56,7 +56,7 @@ public:
     COM_METHOD( master_loop(bool before_after) )
     COM_METHOD( process_command(const std::string& command,const Value& param) )
 
-    //format match and data stream io
+    //format match and data stream io,which methods must implement by final filters
     COM_METHOD( connect_match_input_format(IPin *sender_pin,IPin *input_pin) )
     COM_METHOD( connect_chose_output_format(IPin* output_pin, int32_t index) )
     COM_METHOD( receive(IPin* input_pin,FramePointer frame) )

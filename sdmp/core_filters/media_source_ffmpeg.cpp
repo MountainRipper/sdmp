@@ -149,9 +149,9 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
     return 0;
 }
 
-int32_t MediaSourceFFmpegFilter::initialize(IGraph *graph, const Value &config_value)
+int32_t MediaSourceFFmpegFilter::initialize(IGraph *graph, const Value &filter_values)
 {
-    GeneralFilter::initialize(graph,config_value);
+    GeneralFilter::initialize(graph,filter_values);
     std::string uri = filter_state_.get_or("uri",std::string());
     MP_INFO("MediaSourceFFmpegFilter::init with uri : {} ", uri.c_str());
     if(uri.size())
@@ -231,22 +231,23 @@ int32_t MediaSourceFFmpegFilter::requare(int32_t duration,const std::vector<PinI
 
 int32_t MediaSourceFFmpegFilter::property_changed(const std::string& name,Value& symbol)
 {
+    int ret = 0;
     if(name == "uri"){
         MP_LOG_DEAULT("MediaSourceFFmpegFilter uri changed: {} ", StringUtils::printable(symbol));
         const auto& new_uri = symbol.as_string();
         if(!new_uri.size() && !uri_.size())
             return 0;
         if(status_ != kStatusStoped)
-            graph_->cmd_stop();
-        int ret = open_media(symbol.as_string());
+            graph_->execute_command(kGraphCommandStop);
+        ret = open_media(symbol.as_string());
         reset_position();
-        graph_->cmd_connect();
+        graph_->execute_command(kGraphCommandConnect);
         //graph_->cmd_seek(0);
     }
     else if(name == "timeout"){
         timeout_check_ms_ = double(symbol);
     }
-    return 0;
+    return ret;
 }
 
 int32_t MediaSourceFFmpegFilter::close()

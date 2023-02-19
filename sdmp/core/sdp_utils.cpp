@@ -276,6 +276,14 @@ const char* sdp_arch(){
     return SDP_ARCH;
 }
 
+int32_t ValueUtils::arguments_to_lua_values(const Arguments& args,sol::state& state,std::vector<sol::lua_value>& lua_values){
+    for(const auto& item : args.params()){
+        sol::lua_value v =sol::nil;
+        item.to_lua_value(&state,&v);
+        lua_values.push_back(v);
+    }
+    return lua_values.size();
+}
 int32_t FormatUtils::get_audio_sample_format_from_bytes(uint8_t bytes)
 {
     if(bytes > 8)

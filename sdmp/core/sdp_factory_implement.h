@@ -23,14 +23,14 @@ public:
     const std::string& script_dir();
     const FeatureMap& features();
 private:
-    void extracted(tinycom::IComModule *&module, int &index,
+    void extracted(mr::tinycom::IComModule *&module, int &index,
                    const char *&metadata);
-    int32_t enum_module_filters(tinycom::IComModule *module);
+    int32_t enum_module_filters(mr::tinycom::IComModule *module);
 
 public:
     std::string root_dir_;
-    tinycom::ComRepository com_repository_;
-    std::map<tinycom::TGUID,FilterDelear> filter_declears_;
+    mr::tinycom::ComRepository com_repository_;
+    std::map<mr::tinycom::TGUID,FilterDelear> filter_declears_;
     FeatureMap features_;
     std::shared_ptr<Engine> engine_;
 };

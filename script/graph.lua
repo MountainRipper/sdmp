@@ -1,5 +1,5 @@
 if(rootPath == nil) then
-        rootPath = '/Users/aimymusic/projects/sdp/script/'
+        rootPath = '/home/xuwei/work/MountainRipper/sdmp/script/'
 end
 package.path = rootPath .. '?.lua'..';'..rootPath .. 'lib/?.lua'..';'..package.path ;
 package.cpath = rootPath .. '?.so'..';'..rootPath .. 'lib/?.so'..';'..package.cpath ;
@@ -24,17 +24,20 @@ AVMEDIA_TYPE_DATA = 2
 AVMEDIA_TYPE_SUBTITLE = 3
 AVMEDIA_TYPE_ATTACHMENT = 4
 
-kGraphCommandDisconnect    = "cmdDisconnect"
-kGraphCommandPlay          = "cmdPlay"
-kGraphCommandPause         = "cmdPause"
-kGraphCommandStop          = "cmdStop"
-kGraphCommandSeek          = "cmdSeek"
-kGraphCommandClose         = "cmdClose"
-kGraphOperatorConnect      = "doConnect"
-kGraphOperatorCreateFilter = "doCreateFilter"
-kGraphOperatorRemoveFilter = "doRemoveFilter"
-kGraphOperatorSetFilterProperty = "setFilterProperty"
-kGraphOperatorCallFilterMethod = "callFilterMethod"
+kGraphCommandDisconnect    		= "cmdDisconnect"
+kGraphCommandConnect      		= "cmdConnect"
+kGraphCommandPlay          		= "cmdPlay"
+kGraphCommandPause         		= "cmdPause"
+kGraphCommandStop          		= "cmdStop"
+kGraphCommandSeek          		= "cmdSeek"
+kGraphCommandClose         		= "cmdClose"
+
+kGraphOperatorExecuteCommand    = "optExecuteCommand"
+kGraphOperatorCreateFilter      = "optCreateFilter"
+kGraphOperatorRemoveFilter      = "optRemoveFilter"
+kGraphOperatorConnectFilter     = "optConnectFilter"
+kGraphOperatorSetFilterProperty = "optSetFilterProperty"
+kGraphOperatorCallFilterMethod  = "optCallFilterMethod"
 
 --Object Oriented declear
 local Graph = oo.class("Graph", BaseClase)
@@ -44,58 +47,35 @@ function onScriptError (message)
 	io.stderr:write( "LUA script error: " .. message.."\n")
 end
 
+--event to overwrite
+function Graph:onCreatedEvent( )
+end
+function Graph:onConnectEvent()
+end
+function Graph:onConnectDoneEvent()
+end
+function Graph:onMasterClockEvent()
+end
+function Graph:onErrorEvent( objectId,code )
+end
+function Graph:onStatusEvent( status )
+end
+function Graph:onPositionEvent( position )
+end
+
+--basic functions
 function Graph:init()
 	self.filters={} --initialnize filters
 	self.loopsInterval=5--master clock loop interval in millieseconds
 
-	print_dump(hostOS..'-'..hostARCH,"Create Graph On System:")
+	print_dump(hostOs..'-'..hostArch,"Create Graph On System:")
 	print_dump(hostFeature,"Host Features:")
 end
 
 --helper functions 
-function Graph:invoke( obj,functionName,... )
-	if(obj == nil) then
-		return
-	end
-
-	if(obj[functionName] == nil) then
-		return
-	end
-
-	return obj[functionName](obj.context,...)
-end
-
-function Graph:setter(obj,property,value )	
-	if(obj == nil or obj.context == nil or property == nil or value == nil) then
-		return
-	end
-
-	obj.set(obj.context,property,value)
-end
-
 
 function Graph:getFilter( id )
 	return self.filters[id]
-end
-
-function Graph:setFilterProperty(filter,property,value )	
-	if(filter ~= nil) then
-                self:invoke(self,kGraphOperatorSetFilterProperty,filter.id,property,value)
-	end
-end
-
-function Graph:setFilterPropertyById(id,property,value )	
-        self:invoke(self,kGraphOperatorSetFilterProperty,id,property,value)
-end
-
-function Graph:callFilterMethod(filter,method,param )
-        if(filter ~= nil) then
-                self:invoke(self,kGraphOperatorCallFilterMethod,filter.id,method,param)
-        end
-end
-
-function Graph:callFilterMethodById(id,method,param )
-        self:invoke(self,kGraphOperatorCallFilterMethod,id,method,param)
 end
 
 function Graph:getFilterPin(filter,inOut,pinIndex)
@@ -177,37 +157,54 @@ function Graph:onPosition( positon )
 	self:onPositionEvent(positon)
 end
 
---event to overwrite
-function Graph:onCreatedEvent( )
+
+--Basic invoke to native c++ helper function
+function Graph:invoke( obj,functionName,... )
+	if(obj == nil) then
+		return
+	end
+
+	if(obj[functionName] == nil) then
+		return
+	end
+
+	return obj[functionName](obj.context,...)
 end
-function Graph:onConnectEvent()
-end
-function Graph:onConnectDoneEvent()
-end
-function Graph:onMasterClockEvent()
-end
-function Graph:onErrorEvent( objectId,code )
-end
-function Graph:onStatusEvent( status )
-end
-function Graph:onPositionEvent( position )
-end
---graph common base functions, call to c++
+-- Commands
 function Graph:play( )
-	self:invoke(self,kGraphCommandPlay)
+	self:invoke(self,kGraphOperatorExecuteCommand,kGraphCommandPlay,0)
 end
 
 function Graph:pause( )
-	self:invoke(self,kGraphCommandPause)
+	self:invoke(self,kGraphOperatorExecuteCommand,kGraphCommandPause,0)
 end
 
 function Graph:seek( ms )
-	self:invoke(self,kGraphCommandSeek,ms)
+	self:invoke(self,kGraphOperatorExecuteCommand,kGraphCommandSeek,ms)
 end
 
 function Graph:stop()
-	self:invoke(self,kGraphCommandStop)
+	self:invoke(self,kGraphOperatorExecuteCommand,kGraphCommandStop,0)
 end
+
+
+function Graph:connectRequest( )
+	self:invoke(self,kGraphOperatorExecuteCommand,kGraphCommandConnect,0)
+end
+
+function Graph:disconnectAll( )
+	self:invoke(self,kGraphOperatorExecuteCommand,kGraphCommandDisconnect,0)
+end
+
+--Operators
+function Graph:connect( filterSender,filterReceiver, senderPin, receiverPin)
+	self:invoke(self,kGraphOperatorConnectFilter,filterSender.context,filterReceiver.context,senderPin,receiverPin)
+end
+
+function Graph:connectAuto( filterSender,filterReceiver)
+	self:connect(filterSender,filterReceiver,-1,-1)
+end
+
 
 function Graph:createFilter(id,filter)
 	filter.id = id	
@@ -234,15 +231,22 @@ function Graph:removeFilter(id)
 end
 
 
-function Graph:connect( filterSender,filterReceiver, senderPin, receiverPin)
-	self:invoke(self,kGraphOperatorConnect,filterSender.context,filterReceiver.context,senderPin,receiverPin)
+function Graph:setFilterProperty(filter,property,value )	
+	if(filter ~= nil) then
+        self:invoke(self,kGraphOperatorSetFilterProperty,filter.id,property,value)
+	end
 end
 
-function Graph:connectAuto( filterSender,filterReceiver)
-	self:connect(filterSender,filterReceiver,-1,-1)
+function Graph:setFilterPropertyById(id,property,value )	
+    self:invoke(self,kGraphOperatorSetFilterProperty,id,property,value)
 end
 
-function Graph:disconnectAll( )
-	self:invoke(self,kGraphCommandDisconnect)
+function Graph:callFilterMethod(filter,method,param )
+	if(filter ~= nil) then
+		self:invoke(self,kGraphOperatorCallFilterMethod,filter.id,method,param)
+	end
 end
 
+function Graph:callFilterMethodById(id,method,param )
+        self:invoke(self,kGraphOperatorCallFilterMethod,id,method,param)
+end

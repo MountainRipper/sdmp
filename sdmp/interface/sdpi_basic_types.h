@@ -107,22 +107,24 @@ Error Codes
 #define kGraphPropertyCurrentPts        "prop-pts"
 
 /*
- * commands for Lua call to C++ graph
+ * commands for execute
 */
 #define kGraphCommandConnect            "cmdConnect"
 #define kGraphCommandDisconnect         "cmdDisconnect"
-//control commands also pass to filter
 #define kGraphCommandPlay               "cmdPlay"
 #define kGraphCommandPause              "cmdPause"
 #define kGraphCommandStop               "cmdStop"
 #define kGraphCommandSeek               "cmdSeek"
 #define kGraphCommandClose              "cmdClose"
+#define kGraphCommandCallLuaFunction    "cmdCallLuaFunction"
+#define kGraphCommandRunLuaScript       "cmdRunLuaScript"
 
-#define kGraphOperatorConnect           "doConnect"
-#define kGraphOperatorCreateFilter      "doCreateFilter"
-#define kGraphOperatorRemoveFilter      "doRemoveFilter"
-#define kGraphOperatorSetFilterProperty "setFilterProperty"
-#define kGraphOperatorCallFilterMethod  "callFilterMethod"
+#define kGraphOperatorExecuteCommand    "optExecuteCommand"
+#define kGraphOperatorCreateFilter      "optCreateFilter"
+#define kGraphOperatorRemoveFilter      "optRemoveFilter"
+#define kGraphOperatorConnectFilter     "optConnectFilter"
+#define kGraphOperatorSetFilterProperty "optSetFilterProperty"
+#define kGraphOperatorCallFilterMethod  "optCallFilterMethod"
 
 #define kGraphInvalidPts         INT32_MIN
 enum GraphStatus {
@@ -364,6 +366,14 @@ const FROM as_##ASNAME () const{\
     return static_cast<FROM>(std::any_cast<TO>(value_));\
 }
 
+#define VALUE_CONSTRUCTOR_WRAP(T,WRAP)\
+Value(const T v,const std::string& name = "",bool readonly = false)\
+    :name_(name)\
+    ,readonly_(readonly){\
+    value_ = WRAP(v);\
+    type_ = type_of_typeid(value_.type());\
+}
+
 class Value{
 public:
     Value(){
@@ -376,6 +386,13 @@ public:
         type_ = type_of_typeid(value_.type());
     }
 
+    VALUE_CONSTRUCTOR(double,double)
+    VALUE_CONSTRUCTOR(bool,bool)
+    VALUE_CONSTRUCTOR(void*,pointer)
+    VALUE_CONSTRUCTOR(std::string,string)
+    VALUE_CONSTRUCTOR(std::vector<double>,double_vector)
+    VALUE_CONSTRUCTOR(std::vector<std::string>,string_vector)
+
     VALUE_CONSTRUCTOR_TYPE(float   ,double,float)
     VALUE_CONSTRUCTOR_TYPE(int8_t  ,double,int8)
     VALUE_CONSTRUCTOR_TYPE(uint8_t ,double,uint8)
@@ -386,12 +403,7 @@ public:
     VALUE_CONSTRUCTOR_TYPE(int64_t ,double,int64)
     VALUE_CONSTRUCTOR_TYPE(uint64_t,double,uint64)
 
-    VALUE_CONSTRUCTOR(double,double)
-    VALUE_CONSTRUCTOR(bool,bool)
-    VALUE_CONSTRUCTOR(void*,pointer)
-    VALUE_CONSTRUCTOR(std::string,string)
-    VALUE_CONSTRUCTOR(std::vector<double>,double_vector)
-    VALUE_CONSTRUCTOR(std::vector<std::string>,string_vector)
+    VALUE_CONSTRUCTOR_WRAP( char*,std::string)
 
     Value(const Value& other){
         type_ = other.type_;
@@ -422,7 +434,7 @@ public:
         return type_ != kPorpertyNone;
     }
 
-    int32_t to_lua_value(sol::state* state,sol::lua_value* lua_value_ptr){
+    int32_t to_lua_value(sol::state* state,sol::lua_value* lua_value_ptr) const{
         return any_to_lua(value_,state,lua_value_ptr);
     }
     int32_t from_lua_value(const sol::lua_value* lua_value_ptr){
@@ -446,6 +458,31 @@ public:
     std::string name_;
     std::any value_;
 };
+
+class Arguments{
+public:
+    Arguments(){}
+    Arguments(std::string method)
+        :method_(method){
+    }
+    Arguments(const Arguments& other){
+
+    }
+    Arguments& add(const Value& value){
+        params_.push_back(value);
+        return *this;
+    }
+    const std::string& method() const{
+        return method_;
+    }
+    const std::vector<Value>& params() const{
+        return params_;
+    }
+private:
+    std::string method_;
+    std::vector<Value> params_;
+};
+
 
 class ISdpStub{
 public:

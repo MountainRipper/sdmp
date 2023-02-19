@@ -8,7 +8,7 @@ Engine::Engine(const std::string &root_dir, const std::string& script)
     root_dir_ = root_dir;
     engine_state_.create();
     engine_state_.state()["rootPath"] = root_dir;
-    engine_state_.apply_script(script);
+    engine_state_.apply_script_file(script);
 }
 
 Engine::~Engine()
@@ -72,7 +72,7 @@ int32_t Engine::create_device(sol::table& config)
 
     FilterPointer device_filter = Factory::factory()->create_filter(module);
     MP_LOG_DEAULT("created device filter: {}", (void*)device_filter.Get());
-    int32_t result = device_filter->initialize(nullptr,config);
+    int32_t result = device_filter->initialize(this,config);
     if(result >= 0){
         audio_outputs_devices_[id] = device_filter;
         return 0;
@@ -80,9 +80,9 @@ int32_t Engine::create_device(sol::table& config)
     else{
         MP_ERROR("create device failed:{} id: {}, module: {}",result, id.data(), module.data())
     }
-
     return -1;
 }
 
 
 }
+

@@ -72,11 +72,11 @@ VideoDecoderFFmpegFilter::~VideoDecoderFFmpegFilter()
     close_decoder();
 }
 
-int32_t VideoDecoderFFmpegFilter::initialize(IGraph *graph, const Value &config_value)
+int32_t VideoDecoderFFmpegFilter::initialize(IGraph *graph, const Value &filter_values)
 {
     create_general_pin(AVMEDIA_TYPE_VIDEO,kInputPin);
     create_general_pin(AVMEDIA_TYPE_VIDEO,kOutputPin);
-    GeneralFilter::initialize(graph,config_value);
+    GeneralFilter::initialize(graph,filter_values);
     decode_to_frames_ = properties_["framesPreDecode"].as_int64();
     return 0;
 }

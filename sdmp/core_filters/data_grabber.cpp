@@ -10,12 +10,12 @@ DataGrabber::DataGrabber()
 }
 
 
-int32_t sdmp::DataGrabber::initialize(IGraph *graph, const Value &config_value)
+int32_t sdmp::DataGrabber::initialize(IGraph *graph, const Value &filter_values)
 {
     create_general_pin(AVMEDIA_TYPE_UNKNOWN,kInputPin);
     create_general_pin(AVMEDIA_TYPE_UNKNOWN,kOutputPin);
 
-    auto ret = GeneralFilter::initialize(graph,config_value);
+    auto ret = GeneralFilter::initialize(graph,filter_values);
     //get pre-set hanlder
     handler_ = (IFilterHandlerDataGrabber*)properties_["grabber"].as_pointer();
     return ret;

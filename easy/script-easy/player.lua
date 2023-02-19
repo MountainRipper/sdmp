@@ -1,5 +1,5 @@
 if(rootPath == nil) then
-        rootPath = '/Users/aimymusic/projects/sdp/script/'
+        rootPath = '/home/xuwei/work/MountainRipper/sdmp/script/'
 end
 package.path = rootPath .. '?.lua'..';'..rootPath .. 'lib/?.lua'..';'..package.path ;
 package.cpath = rootPath .. '?.so'..';'..rootPath .. 'lib/?.so'..';'..package.cpath ;
@@ -13,7 +13,7 @@ Player.layer = '__layer_player'
 playing = false
 
 function mediaSoueceException(objectId,code)
-	qsdpIoExeptionEvent(qsdpContext,code)
+	--qsdpIoExeptionEvent(qsdpContext,code)
 end
 
 function mediaSoueceCustomIOCheck(objectId,uri)
@@ -26,7 +26,6 @@ end
 function Player:init()
 	Player.super.init(self)
 
-	print_dump(qsdpAudioGrabber, 'qsdpAudioGrabber')
 	self.filters={
 		-- two tracks http://aamresource.singworld.cn/BB/BBFB9043FA933EDDC7C737CCEBD65D16A3A83444F8288C010C7FF87D460E7623.mp4
 		-- left/right channel  http://aamresource.singworld.cn/96/9631E5492FC009DB135A7EAFA30C7D3E1E3D072A4F4F54D8133D41E3B7776E35.mp4
@@ -86,10 +85,12 @@ function Player:init()
 
 end
 
+function Player:callNative(name,param)
+	return nativeCall(nativeContext,name, param)
+end
+
 function Player:onConnectEvent()
 	io.stderr:write( "======================Player:onConnectEvent======================\n")
-	
-	qsdpOnConnect(qsdpContext)
 	
 	for i = 1, #self.audioStreamHandlers do		
 		self:removeFilter(self.audioStreamHandlers[i].audioDecoder.id)
@@ -101,31 +102,28 @@ function Player:onConnectEvent()
 	self.audioStreamHandlers = {}
 	self.tracks = 0
 
-	local audioIndex =  1
 	for i = 1, #mediaSource.pinsOutput do
 		if(mediaSource.pinsOutput[i].type == "audio") then
 			local impVolume = self.wantVolume
 			if (audioIndex > 1) then
 				impVolume = 0
 			end
+			self.tracks = self.tracks + 1
 			local com = {}
-			com.audioDecoder = {id='audioDecoder'..tostring(audioIndex), impl={module='audioDecoderFFmpeg'}}
-			com.audioOutput = {id='audioOutput'..tostring(audioIndex), 
-								impl={module='audioOutputParticipant',
+			com.audioDecoder = {id='audioDecoder'..tostring(self.tracks), params={module='audioDecoderFFmpeg'}}
+			com.audioOutput = {id='audioOutput'..tostring(self.tracks), 
+								params={module='audioOutputParticipant',
 								idEngine='defaultAudioPlaybackDevice',
-								grabber=qsdpAudioGrabber,
-								cacheDuration=2000,
-								cacheHungerDuration=1500,
+								cacheDuration=500,
+								cacheHungerDuration=200,
 								volume=impVolume}}
 
-			local audioDecoder = self:createFilter(com.audioDecoder.id, com.audioDecoder.impl)
-			local audioOutput = self:createFilter(com.audioOutput.id, com.audioOutput.impl)
+			local audioDecoder = self:createFilter(com.audioDecoder.id, com.audioDecoder.params)
+			local audioOutput = self:createFilter(com.audioOutput.id, com.audioOutput.params)
 
             self:connectAuto(mediaSource, audioDecoder)
 			self:connectAuto(audioDecoder, audioOutput)
-			self.audioStreamHandlers[audioIndex] = com
-			audioIndex = audioIndex + 1
-			self.tracks = self.tracks + 1
+			self.audioStreamHandlers[self.tracks] = com
 		end
 	end
 
@@ -133,15 +131,15 @@ function Player:onConnectEvent()
 	self:connectAuto(videoDecoder,videoOutput)
 
 	self.track = 0
-	qsdpTrackEvent(qsdpContext, {value=self.track})
+	self:callNative("track",self.track )
 
 	self.channelMode = 0
-	qsdpChannelModeEvent(qsdpContext, {value=self.channelMode})
+	cself:allNative("channel-mode",self.channelMode )
 
 	-- print_dump(graph, '-------- dump graph')
 end
 
-function Graph:onConnectDoneEvent()
+function Player:onConnectDoneEvent()
 	io.stderr:write( "======================Player:onConnectDoneEvent====================== \n")
 	self:getInfo()
 end
@@ -163,32 +161,28 @@ function Player:onStatusEvent( status )
 	end 
 
 	self.status = status
-	qsdpStatusEvent(qsdpContext, {value=self.status})
+	self:callNative("status",status )
 
 	if (self.status == kStatusPaused) then
-		qsdpPlayPaused(qsdpContext)
+		self:callNative("paused",0 )
 	elseif (self.status == kStatusStoped) then
-		qsdpPlayStoped(qsdpContext)
+		self:callNative("stoped",0 )
 	elseif (self.status == kStatusEos) then
-		qsdpPlayGetEnd(qsdpContext)
+		self:callNative("end-of-stream",0 )
 	elseif (self.status == kStatusRunning) then
 		self.volume = 0 -- fade volume from 0 to wantVolume
 		if (self.lastStatus == kStatusPaused) then
-			qsdpPlayResumed(qsdpContext)
+			self:callNative("resume",0 )
 		elseif (self.lastStatus == kStatusReady) then
 			if(self.mediaLoaded == false) then
 				self.mediaLoaded = true
-				qsdpPlayStart(qsdpContext)
+				self:callNative("playing",0 )
 			else
-				qsdpPlayRestart(qsdpContext)
+				self:callNative("replaying",0 )
 			end
 		else
-			qsdpPlayStart(qsdpContext)
+			self:callNative("playing",0 )
 		end
-	-- elseif (self.status == kStatusReady) then 
-	-- 	if(self.lastStatus == kStatusInit) then
-	-- 		qsdpMediaLoaded(qsdpContext)
-	-- 	end
 	end
 	self.lastStatus = status
 
@@ -226,7 +220,7 @@ function Player:onPositionEvent( position )
 	end
 
 	self.position = position
-	qsdpPositionEvent(qsdpContext, {value=self.position})
+	callNative("position",position)
 end
 
 function Player:getInfo( )	
@@ -271,7 +265,7 @@ function Player:getInfo( )
 	self.media = mediaSource.uri
 
 	print_dump(self.info,"Player Formats:")
-	qsdpGetInfo(qsdpContext,self.info)
+	callNative("media-info",self.info)
 	return 0
 end
 
@@ -343,7 +337,11 @@ end
 
 --a createGraph function to called by native C++,return 'graph' object
 function createGraph( )
-	--return player instance
+	--return player instance	
 	player = oo.new(Player)
 	return player
+end
+
+function args_test(v1,v2,v3)
+	io.stderr:write( v1.."\t"..v2.."\t"..v3.."\n")
 end

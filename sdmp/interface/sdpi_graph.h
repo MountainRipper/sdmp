@@ -23,12 +23,8 @@ public:
     virtual int32_t set_property(const std::string& property,Value& value) = 0;
     virtual int32_t get_property(const std::string& property,Value& value) = 0;
 
-    virtual int32_t cmd_connect() = 0;
-    virtual int32_t cmd_play() = 0;
-    virtual int32_t cmd_pause() = 0;
-    virtual int32_t cmd_stop() = 0;
-    virtual int32_t cmd_seek(int64_t millisecond) = 0;
-    virtual int32_t cmd_close() = 0;
+    virtual int32_t execute_command(const std::string& command,const Arguments& param = Arguments()) = 0;
+    virtual int32_t execute_command_async(const std::string& command,const Arguments& param = Arguments()) = 0;
 
     virtual int32_t do_master_events() = 0;
     virtual int32_t in_master_loop() = 0;

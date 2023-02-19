@@ -1,13 +1,11 @@
 /*
 tiny subset of com(component object module). Choice of public domain or MIT-0. See license statements at the end of this file.
-tinycom - v0.1.0 - 2022-2-2
+mr::tinycom - v0.1.0 - 2022-2-2
 
 xuwei - xiaoxuweier@gmail.com
-
-GitHub:  https://github.com/MountainRipper/miniaudio
 */
-#ifndef TINYCOM_H
-#define TINYCOM_H
+#ifndef MOUNTAIN_RIPPER_TINYCOM_H_
+#define MOUNTAIN_RIPPER_TINYCOM_H_
 #include <cstdint>
 #include <cassert>
 #include <cstring>
@@ -52,7 +50,7 @@ enum CLSCTX {
 };
 #define CLSCTX_ALL              (CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER)
 
-namespace tinycom {
+namespace mr::tinycom {
 
 #define USE_GUID_AS_STRING
 
@@ -151,11 +149,11 @@ inline bool IsEqualUuid(const TGUID& a, const TGUID& b) {
 }
 #endif
 
-typedef tinycom::TGUID  IID;
-typedef tinycom::TGUID  CLSID;
-typedef const tinycom::TGUID& REFGUID;
-typedef const tinycom::TGUID& REFIID;
-typedef const tinycom::TGUID& REFCLSID;
+typedef mr::tinycom::TGUID  IID;
+typedef mr::tinycom::TGUID  CLSID;
+typedef const mr::tinycom::TGUID& REFGUID;
+typedef const mr::tinycom::TGUID& REFIID;
+typedef const mr::tinycom::TGUID& REFCLSID;
 
 #define IIDOF(x) IID_##x
 #define CLSIDOF(x) CLSID_##x
@@ -269,16 +267,16 @@ public:
         return _QueryInterface(this,cls::_GetEntries(),iid,interface);
     }
 
-    static tinycom::IUnknown* Create() {
+    static mr::tinycom::IUnknown* Create() {
       auto object = new ComCoClass<cls>();
-      tinycom::IUnknown* unknown = nullptr;
+      mr::tinycom::IUnknown* unknown = nullptr;
       object->QueryInterface(IID_IUnknown,(void**)&unknown);
       return unknown;
     }
 
 };
-#define COM_IMPLEMENTER(cls) tinycom::ComCoClass<cls>
-#define COM_IMPLEMENTER_CREATOR(cls) (&tinycom::ComCoClass<cls>::Create)
+#define COM_IMPLEMENTER(cls) mr::tinycom::ComCoClass<cls>
+#define COM_IMPLEMENTER_CREATOR(cls) (&mr::tinycom::ComCoClass<cls>::Create)
 
 typedef IUnknown* (*FuncComCreate)();
 class IComModule{
@@ -475,7 +473,7 @@ protected:
     }
 };
 
-typedef tinycom::ComPtr<tinycom::IUnknown> IUnknownPtr;
+typedef mr::tinycom::ComPtr<mr::tinycom::IUnknown> IUnknownPtr;
 
 
 class ComRepository{
@@ -518,10 +516,10 @@ private:
 };
 
 #if defined(_MSC_VER)
-#define TINYCOM_DECLARE_NOVTABLE __declspec(novtable)
+#define DECLARE_NOVTABLE __declspec(novtable)
 
 #else
-#define TINYCOM_DECLARE_NOVTABLE
+#define DECLARE_NOVTABLE
 
 #endif
 
@@ -530,11 +528,11 @@ com interface define macros
 */
 #define COM_INTERFACE(iid,name)                                                                     \
 static const char* const IID_##name = iid;                                                          \
-class TINYCOM_DECLARE_NOVTABLE name : public tinycom::IUnknown {                                    \
+class DECLARE_NOVTABLE name : public mr::tinycom::IUnknown {                                    \
 public:                                                                                             \
   virtual ~name(){};                                                                                \
-  static const tinycom::TGUID& uuid() {                                                             \
-    static tinycom::TGUID iid_(IID_##name);                                                         \
+  static const mr::tinycom::TGUID& uuid() {                                                             \
+    static mr::tinycom::TGUID iid_(IID_##name);                                                         \
     return iid_;                                                                                    \
   }
 
@@ -549,11 +547,11 @@ com object class define macros
 #define COM_OBJECT(thread_mod,clsid,metadata,CLS)                                                  \
     static const char* const CLSID_##CLS = clsid;                                                  \
     static const char* const METADATA_##CLS = metadata;                                            \
-    class TINYCOM_DECLARE_NOVTABLE CLS                                                             \
+    class DECLARE_NOVTABLE CLS                                                             \
         : public thread_mod
 
-#define COM_SINGLEHREADED_OBJECT(clsid,metadata,name)  COM_OBJECT(tinycom::SingleThreadObject,clsid,metadata,name)
-#define COM_MULTITHREADED_OBJECT(clsid,metadata,name)  COM_OBJECT(tinycom::MultiThreadObject,clsid,metadata,name)
+#define COM_SINGLEHREADED_OBJECT(clsid,metadata,name)  COM_OBJECT(mr::tinycom::SingleThreadObject,clsid,metadata,name)
+#define COM_MULTITHREADED_OBJECT(clsid,metadata,name)  COM_OBJECT(mr::tinycom::MultiThreadObject,clsid,metadata,name)
 
 #define COM_IMPLEMENT_INTERFACE(name) , public name
 
@@ -565,21 +563,21 @@ com object-interfaces mapping define macros
 #define COM_MAP_BEGINE(CLS)                                                                         \
     public:                                                                                         \
     typedef CLS _ThisObjectType;                                                                    \
-    const static tinycom::TGUID& uuid() {                                                           \
-      static tinycom::TGUID clsid_(CLSID_##CLS);                                                    \
+    const static mr::tinycom::TGUID& uuid() {                                                           \
+      static mr::tinycom::TGUID clsid_(CLSID_##CLS);                                                    \
       return clsid_;                                                                                \
     };                                                                                              \
     static const char* metadata() {                                                                 \
       static std::string metadata_(METADATA_##CLS);                                                 \
         return metadata_.c_str();                                                                   \
     };                                                                                              \
-    const static tinycom::InterfaceEntry* _GetEntries() {                                           \
-      static const tinycom::InterfaceEntry _entries[] = {
+    const static mr::tinycom::InterfaceEntry* _GetEntries() {                                           \
+      static const mr::tinycom::InterfaceEntry _entries[] = {
 
 #define COM_INTERFACE_ENTRY(i) {IID_##i, COM_OFFSET_OF(i, _ThisObjectType)},
 
 #define COM_MAP_END()                                                                               \
-        { tinycom::TGUID(), INTERFACE_INVALID_OFFSET }                                              \
+        { mr::tinycom::TGUID(), INTERFACE_INVALID_OFFSET }                                              \
     };                                                                                              \
     return _entries;                                                                                \
 }
@@ -590,13 +588,13 @@ com object-interfaces mapping define macros
 COM OBJECT REGISTER MACROS
 */
 #define COM_REGISTER_OBJECT(CLS) \
-    const tinycom::TGUID& g_t_uuidof_##CLS(){return __t_uuidof(CLS);}\
-    const tinycom::FuncComCreate g_creatorof_##CLS(){return COM_IMPLEMENTER_CREATOR(CLS);}\
+    const mr::tinycom::TGUID& g_t_uuidof_##CLS(){return __t_uuidof(CLS);}\
+    const mr::tinycom::FuncComCreate g_creatorof_##CLS(){return COM_IMPLEMENTER_CREATOR(CLS);}\
     const char* g_metadataof_##CLS(){return __t_metadataof(CLS);}
 
 #define COM_OBJECT_ENTRY_IMPORT(CLS) \
-    extern const tinycom::TGUID& g_t_uuidof_##CLS();\
-    extern const tinycom::FuncComCreate g_creatorof_##CLS();\
+    extern const mr::tinycom::TGUID& g_t_uuidof_##CLS();\
+    extern const mr::tinycom::FuncComCreate g_creatorof_##CLS();\
     extern const char* g_metadataof_##CLS();
 
 #define COM_OBJECT_ENTRY_UUID(CLS) g_t_uuidof_##CLS()
@@ -607,21 +605,21 @@ COM OBJECT REGISTER MACROS
 COM MODULE REGISTER MACROS
 */
 #define COM_MODULE_BEGINE(ID,MODULENAME) \
-tinycom::IComModule* g_com_get_module_##MODULENAME(){\
-    static tinycom::ComModule s_com_module_(ID,AS_STR(MODULENAME));\
+mr::tinycom::IComModule* g_com_get_module_##MODULENAME(){\
+    static mr::tinycom::ComModule s_com_module_(ID,AS_STR(MODULENAME));\
 
 #define COM_MODULE_OBJECT_ENTRY(CLS)\
     COM_OBJECT_ENTRY_IMPORT(CLS)\
     s_com_module_.RegisterObject(COM_OBJECT_ENTRY_UUID(CLS),COM_OBJECT_ENTRY_METADATA(CLS),COM_OBJECT_ENTRY_CREATOR(CLS));\
 
 #define COM_MODULE_END() \
-    return static_cast<tinycom::IComModule*>(&s_com_module_);\
+    return static_cast<mr::tinycom::IComModule*>(&s_com_module_);\
 }
 
-#define COM_MODULE_IMPORT(MODULENAME) extern tinycom::IComModule* g_com_get_module_##MODULENAME();
+#define COM_MODULE_IMPORT(MODULENAME) extern mr::tinycom::IComModule* g_com_get_module_##MODULENAME();
 #define COM_MODULE_GET(MODULENAME) g_com_get_module_##MODULENAME()
 
 }
 
 
-#endif // TINYCOM_H
+#endif // mr::tinycom_H

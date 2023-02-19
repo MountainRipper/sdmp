@@ -5,32 +5,41 @@
 namespace mr::sdmp {
 
 
-int32_t GeneralFilter::initialize(IGraph *graph, const Value &config_value)
+int32_t GeneralFilter::initialize(IGraph *graph, const Value &filter_values)
 {
-    auto config = config_value.as<sol::table>();
+    assert(filter_values.type_ == kPorpertyLuaTable);
+
+    auto config = filter_values.as<sol::table>();
 
     id_ = config["id"].get_or(std::string(""));
     module_ = config["module"].get_or(std::string(""));
 
-    if(id_.empty() || module_.empty() || !graph)
-        return kErrorInvalidParameter;
-
     graph_ = graph;
 
-    //not all filter is manage/used by graph, it used outside (such as audio filter in engine)
-    sol::state& vm = *graph_->vm();
-    sol::table graph_state = SDMP_GRAPH_GET_CONTEXT(graph_);
-    sol::optional<sol::table> context_opt = graph_state["filters"][id_];
-    if(context_opt == sol::nullopt)
-    {
-        MP_ERROR("Filter bind to script failed: graph.filters.{} not fount",id_.c_str());
-        return kErrorBadScript;
-    }
-    filter_state_ = context_opt.value();
-    filter_state_["context"] = static_cast<IFilter*>(this);
-    //make a global lua value same as fileter-id
-    vm[id_] = filter_state_;
+    if(graph_){
+        //not all filter is manage/used by graph, it used outside (such as audio filter in engine)
+        sol::state& vm = *graph_->vm();
+        sol::optional<sol::table> graph_state = SDMP_GRAPH_GET_CONTEXT(graph_);
+        if(graph_state == sol::nullopt){
+            //special filter not has lua global variant 'graph','graph.filters','graph.filters[id]'
+            filter_state_ = config;
+        }
+        else{
+            //normal graph must have 'graph.filters' as filters list, and 'graph.filters[id]' as filter's params
+            //when create filter from lua,it's same as initialize 2nd parameter 'filter_values'
+            sol::optional<sol::table> context_opt = graph_state.value()["filters"][id_];
+            if(context_opt == sol::nullopt)
+            {
+                MP_ERROR("Filter bind to script failed: graph.filters.{} not fount",id_.c_str());
+                return kErrorBadScript;
+            }
+            filter_state_ = context_opt.value();
+        }
 
+        filter_state_["context"] = static_cast<IFilter*>(this);
+        //make a global lua value same as fileter-id
+        vm[id_] = filter_state_;
+    }
 
     bind_filter_to_script();
     bind_pins_to_script(kInputPin);
@@ -60,12 +69,16 @@ GeneralFilter::GeneralFilter(const TGUID & filter_clsid)
             continue;
         }
     }
+
+    async_queue_.appendListener(kGeneralFilterAsyncSetPropertyEvent,[](GeneralFilter * filter, const std::string & property, const Value &value){
+        filter->set_property(property,value);
+    });
 }
 
 GeneralFilter::~GeneralFilter()
 {
-    this->remove_pin(kInputPin,kPinIndexAll);
-    this->remove_pin(kOutputPin,kPinIndexAll);
+    remove_pin(kInputPin,kPinIndexAll);
+    remove_pin(kOutputPin,kPinIndexAll);
     MP_INFO("### GeneralFilter Release: {} {} {}",module_,id_,(void*)this);
 }
 
@@ -150,11 +163,10 @@ PinVector &GeneralFilter::get_pins(PinDirection direction)
         return output_pins_;
 }
 
-Value GeneralFilter::call_method(const std::string &method, const Value &param)
+Value GeneralFilter::call_method(const Arguments& args)
 {
     MP_WARN("the filter of {} call_method not implement!",module_);
-    (void)method;
-    (void)param;
+    (void)args;
     return 0;
 }
 
@@ -255,8 +267,7 @@ int32_t GeneralFilter::get_property(const std::string &property, Value &value)
 int32_t GeneralFilter::set_property(const std::string &property, const Value &value, bool from_script)
 {
     if(property == kFilterPropertyStatus){
-        int64_t v = value;
-        status_ = (GraphStatus)v;
+        status_ = (GraphStatus)value.as_int64();
     }
 
     auto it = properties_.find(property);
@@ -291,13 +302,7 @@ int32_t GeneralFilter::master_loop(bool before_after)
 {
     std::lock_guard<std::mutex> lock(async_mutex_);
     //put async properties, from set_property_async()
-    for(auto& item : properties_async_request_) {
-        if(item.prop == kFilterPropertyStatus) {
-            status_ = GraphStatus((int64_t)item.value);
-        }
-        set_property(item.prop,item.value);
-    }
-    properties_async_request_.clear();
+    async_queue_.process();
 
     //direct changed property use properties_["xxx"]=xxx, sync to script
     for(auto& item : properties_){
@@ -317,8 +322,7 @@ int32_t GeneralFilter::property_changed(const std::string &property, Value &valu
 int32_t GeneralFilter::set_property_async(const std::string &property, const Value &value, const Value &call_param)
 {
     std::lock_guard<std::mutex> lock(async_mutex_);
-    PropertyAsyncRequest request = {property,value,call_param};
-    properties_async_request_.push_back(request);
+    async_queue_.enqueue(kGeneralFilterAsyncSetPropertyEvent,this,property,value);
     return 0;
 }
 
@@ -351,7 +355,7 @@ int32_t GeneralFilter::bind_filter_to_script()
         auto propert_opt = filter_state_[property];
         if(propert_opt.valid()){
             sol::lua_value value = filter_state_[property];
-            symbol = Value::create_from_lua_value(&value);
+            symbol.from_lua_value(&value);
             MP_LOG_DEAULT("Filter {} read pre-defined property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(symbol));
         }
         else{

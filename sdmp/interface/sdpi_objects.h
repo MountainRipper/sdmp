@@ -10,12 +10,12 @@
 
 namespace mr::sdmp {
 
-#define ComPointer tinycom::ComPtr
-typedef tinycom::TGUID TGUID;
-typedef tinycom::IUnknown IObject;
+#define ComPointer mr::tinycom::ComPtr
+typedef mr::tinycom::TGUID TGUID;
+typedef mr::tinycom::IUnknown IObject;
 typedef ComPointer<IPin>    PinPointer;
 typedef ComPointer<IFilter> FilterPointer;
-typedef ComPointer<tinycom::IUnknown> IUnknownPointer;
+typedef ComPointer<mr::tinycom::IUnknown> IUnknownPointer;
 typedef std::vector<PinPointer> PinVector;
 
 }

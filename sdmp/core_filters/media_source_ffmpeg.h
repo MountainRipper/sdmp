@@ -79,6 +79,11 @@ R"({
       "name": "uri",
       "type": "string",
       "value": ""
+    },
+    {
+      "name": "readKeyfarameSection",
+      "type": "bool",
+      "value": false
     }
   ],
   "type": "sdp-filter"

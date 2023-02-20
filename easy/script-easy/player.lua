@@ -37,8 +37,8 @@ function Player:init()
 			exceptionHandler=mediaSoueceException,
                         --uri='',
                         -- uri='http://devmedia.aimymusic.com/02aebbde6571c5d9006a4bb7bfd62c1f'
-                         uri = 'http://media.aimymusic.com/0042faffe7a8fad051a4107c96d806b3'
-                        --uri='/home/xuwei/work/resources/alone.mp4'
+                        --uri = 'http://media.aimymusic.com/0042faffe7a8fad051a4107c96d806b3'
+                        uri='/home/xuwei/work/resources/alone.mp4'
 		},	
 		-- mediaCache={
 		-- 	module='mediaCacheSaver',
@@ -50,7 +50,7 @@ function Player:init()
 		},
 		videoOutput={
 			module='videoOutputProxy',
-			modePullPush=true
+			modePullPush=false
 		},
 	}
 	self.info={
@@ -86,7 +86,7 @@ function Player:init()
 end
 
 function Player:callNative(name,param)
-	return nativeCall(nativeContext,name, param)
+	return luaCallNative(nativeContext,name, param)
 end
 
 function Player:onConnectEvent()
@@ -97,18 +97,18 @@ function Player:onConnectEvent()
 		self:removeFilter(self.audioStreamHandlers[i].audioOutput.id)
 	end
 
-	print_dump(mediaSource, '----------- dump source')
-
 	self.audioStreamHandlers = {}
 	self.tracks = 0
-
+	print_dump(self.audioStreamHandlers, '----------- dump source')
 	for i = 1, #mediaSource.pinsOutput do
 		if(mediaSource.pinsOutput[i].type == "audio") then
+			self.tracks = self.tracks + 1
+
 			local impVolume = self.wantVolume
-			if (audioIndex > 1) then
+			if (self.tracks > 1) then
 				impVolume = 0
 			end
-			self.tracks = self.tracks + 1
+
 			local com = {}
 			com.audioDecoder = {id='audioDecoder'..tostring(self.tracks), params={module='audioDecoderFFmpeg'}}
 			com.audioOutput = {id='audioOutput'..tostring(self.tracks), 
@@ -120,12 +120,13 @@ function Player:onConnectEvent()
 
 			local audioDecoder = self:createFilter(com.audioDecoder.id, com.audioDecoder.params)
 			local audioOutput = self:createFilter(com.audioOutput.id, com.audioOutput.params)
-
             self:connectAuto(mediaSource, audioDecoder)
 			self:connectAuto(audioDecoder, audioOutput)
 			self.audioStreamHandlers[self.tracks] = com
 		end
 	end
+
+	
 
     self:connectAuto(mediaSource,videoDecoder)
 	self:connectAuto(videoDecoder,videoOutput)
@@ -134,7 +135,7 @@ function Player:onConnectEvent()
 	self:callNative("track",self.track )
 
 	self.channelMode = 0
-	cself:allNative("channel-mode",self.channelMode )
+	self:callNative("channel-mode",self.channelMode )
 
 	-- print_dump(graph, '-------- dump graph')
 end
@@ -220,7 +221,7 @@ function Player:onPositionEvent( position )
 	end
 
 	self.position = position
-	callNative("position",position)
+	self:callNative("position",position)
 end
 
 function Player:getInfo( )	
@@ -243,7 +244,7 @@ function Player:getInfo( )
 	local videoFormat = self:getFilterPinFormats(videoOutput,true,1,1)
 	local audioFormat = nil
 	if (#mediaSource.pinsOutput > 0) then 
-		audioFormat = self:getFilterPinFormats(self.audioStreamHandlers[1].audioOutput.impl,true,1,1)
+		audioFormat = self:getFilterPinFormats(self.audioStreamHandlers[1].audioOutput.params,true,1,1)
 	end
 	self.info.duration = mediaSource.duration	
 	self.info.tracks = self.tracks
@@ -265,7 +266,7 @@ function Player:getInfo( )
 	self.media = mediaSource.uri
 
 	print_dump(self.info,"Player Formats:")
-	callNative("media-info",self.info)
+	self:callNative("media-info",self.info)
 	return 0
 end
 

@@ -382,8 +382,7 @@ public:
     {
         ComPtr<U> tmp;
         if(p){
-            void* ptr = tmp.Get();
-            p->QueryInterface(__t_uuidof(U),&ptr);
+            p->QueryInterface(__t_uuidof(U),(void**)&tmp.p);
         }
         return tmp;
     }
@@ -581,6 +580,11 @@ com object-interfaces mapping define macros
     };                                                                                              \
     return _entries;                                                                                \
 }
+
+#define COM_FAKER_UNKNOWN \
+virtual int32_t AddRef() override {return 0;}\
+virtual int32_t Release() override {return 0;}\
+virtual int32_t QueryInterface(mr::tinycom::REFIID iid, void **interface) override {*interface=nullptr;return 0;}
 
 
 #define AS_STR(S) #S

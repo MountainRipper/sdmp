@@ -48,10 +48,16 @@ ValueType Value::type_of_typeid(const std::type_info & typeinfo){
         return  kPorpertyLuaFunction;
     else if(typeinfo == typeid(sol::table))
         return kPorpertyLuaTable;
-    else if(typeinfo == typeid(sol::lua_value) || typeinfo == typeid(sol::lua_value*)){
+    else if(typeinfo == typeid(sol::lua_value) ||
+            typeinfo == typeid(sol::lua_value*) ||
+            typeinfo == typeid(const sol::lua_value*) ||
+            typeinfo == typeid(sol::lua_value const*)){
         MP_ERROR("ERROR: sdmp::Value can't use sol::lua_value directly, "
-                 "plese use Value(sol::table) or Value(sol::function) for sol data"
+                 "plese use Value(sol::table) or Value(sol::function) for sol data,"
                  "or Value::from_lua_value(),Value::create_from_lua_value() to use it's c++ compatible data");
+    }
+    else{
+        MP_WARN("Warnning: Value hold uncompatible type:{}",typeinfo.name());
     }
     return kPorpertyNone;
 }
@@ -313,8 +319,8 @@ void FormatUtils::to_lua_table(const Format &format, sol::table &table){
     table["bitrate"] = format.bitrate;
     table["timebase_num"] = format.timebase.numerator;
     table["timebase_dem"] = format.timebase.denominator;
-    table["type_name"] = av_get_media_type_string((AVMediaType)format.type);
-    table["codec_name"] = avcodec_get_name((AVCodecID)format.codec);
+    table["type_name"] = (format.type < 0) ? "null" : av_get_media_type_string((AVMediaType)format.type);
+    table["codec_name"] = (format.codec < 0) ? "null" : avcodec_get_name((AVCodecID)format.codec);
     if(format.format < 0)
         table["format_name"] = std::string("null");
     else if(format.type == AVMEDIA_TYPE_VIDEO){

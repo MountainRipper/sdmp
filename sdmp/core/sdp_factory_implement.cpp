@@ -141,7 +141,6 @@ int32_t FactoryImplement::initialnize_engine(const std::string& root_dir, const 
 
     MP_INFO("sdp engine use script root in: {}",root_dir_);
 
-
     auto engine = std::shared_ptr<Engine>(new Engine(root_dir_,declear_file));
     auto result = engine->init();
     if(result < 0)
@@ -246,7 +245,7 @@ int32_t FactoryImplement::enum_module_filters(mr::tinycom::IComModule *module)
                     }
                     else if(type == "pointer"){
                         prop.type_ = ValueType::kPorpertyPointer;
-                        prop.value_ = item["value"].get<uint64_t>();
+                        prop.value_ = (void*)(item["value"].get<uint64_t>());
                     }
                     else if(type == "lua_function"){
                         prop.type_ = ValueType::kPorpertyLuaFunction;

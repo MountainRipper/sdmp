@@ -76,17 +76,21 @@ int32_t SdpAudioResampler::push_audio_samples(const AVFrame *sample)
     int ret = 0;
     if(need_create_resample_)
     {
-        av_channel_layout_default(&channel_layout_in_,channels_in_);
+        av_channel_layout_default(&channel_layout_in_,channels);
         resampler_ = swr_alloc();
         ret = swr_alloc_set_opts2(&resampler_,
                             &channel_layout_,   // out_ch_layout
                             format_,            // out_sample_fmt
                             samplerate_,        // out_sample_rate
                             &channel_layout_in_,// in_ch_layout
-                            format_in_,         // in_sample_fmt
-                            samplerate_in_,     // in_sample_rate
+                            format,         // in_sample_fmt
+                            samplerate,     // in_sample_rate
                             0,                  // log_offset
                             NULL);              // log_ctx
+        if(ret < 0){
+            return ret;
+        }
+        ret = swr_init(resampler_);
         if(ret < 0){
             return ret;
         }
@@ -97,6 +101,10 @@ int32_t SdpAudioResampler::push_audio_samples(const AVFrame *sample)
     }
     if(!swr_is_initialized(resampler_))
         return -2;
+
+    static FILE* f = fopen("bbb.pcm","wb");
+    fwrite(sample->data[0],1,sample->linesize[0],f);
+    fflush(f);
 
     ret = swr_convert_frame(resampler_,nullptr,sample);
     if(ret < 0)
@@ -126,9 +134,18 @@ FramePointer SdpAudioResampler::pull(int32_t samples)
     }
     AVFrame* av_frame = av_frame_alloc();
     av_frame->format = format_;
+    av_frame->sample_rate = samplerate_;
+    av_frame->channels = channel_layout_.nb_channels;
     av_frame->nb_samples = samples;
     av_frame->ch_layout = channel_layout_;
-    swr_convert_frame(resampler_,av_frame,nullptr);
+    av_frame_get_buffer(av_frame,1);
+    int ret = swr_convert_frame(resampler_,av_frame,nullptr);
+    if(ret < 0){
+        char sz[32];
+        av_strerror(ret, sz, 32);
+        MP_ERROR("SdpAudioResampler swr_convert_frame error: {}",sz);
+        return frame;
+    }
     frame = Frame::make_frame(av_frame);
     frame->releaser = sdp_frame_free_frame_releaser;
     return frame;

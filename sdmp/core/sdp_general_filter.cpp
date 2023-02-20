@@ -71,7 +71,7 @@ GeneralFilter::GeneralFilter(const TGUID & filter_clsid)
     }
 
     async_queue_.appendListener(kGeneralFilterAsyncSetPropertyEvent,[](GeneralFilter * filter, const std::string & property, const Value &value){
-        filter->set_property(property,value);
+        filter->set_property(property,value,false);
     });
 }
 

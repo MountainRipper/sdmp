@@ -253,8 +253,6 @@ int32_t GraphImplement::master_thread_proc()
     lua_connect_done_function_  = graph_vm_.get_member_function(graph_context_,kLuaConnectDoneEventFunctionName);
     lua_position_function_      = graph_vm_.get_member_function(graph_context_,kLuaPositionEventFunctionName);
 
-    execute_command(kGraphCommandCallLuaFunction,Arguments("args_test").add(1).add("SSSS").add(3.14));
-
     ret = create_filters();
     if(ret < 0){
         return emit_error("graph",kErrorCreateGraphFilterObject);
@@ -422,14 +420,12 @@ int32_t GraphImplement::do_connect(IFilter *sender, IFilter *receiver, int32_t s
     PinVector sender_pins;
     PinVector receiver_pins;
 
-    sender_pin_index -= 1;//lua use 1 for start
     if(sender_pin_index>= 0){
         auto pin = sender->get_pin(kOutputPin,sender_pin_index);
         if(pin)
             sender_pins.push_back(pin);
     }
 
-    receiver_pin_index -= 1;//lua use 1 for start
     if(sender_pin_index>= 0){
         auto pin = receiver->get_pin(kInputPin,sender_pin_index);
         if(pin && pin->sender() == nullptr)

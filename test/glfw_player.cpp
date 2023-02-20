@@ -37,8 +37,7 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
-#include <sdpi_factory.h>
-#include <sol/sol.hpp>
+#include <easy/player.h>
 /* -------------------------------------------- */
 
 void button_callback(GLFWwindow* win, int bt, int action, int mods);
@@ -418,59 +417,50 @@ void button_callback(GLFWwindow* win, int bt, int action, int mods) { }
 void char_callback(GLFWwindow* win, unsigned int key) { }
 
 using namespace mr;
-class PlayerEvent : public   mr::sdmp::IGraphEvent{
-public:
-    int32_t on_graph_init(mr::sdmp::IGraph *graph) override {
-        auto& vm = *graph->vm();
-        vm["qsdpContext"] = this;
-        vm["qsdpStatusEvent"] = &PlayerEvent::on_status;
-        fprintf(stderr,"Graph inited\n");
-        return 0;
-    }
+//class PlayerEvent : public   mr::sdmp::IGraphEvent{
+//public:
+//    int32_t on_graph_init(mr::sdmp::IGraph *graph) override {
+//        auto& vm = *graph->vm();
+//        vm["qsdpContext"] = this;
+//        vm["qsdpStatusEvent"] = &PlayerEvent::on_status;
+//        fprintf(stderr,"Graph inited\n");
+//        return 0;
+//    }
 
-    int32_t on_graph_created(mr::sdmp::IGraph *graph) override {
-        graph->execute_command(kGraphCommandPlay);
-        fprintf(stderr,"Graph created\n");
-        return 0;
-    }
+//    int32_t on_graph_created(mr::sdmp::IGraph *graph) override {
+//        graph->execute_command(kGraphCommandPlay);
+//        fprintf(stderr,"Graph created\n");
+//        return 0;
+//    }
 
-    int32_t on_graph_error(mr::sdmp::IGraph *graph, int32_t error_code) override {
-        fprintf(stderr,"Graph errored\n");
-        return 0;
-    }
+//    int32_t on_graph_error(mr::sdmp::IGraph *graph, int32_t error_code) override {
+//        fprintf(stderr,"Graph errored\n");
+//        return 0;
+//    }
 
-    int32_t on_graph_master_loop(mr::sdmp::IGraph *graph) override {
-        return 0;
-    }
+//    int32_t on_graph_master_loop(mr::sdmp::IGraph *graph) override {
+//        return 0;
+//    }
 
-    void on_status(sol::table){
-        fprintf(stderr,"PlayerEvent on_status\n");
-    }
+//    void on_status(sol::table){
+//        fprintf(stderr,"PlayerEvent on_status\n");
+//    }
 
-};
+//};
 
-PlayerEvent *event = nullptr;
-std::shared_ptr<sdmp::IGraph> graph;
+sdmp::Player* g_player;
 void init_callback(GLFWwindow* window){
-    sdmp::Factory::initialize_factory();
-
     std::filesystem::path script_path = std::filesystem::path(CMAKE_FILE_DIR) / ".." / "script";
+    std::filesystem::path easy_path = std::filesystem::path(CMAKE_FILE_DIR)/"../easy/script-easy";
+    g_player = new sdmp::Player(script_path,easy_path);
 
-    sdmp::FeatureMap features;
-    sdmp::Factory::initialnize_engine(script_path.string(),script_path/"engine.lua",features);
-
-    event  = new PlayerEvent();
-    graph = sdmp::Factory::create_graph_from(std::filesystem::path(CMAKE_FILE_DIR)/"../easy/script-easy/player.lua",static_cast<sdmp::IGraphEvent*>(event));
 }
 void frame_callback(GLFWwindow* window){
 
 }
 void deinit_callback(GLFWwindow* window){
-    graph->execute_command(kGraphCommandStop);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    graph = nullptr;
-
-    sdmp::Factory::deinitialize();
+    g_player->stop();
+    delete g_player;
 }
 
 /* -------------------------------------------- */

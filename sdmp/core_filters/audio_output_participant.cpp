@@ -220,6 +220,9 @@ int32_t AudioOutputParticipantFilter::requare_samples(uint8_t *pcm, int32_t samp
         if(channel_mapping_.empty()){
             //direct copy to device
             memcpy(pcm,audio->data[0],audio->linesize[0]);
+            static FILE* f = fopen("aaa.pcm","wb");
+            fwrite(audio->data[0],1,audio->linesize[0],f);
+            fflush(f);
         }
         else{
             //remapp and copy

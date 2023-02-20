@@ -138,7 +138,7 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
     }
 
     FFTimestamp duration(media_file_->duration);
-    set_property("duration",duration.seconds()*1000);
+    set_property("duration",duration.seconds()*1000,false);
 
     if(!reconnect_in_proc){
         bind_pins_to_script(kOutputPin);

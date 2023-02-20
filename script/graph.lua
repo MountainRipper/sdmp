@@ -198,7 +198,8 @@ end
 
 --Operators
 function Graph:connect( filterSender,filterReceiver, senderPin, receiverPin)
-	self:invoke(self,kGraphOperatorConnectFilter,filterSender.context,filterReceiver.context,senderPin,receiverPin)
+	-- index-1 for c++ index
+	self:invoke(self,kGraphOperatorConnectFilter,filterSender.context,filterReceiver.context,senderPin-1,receiverPin-1)
 end
 
 function Graph:connectAuto( filterSender,filterReceiver)

@@ -48,8 +48,8 @@ endif()
 #mountain rippers third_party library builds
 set(THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../third_party")
 set(THIRD_PARTY_TARGET "${THIRD_PARTY_ROOT}/targets/${MP_TARGET_OS}-${MP_TARGET_ARCH}")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${THIRD_PARTY_ROOT}/include" "${THIRD_PARTY_TARGET}/include" "${THIRD_PARTY_TARGET}/include/luajit")
 link_directories("${THIRD_PARTY_TARGET}/lib")
-include_directories("${THIRD_PARTY_ROOT}/include" "${THIRD_PARTY_TARGET}/include" "${THIRD_PARTY_TARGET}/include/luajit")
 SET(SEARCH_LIB_PATHS "${THIRD_PARTY_TARGET}/lib")
 message(STATUS "INFO:MAKE FOR OS:${MP_TARGET_OS} ARCH:${MP_TARGET_ARCH} SYSROOT:${CMAKE_SYSROOT}")
 message(STATUS "INFO:MAKE USE PLATFORM THIRD-PARTY LIBS:${SEARCH_LIB_PATHS}")
@@ -64,8 +64,6 @@ if(NOT ${CMAKE_SYSROOT} STREQUAL "")
         message(STATUS "INFO: ADD CROSS-COMPILE SERACH ROOT:${PARENT} DIR:/${LASTPART}")
     endforeach()
 endif()
-
-
 
 add_subdirectory(sdmp)
 add_subdirectory(easy)

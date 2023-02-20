@@ -29,9 +29,7 @@ public:
     virtual int32_t do_master_events();
     virtual int32_t in_master_loop();
 
-    //NOTE: connect/disconnect index from 1 (for lua compatible)
     virtual int32_t do_connect(IFilter* sender, IFilter* receiver, int32_t sender_pin_index, int32_t receiver_pin_index);
-
 
     virtual const std::map<std::string, FilterPointer> &filters();
     virtual int32_t create_filter(const std::string& id, const Value &filter_config);

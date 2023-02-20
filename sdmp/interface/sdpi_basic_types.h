@@ -337,20 +337,29 @@ enum ValueType: uint8_t{
 operator T () const{\
     return std::any_cast<T>(value_);\
 }
-
-#define VALUE_CONSTRUCTOR(T,ASNAME)\
+#define VALUE_AS(T,ASNAME) \
+const T as_##ASNAME () const{\
+    return std::any_cast<T>(value_);\
+}
+#define VALUE_CONSTRUCTOR_REF(T,ASNAME)\
 Value(const T& v,const std::string& name = "",bool readonly = false)\
     :name_(name)\
     ,readonly_(readonly){\
     value_ = v;\
     type_ = type_of_typeid(value_.type());\
 }\
-operator T () const{\
-    return std::any_cast<T>(value_);\
+VALUE_OPERATOR_TYPE(T)\
+VALUE_AS(T,ASNAME)
+
+#define VALUE_CONSTRUCTOR(T,ASNAME)\
+Value(const T v,const std::string& name = "",bool readonly = false)\
+    :name_(name)\
+    ,readonly_(readonly){\
+    value_ = v;\
+    type_ = type_of_typeid(value_.type());\
 }\
-const T as_##ASNAME () const{\
-    return std::any_cast<T>(value_);\
-}
+VALUE_OPERATOR_TYPE(T)\
+VALUE_AS(T,ASNAME)
 
 #define VALUE_CONSTRUCTOR_TYPE(FROM,TO,ASNAME) \
 Value(const FROM& v,const std::string& name = "",bool readonly = false)\
@@ -389,9 +398,9 @@ public:
     VALUE_CONSTRUCTOR(double,double)
     VALUE_CONSTRUCTOR(bool,bool)
     VALUE_CONSTRUCTOR(void*,pointer)
-    VALUE_CONSTRUCTOR(std::string,string)
-    VALUE_CONSTRUCTOR(std::vector<double>,double_vector)
-    VALUE_CONSTRUCTOR(std::vector<std::string>,string_vector)
+    VALUE_CONSTRUCTOR_REF(std::string,string)
+    VALUE_CONSTRUCTOR_REF(std::vector<double>,double_vector)
+    VALUE_CONSTRUCTOR_REF(std::vector<std::string>,string_vector)
 
     VALUE_CONSTRUCTOR_TYPE(float   ,double,float)
     VALUE_CONSTRUCTOR_TYPE(int8_t  ,double,int8)
@@ -402,6 +411,7 @@ public:
     VALUE_CONSTRUCTOR_TYPE(uint32_t,double,uint32)
     VALUE_CONSTRUCTOR_TYPE(int64_t ,double,int64)
     VALUE_CONSTRUCTOR_TYPE(uint64_t,double,uint64)
+    VALUE_CONSTRUCTOR_TYPE(GraphStatus,double,status)
 
     VALUE_CONSTRUCTOR_WRAP( char*,std::string)
 
@@ -410,6 +420,12 @@ public:
         name_ = other.name_;
         value_ = other.value_;
         readonly_ = other.readonly_;
+    }
+    Value(const sol::lua_value* v,const std::string& name = "",bool readonly = false)
+            :name_(name)
+            ,readonly_(readonly){
+        lua_to_any(v,value_);
+        type_ = type_of_typeid(value_.type());
     }
     Value& operator=(const Value& other){
         type_ = other.type_;

@@ -12,9 +12,16 @@ class PlayerPrivateContex
         : public IGraphEvent
         , public IFilterExtentionVideoOutputProxy::Observer{
 public:
-    PlayerPrivateContex(){}
+    PlayerPrivateContex(Player* player)
+        :player_(player){
+
+    }
     std::shared_ptr<sdmp::IGraph> graph;
 
+    int32_t set_event(PlayerEvent* event){
+        event_ = event;
+        return 0;
+    }
     // IGraphEvent interface
 public:
     virtual int32_t on_graph_init(IGraph *graph) override
@@ -44,12 +51,17 @@ public:
 public:
     virtual int32_t proxy_render_frame(std::shared_ptr<Frame> frame) override
     {
-        MP_INFO("proxy_render_frame");
+        if(event_)
+            return event_->on_video_frame(nullptr,frame);
+        return 0;
     }
 private:
     int32_t lua_call_native(){
         return 0;
     }
+private:
+    Player* player_ = nullptr;
+    PlayerEvent* event_ = nullptr;
 };
 
 Player::Player(const std::string& base_scipts_dir, const std::string& easy_scipts_dir)
@@ -58,15 +70,28 @@ Player::Player(const std::string& base_scipts_dir, const std::string& easy_scipt
     sdmp::FeatureMap features;
     sdmp::Factory::initialnize_engine(base_scipts_dir,std::filesystem::path(base_scipts_dir)/"engine.lua",features);
 
-    context_ = new PlayerPrivateContex();
+    context_ = new PlayerPrivateContex(this);
     context_->graph = sdmp::Factory::create_graph_from(std::filesystem::path(easy_scipts_dir)/"player.lua",
                                                        static_cast<sdmp::IGraphEvent*>(context_));
 
+    set_video_emit_mode(true);
+}
+
+int32_t Player::set_event(PlayerEvent *event)
+{
+    context_->set_event(event);
+    return 0;
 }
 
 int32_t Player::stop()
 {
     context_->graph->execute_command(kGraphCommandStop);
+    return 0;
+}
+
+int32_t Player::set_video_emit_mode(bool pull_push)
+{
+    //context_->graph->execute_command_async(kGraphCommandCallLuaFunction,Arguments("setVideoEmitMode").add(pull_push));
     return 0;
 }
 

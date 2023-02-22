@@ -31,7 +31,7 @@ namespace mr::sdmp {
 GraphImplement::GraphImplement(IGraphEvent *event)
     :event_(event)
 {
-    async_queue_.appendListener(kGraphAsyncExecuteCommandEvent,[](GraphImplement * graph, const std::string & command, const Value &param){
+    async_queue_.appendListener(kGraphAsyncExecuteCommandEvent,[](GraphImplement * graph, const std::string & command, const Arguments &param){
         graph->execute_command(command,param);
     });
 }

@@ -210,6 +210,7 @@ int32_t VideoDecoderFFmpegFilter::open_decoder(const Format &format)
     //decoder_->time_base = {format.timebase.numerator,format.timebase.denominator};
     ret = try_open_hardware_context();
 
+    decoder_->thread_count = 4;
     ret = avcodec_open2(decoder_,codec_,nullptr);
     if(ret < 0){
         char error_msg[128];

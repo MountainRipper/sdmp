@@ -38,7 +38,8 @@ function Player:init()
                         --uri='',
                         -- uri='http://devmedia.aimymusic.com/02aebbde6571c5d9006a4bb7bfd62c1f'
                         --uri = 'http://media.aimymusic.com/0042faffe7a8fad051a4107c96d806b3'
-                        uri='/home/xuwei/work/resources/alone.mp4'
+                        --uri='/home/xuwei/work/resources/22-freestyle.mp4'
+                        uri='/home/xuwei/work/resources/nonono.mp4'
 		},	
 		-- mediaCache={
 		-- 	module='mediaCacheSaver',
@@ -114,8 +115,8 @@ function Player:onConnectEvent()
 			com.audioOutput = {id='audioOutput'..tostring(self.tracks), 
 								params={module='audioOutputParticipant',
 								idEngine='defaultAudioPlaybackDevice',
-								cacheDuration=500,
-								cacheHungerDuration=200,
+								cacheDuration=1500,
+								cacheHungerDuration=500,
 								volume=impVolume}}
 
 			local audioDecoder = self:createFilter(com.audioDecoder.id, com.audioDecoder.params)
@@ -128,7 +129,7 @@ function Player:onConnectEvent()
 
 	
 
-    self:connectAuto(mediaSource,videoDecoder)
+    	self:connectAuto(mediaSource,videoDecoder)
 	self:connectAuto(videoDecoder,videoOutput)
 
 	self.track = 0
@@ -216,7 +217,7 @@ function Player:onPositionEvent( position )
 			else
 				setVolume = self.wantVolume - self.volume
 			end
-			self:setFilterPropertyById(com.audioOutput.id, 'volume', setVolume)
+			--self:setFilterPropertyById(com.audioOutput.id, 'volume', setVolume)
 		end 
 	end
 
@@ -332,8 +333,8 @@ function Player:nativeSetVolume(volume)
 	end
 end
 
-function Player:nativeSetVideoEmitMode(modePullPush)
-	self:setFilterPropertyById("videoOutput", 'modePullPush', modePullPush)
+function setVideoEmitMode(modePullPush)
+	player:setFilterPropertyById("videoOutput", 'modePullPush', modePullPush)
 end
 
 --a createGraph function to called by native C++,return 'graph' object

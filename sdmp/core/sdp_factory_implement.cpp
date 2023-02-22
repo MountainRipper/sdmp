@@ -262,7 +262,7 @@ int32_t FactoryImplement::enum_module_filters(mr::tinycom::IComModule *module)
                     declear.properties.push_back(prop);
                 }
                 filter_declears_[declear.clsid] = declear;
-                MP_INFO("Enum objects found filter:{} metainfo:\n{}",declear.module,metadata);
+                //MP_INFO("Enum objects found filter:{} metainfo:\n{}",declear.module,metadata);
             }
 
         }

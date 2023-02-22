@@ -50,8 +50,9 @@ public:
     int32_t track_channels(int32_t index);
     int32_t set_track(int32_t index);
 
-private:
-    PlayerPrivateContex* context_;
+    int32_t set_video_emit_mode(bool pull_push);
+private:    
+    PlayerPrivateContex* context_ = nullptr;
 };
 
 

@@ -482,7 +482,8 @@ public:
         :method_(method){
     }
     Arguments(const Arguments& other){
-
+        method_ = other.method_;
+        params_ = other.params_;
     }
     Arguments& add(const Value& value){
         params_.push_back(value);

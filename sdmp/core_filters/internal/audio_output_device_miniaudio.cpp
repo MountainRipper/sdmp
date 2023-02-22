@@ -7,7 +7,7 @@ namespace mr::sdmp {
 
 void on_log(void* pUserData, ma_uint32 level, const char* message)
 {
-    MP_LOG_DEAULT("{}: {}", ma_log_level_to_string(level), message);
+    MP_TRACE("{}: {}", ma_log_level_to_string(level), message);
 }
 
 void on_data(ma_device* pDevice, void* pFramesOut, const void* pFramesIn, ma_uint32 frameCount)

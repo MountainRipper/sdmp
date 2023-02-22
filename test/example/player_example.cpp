@@ -1,8 +1,9 @@
-#include "player_example.h"
 #include <filesystem>
 #include <glad/gl.h>
 #include <libavutil/frame.h>
 #include <logger.h>
+#include <imgui.h>
+#include "player_example.h"
 
 template<typename T>
 inline T max_align(T size){
@@ -265,7 +266,7 @@ int32_t PlayerExample::on_frame()
                    GL_RED, GL_UNSIGNED_BYTE,
                    av_frame->data[2]);
 
-        MP_INFO("upload yuv420 3 texture use {}ms , pts:{}",MP_TIMER_MS_RESET(upload_texture),av_frame->pts);
+        //MP_INFO("upload yuv420 3 texture use {}ms , pts:{}",MP_TIMER_MS_RESET(upload_texture),av_frame->pts);
     }
     else{
         GLuint  tex_loc = 0;
@@ -328,4 +329,14 @@ void PlayerExample::resize_callback(int width, int height)
 
 void PlayerExample::scroll_callback(double xoffset, double yoffset)
 {
+}
+
+void PlayerExample::command(std::string command)
+{
+    if(command == "play"){
+        g_player->resume();
+    }
+    else if(command == "pause"){
+        g_player->pause();
+    }
 }

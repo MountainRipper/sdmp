@@ -1,6 +1,7 @@
 #ifndef EXAMPLE_BASE_H
 #define EXAMPLE_BASE_H
 #include <cstdint>
+#include <string>
 
 #define VGFX_GL_CHECK(level, format, ...) \
 {\
@@ -32,6 +33,8 @@ public:
     virtual void error_callback(int err, const char* desc) = 0;
     virtual void resize_callback( int width, int height) = 0;
     virtual void scroll_callback( double xoffset, double yoffset) = 0;
+
+    virtual void command(std::string command) = 0;
 };
 
 #endif // EXAMPLE_BASE_H

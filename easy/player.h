@@ -27,7 +27,7 @@ public:
     int32_t set_event(PlayerEvent* event);
 
     int32_t open(const std::string& uri);
-    int32_t play();
+    int32_t play(int32_t position_ms);
     int32_t pause();
     int32_t resume();
     int32_t stop();

@@ -49,6 +49,8 @@ public:
     virtual void error_callback(int err, const char *desc) override;
     virtual void resize_callback( int width, int height) override;
     virtual void scroll_callback( double xoffset, double yoffset) override;
+
+    virtual void command(std::string command) override;
 private:
     sdmp::Player* g_player;
     std::mutex cache_mutex_;

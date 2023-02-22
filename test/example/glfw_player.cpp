@@ -1,3 +1,21 @@
+#include <iostream>
+#include <sstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <glad/gl.h>
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+#include <libavutil/pixfmt.h>
+#include <logger.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <imgui.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
+#include "player_example.h"
+#include "IconsFontAwesome6.h"
 #define USE_GL 1
 
 /* -------------------------------------------- */
@@ -15,28 +33,11 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #endif
 
-/* -------------------------------------------- */
-
 #if defined(__linux)
 #include <unistd.h>
 #endif
-
-/* -------------------------------------------- */
-#include <iostream>
-#include <sstream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-// #include <glad/glx.h>
-#include <glad/gl.h>
-// #include <glad/gles2.h>
-#include "player_example.h"
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
-#include <libavutil/pixfmt.h>
-#include <logger.h>
 
 using namespace mr;
 
@@ -84,7 +85,7 @@ void error_callback(int err, const char *desc) {
 
 int main(int argc, char *argv[]) {
 
-  GLFWwindow *win = NULL;
+  GLFWwindow *window = NULL;
   void *native_display = nullptr;
   void *native_window = nullptr;
   void *opengl_context = nullptr;
@@ -102,33 +103,35 @@ int main(int argc, char *argv[]) {
 
   bool use_gles = false;
 #ifdef USE_GLES
+  const char* glsl_version = "#version 100";
   glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
   use_gles = true;
 #else
+  const char* glsl_version = "#version 150";
   glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
 
-  win = glfwCreateWindow(win_w, win_h, "SDMP Usecase Test", NULL, NULL);
-  if (!win) {
+  window = glfwCreateWindow(win_w, win_h, "SDMP Usecase Test", NULL, NULL);
+  if (!window) {
     glfwTerminate();
     exit(EXIT_FAILURE);
   }
 
-  glfwSetFramebufferSizeCallback(win, resize_callback);
-  glfwSetKeyCallback(win, key_callback);
-  glfwSetCharCallback(win, char_callback);
-  glfwSetCursorPosCallback(win, cursor_callback);
-  glfwSetMouseButtonCallback(win, button_callback);
-  glfwSetScrollCallback(win, scroll_callback);
+  glfwSetFramebufferSizeCallback(window, resize_callback);
+  glfwSetKeyCallback(window, key_callback);
+  glfwSetCharCallback(window, char_callback);
+  glfwSetCursorPosCallback(window, cursor_callback);
+  glfwSetMouseButtonCallback(window, button_callback);
+  glfwSetScrollCallback(window, scroll_callback);
 
 #if USE_GL
-  glfwMakeContextCurrent(win);
+  glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
 
   if (!gladLoaderLoadGL()) {
@@ -181,41 +184,53 @@ int main(int argc, char *argv[]) {
   native_display = (void *)glfwGetEGLDisplay();
   opengl_context = (void *)glfwGetEGLContext(win);
 #else
-  native_window = (void *)glfwGetX11Window(win);
-  native_window_glx = (void *)glfwGetGLXWindow(win);
+  native_window = (void *)glfwGetX11Window(window);
+  native_window_glx = (void *)glfwGetGLXWindow(window);
   native_display = (void *)glfwGetX11Display();
-  opengl_context = (void *)glfwGetGLXContext(win);
+  opengl_context = (void *)glfwGetGLXContext(window);
 #endif
 #if USE_GL_WIN
   native_window = (void *)glfwGetWin32Window(win);
   opengl_context = (void *)glfwGetWGLContext(win);
 #endif
 
-#ifdef USE_GLES
-  setenv("EGL_HOST_OPENGL_API", "ES3", 1);
 #endif
 
-#ifdef USE_EGL
-  char string[32];
-  sprintf(string, "%ld", (intptr_t)native_display);
-  setenv("EGL_HOST_DISPLAY", string, 1);
-  setenv("BGFX_RUNTIME_REQUEST_EGL", "ON", 1);
-  const char *disp_s = getenv("EGL_HOST_DISPLAY");
-  if (disp_s != nullptr)
-    mEGLDisplay = (EGLDisplay)(intptr_t)atol(disp_s);
-  else
-    mEGLDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-#endif
+  glfwMakeContextCurrent(window);
 
-#endif
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-  glfwMakeContextCurrent(win);
+  // Setup Dear ImGui style
+  ImGui::StyleColorsDark();
+  //ImGui::StyleColorsLight();
+
+  // Setup Platform/Renderer backends
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init(glsl_version);
+  ImGuiIO& io = ImGui::GetIO();
+  float baseFontSize = 24.0f; // 13.0f is the size of the default font. Change to the font size you use.
+  ImFont* font = io.Fonts->AddFontFromFileTTF("NotoSansSC-Regular.otf",baseFontSize,NULL,io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+  float iconFontSize = baseFontSize * 2.0f / 3; // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
+
+  // merge in icons from Font Awesome
+  static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
+  ImFontConfig icons_config;
+  icons_config.MergeMode = true;
+  icons_config.PixelSnapH = true;
+  icons_config.GlyphMinAdvanceX = iconFontSize;
+  io.Fonts->AddFontFromFileTTF( FONT_ICON_FILE_NAME_FAS, iconFontSize, &icons_config, icons_ranges );
+  bool show_demo_window = true;
+  io.Fonts->Build();
+
   /* -------------------------------------------- */
 
   g_example = new PlayerExample();
-  g_example->on_init(win);
+  g_example->on_init(window);
 
-  while (!glfwWindowShouldClose(win)) {
+  while (!glfwWindowShouldClose(window)) {
 
     // glfwMakeContextCurrent(win);
     // glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -225,11 +240,41 @@ int main(int argc, char *argv[]) {
 
     g_example->on_frame();
 
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    if (show_demo_window)
+        ImGui::ShowDemoWindow(&show_demo_window);
+
+    {
+        ImGui::Begin("Hello, world!");
+        //ImGui::PushFont(font_zhch);
+        ImGui::Button( ICON_FA_CALENDAR" 开播设置");
+        ImGui::SameLine();
+        ImGui::Checkbox("Demo Window", &show_demo_window);
+
+        if(ImGui::Button(ICON_FA_PLAY)){
+            g_example->command("play");
+        }
+        ImGui::SameLine();
+        if(ImGui::Button(ICON_FA_PAUSE)){
+            g_example->command("pause");
+        }
+        ImGui::SameLine();
+        ImGui::Button(ICON_FA_STOP);
+        ImGui::SameLine();
+        //ImGui::PopFont();
+        ImGui::End();
+    }
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #if defined(__linux)
     //  usleep(16e3);
 #endif
 
-    glfwSwapBuffers(win);
+    glfwSwapBuffers(window);
     glfwPollEvents();
   }
 

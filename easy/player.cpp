@@ -83,9 +83,28 @@ int32_t Player::set_event(PlayerEvent *event)
     return 0;
 }
 
+int32_t Player::play(int32_t position_ms)
+{
+    context_->graph->execute_command_async(kGraphCommandSeek,Arguments().add(position_ms));
+    context_->graph->execute_command_async(kGraphCommandPlay);
+    return 0;
+}
+
+int32_t Player::pause()
+{
+    context_->graph->execute_command_async(kGraphCommandPause);
+    return 0;
+}
+
+int32_t Player::resume()
+{
+    context_->graph->execute_command_async(kGraphCommandPlay);
+    return 0;
+}
+
 int32_t Player::stop()
 {
-    context_->graph->execute_command(kGraphCommandStop);
+    context_->graph->execute_command_async(kGraphCommandStop);
     return 0;
 }
 

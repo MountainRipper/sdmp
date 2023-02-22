@@ -5,6 +5,11 @@ add_executable(tinycom_test tinycom_test.cpp)
 target_include_directories(tinycom_test PRIVATE ../sdmp/interface)
 
 file( GLOB SOURCE_EXAMPLE example/*.cpp example/*.h)
-add_executable(glfw_example ${SOURCE_EXAMPLE})
+file( GLOB SOURCE_IMGUI
+    example/imgui/backends/imgui_impl_glfw.cpp
+    example/imgui/backends/imgui_impl_opengl3.cpp
+    example/imgui/*.cpp)
+add_executable(glfw_example ${SOURCE_EXAMPLE} ${SOURCE_IMGUI})
 target_compile_definitions(glfw_example PRIVATE CMAKE_FILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(glfw_example PRIVATE example/imgui)
 target_link_libraries(glfw_example sdmp-easy sdmp glad mp-common glfw drm ssl )

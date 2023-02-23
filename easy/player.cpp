@@ -32,7 +32,7 @@ public:
         return 0;
     }
     virtual int32_t on_graph_created(IGraph *graph) override
-    {
+    {        
         ComPointer<IFilterExtentionVideoOutputProxy> render;
         sdmp::GraphHelper::append_video_observer(graph,"",static_cast<IFilterExtentionVideoOutputProxy::Observer*>(this),true,render);
         graph->execute_command(kGraphCommandConnect);
@@ -45,6 +45,10 @@ public:
     }
     virtual int32_t on_graph_master_loop(IGraph *graph) override
     {
+        Value value;
+        graph->get_property(kGraphPropertyCurrentPts,value);
+        if(event_)
+            event_->on_position(player_,value.as_int32());
         return 0;
     }
     // Observer interface
@@ -56,12 +60,19 @@ public:
         return 0;
     }
 private:
-    int32_t lua_call_native(){
+    int32_t lua_call_native(const std::string& type,sol::variadic_args args){
+        if(type == "connect-done"){
+            const sol::table& graph_tb = SDMP_GRAPH_GET_CONTEXT(graph);
+            std::string uri = graph_tb["info"]["uri"];
+            double duration = graph_tb["info"]["duration"];
+            duration_ = std::round(duration);
+        }
         return 0;
     }
-private:
+public:
     Player* player_ = nullptr;
     PlayerEvent* event_ = nullptr;
+    int64_t duration_ = 0;
 };
 
 Player::Player(const std::string& base_scipts_dir, const std::string& easy_scipts_dir)
@@ -106,6 +117,11 @@ int32_t Player::stop()
 {
     context_->graph->execute_command_async(kGraphCommandStop);
     return 0;
+}
+
+int32_t Player::duration()
+{
+    return context_->duration_;
 }
 
 int32_t Player::set_video_emit_mode(bool pull_push)

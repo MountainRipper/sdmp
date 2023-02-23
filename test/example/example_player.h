@@ -30,9 +30,7 @@ class PlayerExample : public ExampleBase
 public:
     PlayerExample();
 
-    virtual int32_t on_position(sdmp::Player *player, int64_t ms) override{
-        return 0;
-    }
+    virtual int32_t on_position(sdmp::Player *player, int64_t ms) override;
     virtual int32_t on_video_frame(sdmp::Player *player, sdmp::FramePointer frame) override;
     CacheFrame pop_frame();
     int32_t cache_frame_count();
@@ -52,6 +50,8 @@ public:
 
     virtual void command(std::string command) override;
 private:
+    void render_ui();
+private:
     sdmp::Player* g_player;
     std::mutex cache_mutex_;
     std::queue<CacheFrame> cached_frames_;
@@ -62,6 +62,13 @@ private:
     uint32_t texture2_ = 0;
     uint32_t program_;
     uint32_t g_vao = 0;
+
+
+    //ui stuff
+    bool show_demo_window_ = false;
+    int32_t duration_ = 0;
+    float position_ = 0;
+    float seek_position_ = -1;
 };
 
 #endif // PLAYEREXAMPLE_H

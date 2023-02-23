@@ -39,7 +39,7 @@ function Player:init()
                         -- uri='http://devmedia.aimymusic.com/02aebbde6571c5d9006a4bb7bfd62c1f'
                         --uri = 'http://media.aimymusic.com/0042faffe7a8fad051a4107c96d806b3'
                         --uri='/home/xuwei/work/resources/22-freestyle.mp4'
-                        uri='/home/xuwei/work/resources/nonono.mp4'
+                        uri='/home/xuwei/work/resources/alone.mp4'
 		},	
 		-- mediaCache={
 		-- 	module='mediaCacheSaver',
@@ -121,7 +121,7 @@ function Player:onConnectEvent()
 
 			local audioDecoder = self:createFilter(com.audioDecoder.id, com.audioDecoder.params)
 			local audioOutput = self:createFilter(com.audioOutput.id, com.audioOutput.params)
-            self:connectAuto(mediaSource, audioDecoder)
+            		self:connectAuto(mediaSource, audioDecoder)
 			self:connectAuto(audioDecoder, audioOutput)
 			self.audioStreamHandlers[self.tracks] = com
 		end
@@ -133,17 +133,14 @@ function Player:onConnectEvent()
 	self:connectAuto(videoDecoder,videoOutput)
 
 	self.track = 0
-	self:callNative("track",self.track )
-
 	self.channelMode = 0
-	self:callNative("channel-mode",self.channelMode )
-
 	-- print_dump(graph, '-------- dump graph')
 end
 
 function Player:onConnectDoneEvent()
-	io.stderr:write( "======================Player:onConnectDoneEvent====================== \n")
+	io.stderr:write( "======================Player:onConnectDoneEvent====================== \n")	
 	self:getInfo()
+	self:callNative("connect-done")
 end
 
 local c = 0
@@ -266,8 +263,7 @@ function Player:getInfo( )
 	self.info.uri = mediaSource.uri
 	self.media = mediaSource.uri
 
-	print_dump(self.info,"Player Formats:")
-	self:callNative("media-info",self.info)
+	print_dump(self,"Player Formats:")
 	return 0
 end
 
@@ -344,6 +340,3 @@ function createGraph( )
 	return player
 end
 
-function args_test(v1,v2,v3)
-	io.stderr:write( v1.."\t"..v2.."\t"..v3.."\n")
-end

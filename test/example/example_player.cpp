@@ -1,10 +1,12 @@
+#include <spdlog/fmt/chrono.h>
 #include <filesystem>
 #include <glad/gl.h>
 #include <libavutil/frame.h>
 #include <logger.h>
 #include <imgui.h>
-#include "player_example.h"
-
+#include <IconsFontAwesome6.h>
+#include "example_player.h"
+#include "imgui_internal.h"
 template<typename T>
 inline T max_align(T size){
     uint8_t div_max = 128;
@@ -27,6 +29,11 @@ precision mediump float;
 
 static const std::string FS_VIDEO=  R"(
 #version 430
+#if __VERSION__ < 130
+#define TEXTURE2D texture2D
+#else
+#define TEXTURE2D texture
+#endif
 in vec2 v_uv;
 layout (location = 0) out vec4 fragcolor;
 layout (location = 0) uniform sampler2D texture0;
@@ -36,9 +43,9 @@ layout (location = 3) uniform sampler2D texture3;
 
 void main() {
     mediump vec2 coordinate = v_uv;
-    float y = texture2D(texture0, coordinate).r;
-    float u = texture2D(texture1, coordinate).r - 0.5;
-    float v = texture2D(texture2, coordinate).r - 0.5;
+    float y = TEXTURE2D(texture0, coordinate).r;
+    float u = TEXTURE2D(texture1, coordinate).r - 0.5;
+    float v = TEXTURE2D(texture2, coordinate).r - 0.5;
 
     //this is only for yuv420 format test
     fragcolor.rgba = vec4(y + 1.403 * v,
@@ -164,6 +171,11 @@ private:
 PlayerExample::PlayerExample()
 {
 
+}
+
+int32_t PlayerExample::on_position(sdmp::Player *player, int64_t ms){
+    position_ = ms * 1.0 / player->duration();
+    return 0;
 }
 
 int32_t PlayerExample::on_video_frame(sdmp::Player *player, sdmp::FramePointer frame){
@@ -300,6 +312,8 @@ int32_t PlayerExample::on_frame()
         }while (frame.frame);
         MP_INFO("Drop Video Frames Totle:{} Droped:{}",totle_frame_count() ,drop_frame_count);
     }
+
+    render_ui();
     return 0;
 }
 
@@ -334,9 +348,60 @@ void PlayerExample::scroll_callback(double xoffset, double yoffset)
 void PlayerExample::command(std::string command)
 {
     if(command == "play"){
-        g_player->resume();
+
     }
     else if(command == "pause"){
-        g_player->pause();
+
+    }
+}
+
+void PlayerExample::render_ui()
+{
+    if(duration_ == 0)
+        duration_ = g_player->duration();
+
+    if (show_demo_window_)
+        ImGui::ShowDemoWindow(&show_demo_window_);
+
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    ImGui::SetNextWindowBgAlpha(0.35f);
+    auto pos = ImGui::GetMainViewport()->GetCenter();
+    pos.y *= 1.8;
+    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    window_flags |= ImGuiWindowFlags_NoMove;
+    {
+        ImGui::Begin("Hello, world!",NULL,window_flags);
+
+        //ImGui::Button( ICON_FA_CALENDAR" 开播设置");
+        //ImGui::SameLine();
+        //ImGui::Checkbox("Demo Window", &show_demo_window_);
+
+        if(ImGui::Button(ICON_FA_PLAY)){
+            g_player->resume();
+        }
+        ImGui::SameLine();
+        if(ImGui::Button(ICON_FA_PAUSE)){
+            g_player->pause();
+        }
+
+        ImGui::SameLine();
+        ImGui::SliderFloat(" ", &position_, 0.0, 1.0);
+        if (ImGui::IsItemEdited()){
+            seek_position_ = position_;
+        }
+        if (ImGui::IsItemDeactivatedAfterEdit())
+        {
+            MP_INFO("seek_position:{}",seek_position_);
+            if(seek_position_ >= 0)
+                g_player->play(seek_position_*g_player->duration());
+            seek_position_ = -1;
+        }
+
+        ImGui::SameLine();
+        const std::chrono::duration<float, std::milli> ms_p((int)(position_*duration_));
+        const std::chrono::duration<float, std::milli> ms_d((int)duration_);
+        std::string  tm_str = fmt::format("{:%H:%M:%S}/{:%H:%M:%S}",ms_p,ms_d);
+        ImGui::Text("%s", tm_str.c_str());
+        ImGui::End();
     }
 }

@@ -14,8 +14,10 @@
 #include <imgui.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
-#include "player_example.h"
-#include "IconsFontAwesome6.h"
+#include "example_player.h"
+#include <ttf_notosans.h>
+#include <ttf_font_awesome_solid.h>
+#include <IconsFontAwesome6.h>
 #define USE_GL 1
 
 /* -------------------------------------------- */
@@ -200,28 +202,23 @@ int main(int argc, char *argv[]) {
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
-  //ImGui::StyleColorsLight();
 
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
   ImGuiIO& io = ImGui::GetIO();
-  float baseFontSize = 24.0f; // 13.0f is the size of the default font. Change to the font size you use.
-  ImFont* font = io.Fonts->AddFontFromFileTTF("NotoSansSC-Regular.otf",baseFontSize,NULL,io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
-  float iconFontSize = baseFontSize * 2.0f / 3; // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
+  float baseFontSize = 17.0f;
+  ImFont* font = io.Fonts->AddFontFromMemoryCompressedBase85TTF(notosans_compressed_data_base85,baseFontSize,NULL,io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 
   // merge in icons from Font Awesome
   static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
   ImFontConfig icons_config;
   icons_config.MergeMode = true;
   icons_config.PixelSnapH = true;
-  icons_config.GlyphMinAdvanceX = iconFontSize;
-  io.Fonts->AddFontFromFileTTF( FONT_ICON_FILE_NAME_FAS, iconFontSize, &icons_config, icons_ranges );
+  icons_config.GlyphMinAdvanceX = baseFontSize;
+  io.Fonts->AddFontFromMemoryCompressedBase85TTF( font_awesome_solid_compressed_data_base85, baseFontSize, &icons_config, icons_ranges );
   bool show_demo_window = true;
   io.Fonts->Build();
 
@@ -238,38 +235,15 @@ int main(int argc, char *argv[]) {
     // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    g_example->on_frame();
-
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
-
-    {
-        ImGui::Begin("Hello, world!");
-        //ImGui::PushFont(font_zhch);
-        ImGui::Button( ICON_FA_CALENDAR" 开播设置");
-        ImGui::SameLine();
-        ImGui::Checkbox("Demo Window", &show_demo_window);
-
-        if(ImGui::Button(ICON_FA_PLAY)){
-            g_example->command("play");
-        }
-        ImGui::SameLine();
-        if(ImGui::Button(ICON_FA_PAUSE)){
-            g_example->command("pause");
-        }
-        ImGui::SameLine();
-        ImGui::Button(ICON_FA_STOP);
-        ImGui::SameLine();
-        //ImGui::PopFont();
-        ImGui::End();
-    }
+    g_example->on_frame();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 #if defined(__linux)
     //  usleep(16e3);
 #endif

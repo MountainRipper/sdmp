@@ -288,7 +288,7 @@ int32_t MediaSourceFFmpegFilter::do_seek(int32_t ms,int32_t flag)
     if(network_timeout_)
         return -1;
     FFTimestamp timestamp = FFTimestamp(std::chrono::milliseconds(ms));
-    int64_t pos = timestamp.rescale();;
+    int64_t pos = timestamp.rescale().timestamp();
 
     reset_timeout();
     av_seek_frame(media_file_,-1,pos,flag);

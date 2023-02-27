@@ -48,7 +48,12 @@ endif()
 #mountain rippers third_party library builds
 set(THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../third_party")
 set(THIRD_PARTY_TARGET "${THIRD_PARTY_ROOT}/targets/${MP_TARGET_OS}-${MP_TARGET_ARCH}")
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${THIRD_PARTY_ROOT}/include" "${THIRD_PARTY_TARGET}/include" "${THIRD_PARTY_TARGET}/include/luajit")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}
+    "${THIRD_PARTY_ROOT}/include"
+    "${THIRD_PARTY_ROOT}/include/imgui"
+    "${THIRD_PARTY_TARGET}/include"
+    "${THIRD_PARTY_TARGET}/include/luajit"
+    "${THIRD_PARTY_TARGET}/include/freetype2")
 link_directories("${THIRD_PARTY_TARGET}/lib")
 SET(SEARCH_LIB_PATHS "${THIRD_PARTY_TARGET}/lib")
 message(STATUS "INFO:MAKE FOR OS:${MP_TARGET_OS} ARCH:${MP_TARGET_ARCH} SYSROOT:${CMAKE_SYSROOT}")

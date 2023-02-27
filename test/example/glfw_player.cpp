@@ -8,18 +8,20 @@
 #include "backends/imgui_impl_opengl3.h"
 #include <libavutil/pixfmt.h>
 #include <logger.h>
-
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <imgui.h>
+#include <ttf/ttf_notosans_sc_level_1s.h>
+#include <ttf/ttf_notosans_sc_level_1.h>
+#include <ttf/ttf_notosans_sc_level_1_2.h>
+#include <ttf/ttf_material_icon.h>
+#include <ttf/ttf_font_awesome_solid.h>
+#include <ttf/IconsMaterialDesign.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
+#include "imgui_helper.h"
 #include "example_player.h"
-#include <ttf_notosans.h>
-#include <ttf_font_awesome_solid.h>
-#include <IconsFontAwesome6.h>
-#define USE_GL 1
 
+#define USE_GL 1
 /* -------------------------------------------- */
 
 #if defined(__linux)
@@ -199,29 +201,33 @@ int main(int argc, char *argv[]) {
 #endif
 
   glfwMakeContextCurrent(window);
+  auto video_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+  auto global_scale  = video_mode->width / 1920.0;
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
 
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
-  ImGuiIO& io = ImGui::GetIO();
-  float baseFontSize = 17.0f;
-  ImFont* font = io.Fonts->AddFontFromMemoryCompressedBase85TTF(notosans_compressed_data_base85,baseFontSize,NULL,io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 
-  // merge in icons from Font Awesome
-  static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
+  float baseFontSize = 17.0f * global_scale;
   ImFontConfig icons_config;
-  icons_config.MergeMode = true;
   icons_config.PixelSnapH = true;
-  icons_config.GlyphMinAdvanceX = baseFontSize;
-  io.Fonts->AddFontFromMemoryCompressedBase85TTF( font_awesome_solid_compressed_data_base85, baseFontSize, &icons_config, icons_ranges );
-  bool show_demo_window = true;
-  io.Fonts->Build();
+  icons_config.OversampleH = 1;
+  static const ImWchar icons_ranges[] = { ICON_MIN_MD, ICON_MAX_16_MD, 0 };
 
+  ImguiFontResource font_noto_sc{"",notosans_sc_level_1_compressed_data_base85,nullptr,0,false,1,io.Fonts->GetGlyphRangesChineseFull(),icons_config};
+  icons_config.GlyphMinAdvanceX = baseFontSize;
+  ImguiFontResource font_awesome{"",font_awesome_solid_compressed_data_base85,nullptr,0,false,0.8,icons_ranges,icons_config};
+  std::vector<ImguiFontResource> fonts{font_noto_sc,font_awesome};
+  auto& font_helper = ImGuiHelper::get();
+  font_helper.create_default_font(baseFontSize,fonts);
+  font_helper.build();
   /* -------------------------------------------- */
 
   g_example = new PlayerExample();

@@ -74,10 +74,11 @@ int32_t Value::lua_to_any(const sol::lua_value* lua_value_ptr,std::any& any_valu
     case sol::type::table:{
         auto tb = value.as<sol::table>();
         if(tb.size()){
-            if(tb[0].get_type() == sol::type::number){
+            auto type = tb[1].get_type();
+            if(type == sol::type::number){
                 any_value = tb.as<std::vector<double>>();
             }
-            else if(tb[0].get_type() == sol::type::string){
+            else if(type == sol::type::string){
                 any_value = tb.as<std::vector<std::string>>();
             }
             else{

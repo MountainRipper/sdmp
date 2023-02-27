@@ -1,12 +1,13 @@
 #include <spdlog/fmt/chrono.h>
 #include <filesystem>
 #include <glad/gl.h>
+#include <GLFW/glfw3.h>
 #include <libavutil/frame.h>
 #include <logger.h>
 #include <imgui.h>
-#include <IconsFontAwesome6.h>
+#include <ttf/IconsFontAwesome6.h>
 #include "example_player.h"
-#include "imgui_internal.h"
+#include "imgui_helper.h"
 template<typename T>
 inline T max_align(T size){
     uint8_t div_max = 128;
@@ -130,9 +131,6 @@ public:
     }
     // PlayerEvent interface
 public:
-    virtual int32_t on_position(sdmp::Player *player, int64_t ms) override{
-        return 0;
-    }
     virtual int32_t on_video_frame(sdmp::Player *player, sdmp::FramePointer frame) override{
 
         std::lock_guard<std::mutex> lock(cache_mutex_);
@@ -173,11 +171,6 @@ PlayerExample::PlayerExample()
 
 }
 
-int32_t PlayerExample::on_position(sdmp::Player *player, int64_t ms){
-    position_ = ms * 1.0 / player->duration();
-    return 0;
-}
-
 int32_t PlayerExample::on_video_frame(sdmp::Player *player, sdmp::FramePointer frame){
 
     std::lock_guard<std::mutex> lock(cache_mutex_);
@@ -188,6 +181,56 @@ int32_t PlayerExample::on_video_frame(sdmp::Player *player, sdmp::FramePointer f
     cache_frame.create_to_texture();
     cached_frames_.push(cache_frame);
     //MP_INFO("get video frame type:{}",frame->frame->format);
+    return 0;
+}
+
+int32_t PlayerExample::on_end()
+{
+    status_string_ = "Finished";
+    status_string_history_.push_back(status_string_);
+    return 0;
+}
+
+int32_t PlayerExample::on_reload()
+{
+    select_track_ = g_player->track_current();
+    auto_replay_ = g_player->auto_replay();
+    status_string_history_.push_back(status_string_);
+    return 0;
+}
+
+int32_t PlayerExample::on_playing()
+{
+    status_string_ = "Playing";
+    status_string_history_.push_back(status_string_);
+    return 0;
+}
+
+int32_t PlayerExample::on_replaying()
+{
+    status_string_ = "Replaying";
+    status_string_history_.push_back(status_string_);
+    return 0;
+}
+
+int32_t PlayerExample::on_paused()
+{
+    status_string_ = "Paused";
+    status_string_history_.push_back(status_string_);
+    return 0;
+}
+
+int32_t PlayerExample::on_resumed()
+{
+    status_string_ = "Resume";
+    status_string_history_.push_back(status_string_);
+    return 0;
+}
+
+int32_t PlayerExample::on_stoped()
+{
+    status_string_ = "Stoped";
+    status_string_history_.push_back(status_string_);
     return 0;
 }
 
@@ -225,6 +268,7 @@ int32_t PlayerExample::on_init(void* window)
     program_ = create_program(VS_VIDEO.c_str(),FS_VIDEO.c_str());
 
     glGenVertexArrays(1, &g_vao);
+
     return 0;
 }
 
@@ -247,6 +291,7 @@ int32_t PlayerExample::on_frame()
         glUniform1i(tex_loc, 0);
         glActiveTexture(GL_TEXTURE0);
         glPixelStorei(GL_UNPACK_ALIGNMENT, max_align(av_frame->linesize[0]));
+        glPixelStorei(GL_UNPACK_ROW_LENGTH,av_frame->linesize[0]);
         glBindTexture(GL_TEXTURE_2D, texture0_);
         glTexImage2D(GL_TEXTURE_2D, 0,
                    GL_RED,
@@ -259,6 +304,7 @@ int32_t PlayerExample::on_frame()
         glUniform1i(tex_loc, 1);
         glActiveTexture(GL_TEXTURE1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, max_align(av_frame->linesize[1]));
+        glPixelStorei(GL_UNPACK_ROW_LENGTH,av_frame->linesize[1]);
         glBindTexture(GL_TEXTURE_2D, texture1_);
         glTexImage2D(GL_TEXTURE_2D, 0,
                    GL_RED,
@@ -271,6 +317,7 @@ int32_t PlayerExample::on_frame()
         glUniform1i(tex_loc, 2);
         glActiveTexture(GL_TEXTURE2);
         glPixelStorei(GL_UNPACK_ALIGNMENT, max_align(av_frame->linesize[2]));
+        glPixelStorei(GL_UNPACK_ROW_LENGTH,av_frame->linesize[2]);
         glBindTexture(GL_TEXTURE_2D, texture2_);
         glTexImage2D(GL_TEXTURE_2D, 0,
                    GL_RED,
@@ -327,6 +374,9 @@ void PlayerExample::cursor_callback(double x, double y)
 
 void PlayerExample::key_callback(int key, int scancode, int action, int mods)
 {
+    if(key == GLFW_KEY_B){
+        show_demo_window_ = !show_demo_window_;
+    }
 }
 
 void PlayerExample::char_callback( unsigned int key)
@@ -339,6 +389,7 @@ void PlayerExample::error_callback(int err, const char *desc)
 
 void PlayerExample::resize_callback(int width, int height)
 {
+    resized_ = true;
 }
 
 void PlayerExample::scroll_callback(double xoffset, double yoffset)
@@ -347,12 +398,7 @@ void PlayerExample::scroll_callback(double xoffset, double yoffset)
 
 void PlayerExample::command(std::string command)
 {
-    if(command == "play"){
 
-    }
-    else if(command == "pause"){
-
-    }
 }
 
 void PlayerExample::render_ui()
@@ -363,18 +409,21 @@ void PlayerExample::render_ui()
     if (show_demo_window_)
         ImGui::ShowDemoWindow(&show_demo_window_);
 
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-    ImGui::SetNextWindowBgAlpha(0.35f);
-    auto pos = ImGui::GetMainViewport()->GetCenter();
-    pos.y *= 1.8;
-    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    window_flags |= ImGuiWindowFlags_NoMove;
-    {
-        ImGui::Begin("Hello, world!",NULL,window_flags);
+    auto& font_helper = ImGuiHelper::get();
 
-        //ImGui::Button( ICON_FA_CALENDAR" 开播设置");
-        //ImGui::SameLine();
-        //ImGui::Checkbox("Demo Window", &show_demo_window_);
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+
+
+    {
+        window_flags |= ImGuiWindowFlags_NoMove;
+        if(resized_){
+            resized_ = false;
+            auto pos = ImGui::GetMainViewport()->GetCenter();
+            pos.y *= 1.8;
+            ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+        }
+        ImGui::SetNextWindowBgAlpha(0.35f);
+        ImGui::Begin("Control Panel",NULL,window_flags);
 
         if(ImGui::Button(ICON_FA_PLAY)){
             g_player->resume();
@@ -384,6 +433,7 @@ void PlayerExample::render_ui()
             g_player->pause();
         }
 
+        position_ = g_player->position() * 1.0 /  g_player->duration();
         ImGui::SameLine();
         ImGui::SliderFloat(" ", &position_, 0.0, 1.0);
         if (ImGui::IsItemEdited()){
@@ -400,8 +450,67 @@ void PlayerExample::render_ui()
         ImGui::SameLine();
         const std::chrono::duration<float, std::milli> ms_p((int)(position_*duration_));
         const std::chrono::duration<float, std::milli> ms_d((int)duration_);
-        std::string  tm_str = fmt::format("{:%H:%M:%S}/{:%H:%M:%S}",ms_p,ms_d);
+        std::string  tm_str = fmt::format((ms_d >= std::chrono::hours(1))?"{:%H:%M:%S}/{:%H:%M:%S}":"{:%M:%S}/{:%M:%S}",
+                                          ms_p,
+                                          ms_d);
         ImGui::Text("%s", tm_str.c_str());
+
+        bool old_autoreplay = auto_replay_;
+        ImGui::Checkbox("AutoReplay",&auto_replay_);ImGui::SameLine();
+        if(old_autoreplay != auto_replay_){
+            g_player->set_auto_replay(auto_replay_);
+        }
+
+        int old_channel_mode = channel_mode_;
+        ImGui::Text("ChannelMode:"); ImGui::SameLine();
+        ImGui::RadioButton("L/R", &channel_mode_, 0); ImGui::SameLine();
+        ImGui::RadioButton("L", &channel_mode_, 1); ImGui::SameLine();
+        ImGui::RadioButton("R", &channel_mode_, 2);
+        if(old_channel_mode != channel_mode_){
+            MP_INFO("set channel mode:{}",channel_mode_);
+            g_player->set_channel_mode(channel_mode_);
+        }
+        int32_t tracks = g_player->tracks_count();
+        ImGui::SameLine();
+        ImGui::Text("\tTrack:");
+        int old_track = select_track_;
+        for(int index = 0; index < tracks; index++){
+            ImGui::SameLine();
+            ImGui::RadioButton(fmt::format("T{}",index).c_str(), &select_track_, index);
+        }
+        if(old_track != select_track_){
+            MP_INFO("select track :{}",select_track_);
+            g_player->set_track(select_track_);
+        }
+
+        std::string format_str = fmt::format("Video:{}x{}@{:.2f}FPS\tAudio:{}Hz {}Ch {}bits Tracks:{}/{}",
+                                             g_player->width(),
+                                             g_player->height(),
+                                             g_player->framerate(),
+                                             g_player->samplerate(),
+                                             g_player->channels(),
+                                             g_player->audio_bits(),
+                                             g_player->track_current()+1,
+                                             g_player->tracks_count());
+        ImGui::Text("%s", format_str.c_str());
         ImGui::End();
+    }
+
+    {
+        font_helper.use_font_scale(0.75);
+
+        ImGui::SetNextWindowBgAlpha(0.15f);
+        ImGui::Begin("Log Panel",NULL,window_flags);
+        if(status_string_history_.size() > 20)
+            status_string_history_.erase(status_string_history_.begin());
+
+        ImGuiTextBuffer log;
+        for(auto& item : status_string_history_){
+            log.appendf("%s\n",item.c_str());
+        }
+        ImGui::TextUnformatted(log.begin(), log.end());
+        ImGui::End();
+
+        font_helper.restore_font_size();
     }
 }

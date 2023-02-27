@@ -9,13 +9,14 @@ inspect = require('inspect')
 oo = require('bhou.oo.base')
 
 
-kStatusNone   = 0
-kStatusInit   = 1
-kStatusReady  = 2
-kStatusRunning= 3
-kStatusPaused = 4
-kStatusStoped = 5
-kStatusEos    = 6
+kStatusNone      = 0
+kStatusInit      = 1
+kStatusReady     = 2
+kStatusSeekReady = 3
+kStatusRunning   = 4
+kStatusPaused    = 5
+kStatusStoped    = 6
+kStatusEos       = 7
 
 AVMEDIA_TYPE_UNKNOWN = -1
 AVMEDIA_TYPE_VIDEO = 0

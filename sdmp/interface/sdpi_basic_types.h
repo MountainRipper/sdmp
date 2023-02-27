@@ -129,11 +129,12 @@ Error Codes
 #define kGraphInvalidPts         INT32_MIN
 enum GraphStatus {
     kStatusNone  = 0 ,
-    kStatusInit   ,
-    kStatusReady  ,
-    kStatusRunning,
-    kStatusPaused ,
-    kStatusStoped ,
+    kStatusInit      ,
+    kStatusReady     ,
+    kStatusSeekReady ,
+    kStatusRunning   ,
+    kStatusPaused    ,
+    kStatusStoped    ,
     kStatusEos
 };
 typedef GraphStatus GraphStatus;
@@ -145,7 +146,7 @@ static inline GraphStatus command_cause_status(const std::string& command){
     else if(command == kGraphCommandPlay) return kStatusRunning;
     else if(command == kGraphCommandPause) return kStatusPaused;
     else if(command == kGraphCommandStop) return kStatusStoped;
-    else if(command == kGraphCommandSeek) return kStatusReady;
+    else if(command == kGraphCommandSeek) return kStatusSeekReady;
     else if(command == kGraphCommandClose) return kStatusStoped;
     return kStatusNone;
 }

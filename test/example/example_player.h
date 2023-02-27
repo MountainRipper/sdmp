@@ -30,8 +30,15 @@ class PlayerExample : public ExampleBase
 public:
     PlayerExample();
 
-    virtual int32_t on_position(sdmp::Player *player, int64_t ms) override;
     virtual int32_t on_video_frame(sdmp::Player *player, sdmp::FramePointer frame) override;
+    virtual int32_t on_end() override;
+    virtual int32_t on_reload() override;
+    virtual int32_t on_playing() override;
+    virtual int32_t on_replaying() override;
+    virtual int32_t on_paused() override;
+    virtual int32_t on_resumed() override;
+    virtual int32_t on_stoped() override;
+
     CacheFrame pop_frame();
     int32_t cache_frame_count();
     int32_t totle_frame_count();
@@ -65,10 +72,18 @@ private:
 
 
     //ui stuff
+    int  channel_mode_ = 0;
+    int  select_track_ = 0;
     bool show_demo_window_ = false;
+    bool resized_ = true;
+
     int32_t duration_ = 0;
+    int8_t tracks_ = 0;
     float position_ = 0;
     float seek_position_ = -1;
+    bool auto_replay_ = false;
+    std::string status_string_ = "Idel";
+    std::vector<std::string> status_string_history_;
 };
 
 #endif // PLAYEREXAMPLE_H

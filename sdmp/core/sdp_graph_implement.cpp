@@ -137,7 +137,7 @@ int32_t GraphImplement::execute_command(const std::string &command,const  Argume
         cmd_connect();
     }
     else if(command == kGraphCommandDisconnect){
-        cmd_connect();
+        cmd_disconnect();
     }
     else if(command == kGraphCommandCallLuaFunction){
         std::vector<sol::lua_value> lua_values;

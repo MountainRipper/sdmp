@@ -52,7 +52,7 @@ enum CLSCTX {
 
 namespace mr::tinycom {
 
-#define USE_GUID_AS_STRING
+//#define USE_GUID_AS_STRING
 
 #ifdef USE_GUID_AS_STRING
 struct TGUID : public std::string {
@@ -110,6 +110,9 @@ inline bool IsEqualUuid(const TGUID& a, const TGUID& b) {
 #else
 
 struct TGUID{
+    TGUID(){
+        memset(this,0,sizeof(TGUID));
+    }
     TGUID(const char* id){
         assert(id);
         uint32_t d1 = 0;
@@ -137,6 +140,16 @@ struct TGUID{
     }
     bool operator<(const TGUID& v) const {
         return (memcmp(this, &v, sizeof(TGUID)) < 0);
+    }
+    bool operator==(const TGUID& v) const {
+        return (memcmp(this, &v, sizeof(TGUID)) == 0);
+    }
+    bool empty(){
+        return (memcmp(this, &empty_guid(), sizeof(TGUID)) == 0);
+    }
+    static const TGUID& empty_guid(){
+        static TGUID s_empty_guid;
+        return s_empty_guid;
     }
     uint32_t Data1;
     uint16_t Data2;
@@ -282,7 +295,7 @@ typedef IUnknown* (*FuncComCreate)();
 class IComModule{
 public:
     virtual const TGUID& uuid() = 0;
-    virtual const std::string& name() = 0;
+    virtual const char* name() = 0;
     virtual const CLSID& GetClass(int32_t index) = 0;
     virtual const char* GetMetadata(int32_t index) = 0;
     virtual HRESULT CreateInstance(CLSID clsid,void** unknown) = 0;
@@ -306,8 +319,8 @@ public:
     virtual const TGUID& uuid(){
         return module_id_;
     }
-    virtual const std::string& name(){
-        return name_;
+    virtual const char* name(){
+        return name_.c_str();
     }
 
     virtual const TGUID& GetClass(int32_t index){

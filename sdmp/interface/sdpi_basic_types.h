@@ -127,7 +127,8 @@ Error Codes
 #define kGraphOperatorCallFilterMethod  "optCallFilterMethod"
 
 #define kGraphInvalidPts         INT32_MIN
-enum GraphStatus {
+
+enum GraphStatus  : int32_t{
     kStatusNone  = 0 ,
     kStatusInit      ,
     kStatusReady     ,
@@ -137,7 +138,17 @@ enum GraphStatus {
     kStatusStoped    ,
     kStatusEos
 };
-typedef GraphStatus GraphStatus;
+
+enum GraphEventType : int32_t{
+    //after script loaded
+    kGraphEventLoaded = 0,
+    //after graph created, c++/lua binding complate
+    kGraphEventCreated,
+    //when error emit
+    kGraphEventError,
+    //master loop
+    kGraphEventMasterLoop,
+};
 
 static inline GraphStatus command_cause_status(const std::string& command){
 

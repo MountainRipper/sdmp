@@ -6,58 +6,22 @@
 #include <logger.h>
 #include <imgui.h>
 #include <ttf/IconsFontAwesome6.h>
+#include <tio/tio_hardware_graphic.h>
+
 #include "example_player.h"
 #include "imgui_helper.h"
-template<typename T>
-inline T max_align(T size){
-    uint8_t div_max = 128;
-    while(size % div_max) div_max >>= 1;
-    return div_max;
-}
 
+using namespace mr::tio;
 static const std::string VS_VIDEO = R"(
-#version 430
-precision mediump float;
-  out vec2 v_uv;
+  precision mediump float;
+  out vec2 v_texCoord;
   void main() {
     float x = -1.0 + float((gl_VertexID & 1) << 2);
     float y = -1.0 + float((gl_VertexID & 2) << 1);
-    v_uv.x = (x+1.0)*0.5;
-    v_uv.y = (y+1.0)*0.5;
+    v_texCoord.x = (x+1.0)*0.5;
+    v_texCoord.y = (y+1.0)*0.5;
     gl_Position = vec4(x, -y, 0, 1);
 })";
-
-
-static const std::string FS_VIDEO=  R"(
-#version 430
-#if __VERSION__ < 130
-#define TEXTURE2D texture2D
-#else
-#define TEXTURE2D texture
-#endif
-in vec2 v_uv;
-layout (location = 0) out vec4 fragcolor;
-layout (location = 0) uniform sampler2D texture0;
-layout (location = 1) uniform sampler2D texture1;
-layout (location = 2) uniform sampler2D texture2;
-layout (location = 3) uniform sampler2D texture3;
-
-void main() {
-    mediump vec2 coordinate = v_uv;
-    float y = TEXTURE2D(texture0, coordinate).r;
-    float u = TEXTURE2D(texture1, coordinate).r - 0.5;
-    float v = TEXTURE2D(texture2, coordinate).r - 0.5;
-
-    //this is only for yuv420 format test
-    fragcolor.rgba = vec4(y + 1.403 * v,
-                y - 0.344 * u - 0.714 * v,
-                y + 1.770 * u,
-                1.0);
-
-    //fragcolor.rgba = vec4(v,v,v,1.0);
-}
-)";
-
 
 
 CacheFrame::CacheFrame(const CacheFrame &other){
@@ -69,41 +33,6 @@ CacheFrame::CacheFrame(const CacheFrame &other){
 
 void CacheFrame::create_to_texture(){
     return;
-    AVFrame* av_frame = frame->frame;
-
-    MP_TIMER_NEW(upload_texture);
-
-
-    glGenTextures(1,&texture_y);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_y);
-    glTexImage2D(GL_TEXTURE_2D, 0,
-                 GL_RED,
-                 av_frame->width, av_frame->height, 0,
-                 GL_RED, GL_UNSIGNED_BYTE,
-                 av_frame->data[0]);
-    //MP_INFO("shared context upload yuv420 1 texture use {}ms",MP_TIMER_MS_RESET(upload_texture));
-
-    glGenTextures(1,&texture_u);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture_u);
-    glTexImage2D(GL_TEXTURE_2D, 0,
-                 GL_RED,
-                 av_frame->width/2, av_frame->height/2, 0,
-                 GL_RED, GL_UNSIGNED_BYTE,
-                 av_frame->data[1]);
-    //MP_INFO("shared context upload yuv420 2 texture use {}ms",MP_TIMER_MS_RESET(upload_texture));
-
-    glGenTextures(1,&texture_v);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, texture_v);
-    glTexImage2D(GL_TEXTURE_2D, 0,
-                 GL_RED,
-                 av_frame->width/2, av_frame->height/2, 0,
-                 GL_RED, GL_UNSIGNED_BYTE,
-                 av_frame->data[2]);
-
-    MP_INFO("shared context upload yuv420 3 texture use {}ms , pts:{} tex:{},{},{}",MP_TIMER_MS_RESET(upload_texture),av_frame->pts,texture_y,texture_u,texture_v);
 }
 
 void CacheFrame::release_texture(){
@@ -168,7 +97,6 @@ private:
 
 PlayerExample::PlayerExample()
 {
-
 }
 
 int32_t PlayerExample::on_video_frame(sdmp::Player *player, sdmp::FramePointer frame){
@@ -262,11 +190,26 @@ int32_t PlayerExample::on_init(void* window)
     g_player->set_event(static_cast<sdmp::PlayerEvent*>(this));
 
 
-    texture0_ = create_texture(128,128,0);
-    texture1_ = create_texture(128,128,128);
-    texture2_ = create_texture(128,128,128);
-    program_ = create_program(VS_VIDEO.c_str(),FS_VIDEO.c_str());
+    textures_[0] = create_texture(128,128,0);
+    textures_[1] = create_texture(128,128,128);
+    textures_[2] = create_texture(128,128,128);
 
+    std::string vertex_shader = VS_VIDEO;
+    auto version = (const char*)glGetString(GL_VERSION);
+    if(version && strstr(version,"OpenGL ES"))
+        vertex_shader = std::string("#version 300 es") + vertex_shader;
+    else
+        vertex_shader = std::string("#version 430") + vertex_shader;
+
+    auto fragment_shader = TextureIO::reference_shader_software(kGraphicApiOpenGL,kSoftwareFrameI420);
+
+    MP_INFO("{}",fragment_shader)
+
+    program_ = create_program(vertex_shader.c_str(),fragment_shader.c_str());
+
+    texture_locations_[0] = glGetUniformLocation(program_, "tex1");
+    texture_locations_[1] = glGetUniformLocation(program_, "tex2");
+    texture_locations_[2] = glGetUniformLocation(program_, "tex3");
     glGenVertexArrays(1, &g_vao);
 
     return 0;
@@ -286,64 +229,26 @@ int32_t PlayerExample::on_frame()
 
         MP_TIMER_NEW(upload_texture);
         AVFrame* av_frame = frame.frame->frame;
-        GLuint  tex_loc = 0;
-        tex_loc = glGetUniformLocation(program_, "texture0");
-        glUniform1i(tex_loc, 0);
-        glActiveTexture(GL_TEXTURE0);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, max_align(av_frame->linesize[0]));
-        glPixelStorei(GL_UNPACK_ROW_LENGTH,av_frame->linesize[0]);
-        glBindTexture(GL_TEXTURE_2D, texture0_);
-        glTexImage2D(GL_TEXTURE_2D, 0,
-                   GL_RED,
-                   av_frame->width, av_frame->height, 0,
-                   GL_RED, GL_UNSIGNED_BYTE,
-                   av_frame->data[0]);
-        //MP_INFO("upload yuv420 1 texture use {}ms",MP_TIMER_MS_RESET(upload_texture));
+        SoftwareFrame frame = {kSoftwareFrameI420,(uint32_t)av_frame->width,(uint32_t)av_frame->height};
+        GraphicTexture textures = {kGraphicApiOpenGL};
+        for(int index = 0; index < 4; index++){
+            frame.data[index] = av_frame->data[index];
+            frame.line_size[index] = av_frame->linesize[index];
 
-        tex_loc = glGetUniformLocation(program_, "texture1");
-        glUniform1i(tex_loc, 1);
-        glActiveTexture(GL_TEXTURE1);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, max_align(av_frame->linesize[1]));
-        glPixelStorei(GL_UNPACK_ROW_LENGTH,av_frame->linesize[1]);
-        glBindTexture(GL_TEXTURE_2D, texture1_);
-        glTexImage2D(GL_TEXTURE_2D, 0,
-                   GL_RED,
-                   av_frame->width/2, av_frame->height/2, 0,
-                   GL_RED, GL_UNSIGNED_BYTE,
-                   av_frame->data[1]);
-        //MP_INFO("upload yuv420 2 texture use {}ms",MP_TIMER_MS_RESET(upload_texture));
+            textures.context[index] = textures_[index];
+            textures.flags[index] = GL_TEXTURE0+texture_unit_base_+index;
+        }
+        TextureIO::software_frame_to_graphic(frame,textures);
 
-        tex_loc = glGetUniformLocation(program_, "texture2");
-        glUniform1i(tex_loc, 2);
-        glActiveTexture(GL_TEXTURE2);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, max_align(av_frame->linesize[2]));
-        glPixelStorei(GL_UNPACK_ROW_LENGTH,av_frame->linesize[2]);
-        glBindTexture(GL_TEXTURE_2D, texture2_);
-        glTexImage2D(GL_TEXTURE_2D, 0,
-                   GL_RED,
-                   av_frame->width/2, av_frame->height/2, 0,
-                   GL_RED, GL_UNSIGNED_BYTE,
-                   av_frame->data[2]);
-
-        //MP_INFO("upload yuv420 3 texture use {}ms , pts:{}",MP_TIMER_MS_RESET(upload_texture),av_frame->pts);
+        MP_INFO("upload yuv420 3 texture use {}ms , pts:{}",MP_TIMER_MS_RESET(upload_texture),av_frame->pts);
     }
     else{
-        GLuint  tex_loc = 0;
-        tex_loc = glGetUniformLocation(program_, "texture0");
-        glUniform1i(tex_loc, 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture0_);
 
-        tex_loc = glGetUniformLocation(program_, "texture1");
-        glUniform1i(tex_loc, 1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture1_);
-
-        tex_loc = glGetUniformLocation(program_, "texture2");
-        glUniform1i(tex_loc, 2);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, texture2_);
     }
+
+    glUniform1i(texture_locations_[0], texture_unit_base_);
+    glUniform1i(texture_locations_[1], texture_unit_base_+1);
+    glUniform1i(texture_locations_[2], texture_unit_base_+2);
 
     glUseProgram(program_);
     glBindVertexArray(g_vao);
@@ -374,9 +279,7 @@ void PlayerExample::cursor_callback(double x, double y)
 
 void PlayerExample::key_callback(int key, int scancode, int action, int mods)
 {
-    if(key == GLFW_KEY_B){
-        show_demo_window_ = !show_demo_window_;
-    }
+
 }
 
 void PlayerExample::char_callback( unsigned int key)
@@ -405,9 +308,6 @@ void PlayerExample::render_ui()
 {
     if(duration_ == 0)
         duration_ = g_player->duration();
-
-    if (show_demo_window_)
-        ImGui::ShowDemoWindow(&show_demo_window_);
 
     auto& font_helper = ImGuiHelper::get();
 

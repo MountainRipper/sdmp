@@ -10,6 +10,8 @@ file( GLOB SOURCE_IMGUI
     example/imgui/backends/imgui_impl_opengl3.cpp
     example/imgui/*.cpp)
 add_executable(glfw_example ${SOURCE_EXAMPLE} ${SOURCE_IMGUI})
-target_compile_definitions(glfw_example PRIVATE CMAKE_FILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+target_compile_definitions(glfw_example PRIVATE CMAKE_FILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}" USE_GLES=0)
 target_include_directories(glfw_example PRIVATE example/imgui)
-target_link_libraries(glfw_example sdmp-easy sdmp glad mp-common glfw freetype drm ssl )
+target_link_libraries(glfw_example sdmp-easy sdmp glad mp-common glfw freetype drm ssl X11)
+
+target_include_directories(glfw_example PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../textureio/include)

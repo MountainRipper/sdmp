@@ -12,7 +12,7 @@ namespace mr::sdmp {
 class GraphImplement : public IGraph
 {
 public:
-    GraphImplement(IGraphEvent *event);
+    GraphImplement(GraphEvent event);
     virtual ~GraphImplement();
 
     int32_t create(const std::string& root_dir,const std::string& script);
@@ -81,7 +81,7 @@ private:
     int32_t     loop_interval_ms_ = 10;
     GraphStatus status_           = kStatusNone;
 
-    IGraphEvent  *event_           = nullptr;
+    GraphEvent event_;
 
     sol::protected_function  lua_created_function_;
     sol::protected_function  lua_error_function_;

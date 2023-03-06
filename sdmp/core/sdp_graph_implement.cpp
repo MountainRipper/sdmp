@@ -28,9 +28,9 @@ int my_exception_handler(lua_State* L, sol::optional<const std::exception&> mayb
 
 namespace mr::sdmp {
 
-GraphImplement::GraphImplement(IGraphEvent *event)
-    :event_(event)
+GraphImplement::GraphImplement(GraphEvent event)
 {
+    event_ = event;
     async_queue_.appendListener(kGraphAsyncExecuteCommandEvent,[](GraphImplement * graph, const std::string & command, const Arguments &param){
         graph->execute_command(command,param);
     });
@@ -181,12 +181,13 @@ std::shared_ptr<sol::state> sdmp::GraphImplement::vm()
     return graph_vm_;
 }
 
+
 int32_t GraphImplement::master_requare_shot()
 {
     async_queue_.process();
 
-    if(event_)
-        event_->on_graph_master_loop(this);
+    event_(this,kGraphEventMasterLoop,0);
+
     if(lua_master_function_.valid())
         lua_master_function_(graph_context_);    
 
@@ -220,9 +221,8 @@ int32_t GraphImplement::master_thread_proc()
     if(ret < 0){
         return emit_error("graph",kErrorBadScript,false);
     }
-    //native init notify
-    if(event_)
-        event_->on_graph_init(this);
+
+    event_(this,kGraphEventLoaded,0);
 
     sol::optional<sol::table> graph_opt = vm[kLuaCreateGraphFunctionName]();
     if(graph_opt == sol::nullopt){
@@ -258,9 +258,8 @@ int32_t GraphImplement::master_thread_proc()
         return emit_error("graph",kErrorCreateGraphFilterObject);
     }
 
-    //native created notify
-    if(event_)
-        event_->on_graph_created(this);
+    event_(this,kGraphEventCreated,0);
+
     //script created notify
     lua_created_function_(graph_context_);
 
@@ -284,8 +283,7 @@ int32_t GraphImplement::master_thread_proc()
 
 int32_t GraphImplement::emit_error(const std::string &objectId, int32_t code, bool to_script)
 {
-    if(event_)
-        event_->on_graph_error(this,code);
+    event_(this,kGraphEventError,code);
 
     if(lua_error_function_)
         lua_error_function_(graph_context_,objectId,code);

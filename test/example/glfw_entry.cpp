@@ -3,13 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <glad/egl.h>
 #include <glad/gl.h>
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
+#include <glad/glx.h>
 #include <libavutil/pixfmt.h>
 #include <logger.h>
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
 #include <ttf/ttf_notosans_sc_level_1s.h>
 #include <ttf/ttf_notosans_sc_level_1.h>
 #include <ttf/ttf_notosans_sc_level_1_2.h>
@@ -21,7 +19,10 @@
 #include "imgui_helper.h"
 #include "example_player.h"
 
-#define USE_GL 1
+
+#include "backends/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_glfw.h"
+
 /* -------------------------------------------- */
 
 #if defined(__linux)
@@ -47,6 +48,7 @@ using namespace mr;
 
 uint32_t win_w = 1280;
 uint32_t win_h = 720;
+bool show_demo_window_ = false;
 ExampleBase *g_example = nullptr;
 
 void key_callback(GLFWwindow *win, int key, int scancode, int action,
@@ -58,8 +60,12 @@ void key_callback(GLFWwindow *win, int key, int scancode, int action,
 
   switch (key) {
   case GLFW_KEY_ESCAPE: {
-    glfwSetWindowShouldClose(win, GL_TRUE);
-    break;
+        glfwSetWindowShouldClose(win, GL_TRUE);
+        break;
+  }
+  case GLFW_KEY_B: {
+        show_demo_window_ = !show_demo_window_;
+        break;
   }
   };
 
@@ -106,12 +112,12 @@ int main(int argc, char *argv[]) {
 #endif
 
   bool use_gles = false;
-#ifdef USE_GLES
-  const char* glsl_version = "#version 100";
+#if USE_GLES
+  const char* glsl_version = "#version 300 es";
   glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
   use_gles = true;
 #else
   const char* glsl_version = "#version 150";
@@ -134,37 +140,66 @@ int main(int argc, char *argv[]) {
   glfwSetMouseButtonCallback(window, button_callback);
   glfwSetScrollCallback(window, scroll_callback);
 
-#if USE_GL
   glfwMakeContextCurrent(window);
-  glfwSwapInterval(1);
 
   if (!gladLoaderLoadGL()) {
     printf("Cannot load GL.\n");
     exit(1);
   }
 
-  //  if (!gladLoaderLoadGLES2()) {
-  //    printf("Cannot load GLES2.\n");
-  //    //exit(1);
-  //  }
+  EGLDisplay mEGLDisplay = nullptr;
+#if defined(__linux)
+    #ifdef USE_EGL
+      native_window = (void *)glfwGetX11Window(win);
+      native_display = (void *)glfwGetEGLDisplay();
+      opengl_context = (void *)glfwGetEGLContext(win);
+
+      if (!gladLoaderLoadEGL(native_display)) {
+        printf("Cannot load GL.\n");
+        exit(1);
+      }
+
+      if (eglGetCurrentContext()) {
+        auto display = glfwGetEGLDisplay();
+        fprintf(stderr, "EGL_VERSION : %s\n", eglQueryString(display, EGL_VERSION));
+        fprintf(stderr, "EGL_VENDOR : %s\n", eglQueryString(display, EGL_VENDOR));
+      }
+
+    #else
+      native_window = (void *)glfwGetX11Window(window);
+      native_window_glx = (void *)glfwGetGLXWindow(window);
+      native_display = (void *)glfwGetX11Display();
+      opengl_context = (void *)glfwGetGLXContext(window);
+
+      if (!gladLoaderLoadGLX((Display*)native_display,0)) {
+        printf("Cannot load GL.\n");
+        exit(1);
+      }
+
+      if (glXGetCurrentContext()) {
+        auto display = glXGetCurrentDisplay();
+        int majv, minv;
+        glXQueryVersion(display, &majv, &minv);
+        fprintf(stderr, "GLX VERSION : %d.%d\n", majv, minv);
+      }
+    #endif
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+  native_window = (void *)glfwGetWin32Window(win);
+  opengl_context = (void *)glfwGetWGLContext(win);
+#endif
+
+  auto video_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+  auto global_scale  = video_mode->width / 1920.0;
+
+  glfwSwapInterval(1);
 
   fprintf(stderr, "GL_VENDOR : %s\n", glGetString(GL_VENDOR));
   fprintf(stderr, "GL_VERSION  : %s\n", glGetString(GL_VERSION));
   fprintf(stderr, "GL_RENDERER : %s\n", glGetString(GL_RENDERER));
-  if (eglGetCurrentContext()) {
-    auto display = glfwGetEGLDisplay();
-    fprintf(stderr, "EGL_VERSION : %s\n", eglQueryString(display, EGL_VERSION));
-    fprintf(stderr, "EGL_VENDOR : %s\n", eglQueryString(display, EGL_VENDOR));
-  }
-  if (glXGetCurrentContext()) {
-    auto display = glXGetCurrentDisplay();
-    int majv, minv;
-    glXQueryVersion(display, &majv, &minv);
-    fprintf(stderr, "GLX VERSION : %d.%d\n", majv, minv);
-  }
 
   // fprintf(stderr,"GL_EXTENSIONS : %s\n", glGetString(GL_EXTENSIONS) );
-#endif
 
   /* -------------------------------------------- */
   // glEnable(GL_TEXTURE_2D);
@@ -179,30 +214,6 @@ int main(int argc, char *argv[]) {
   VGFX_GL_CHECK(mp::Logger::kLogLevelError,
                 "glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)");
   /* -------------------------------------------- */
-
-  EGLDisplay mEGLDisplay = nullptr;
-#if USE_GL_LINUX
-
-#ifdef USE_EGL
-  native_window = (void *)glfwGetX11Window(win);
-  native_display = (void *)glfwGetEGLDisplay();
-  opengl_context = (void *)glfwGetEGLContext(win);
-#else
-  native_window = (void *)glfwGetX11Window(window);
-  native_window_glx = (void *)glfwGetGLXWindow(window);
-  native_display = (void *)glfwGetX11Display();
-  opengl_context = (void *)glfwGetGLXContext(window);
-#endif
-#if USE_GL_WIN
-  native_window = (void *)glfwGetWin32Window(win);
-  opengl_context = (void *)glfwGetWGLContext(win);
-#endif
-
-#endif
-
-  glfwMakeContextCurrent(window);
-  auto video_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-  auto global_scale  = video_mode->width / 1920.0;
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -235,27 +246,39 @@ int main(int argc, char *argv[]) {
 
   while (!glfwWindowShouldClose(window)) {
 
-    // glfwMakeContextCurrent(win);
+   // glfwMakeContextCurrent(win);
     // glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, win_w, win_h);
+    VGFX_GL_CHECK(mp::Logger::kLogLevelError, "glViewport()");
     // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     ImGui_ImplOpenGL3_NewFrame();
+    VGFX_GL_CHECK(mp::Logger::kLogLevelError, "ImGui_ImplOpenGL3_NewFrame()");
     ImGui_ImplGlfw_NewFrame();
+    VGFX_GL_CHECK(mp::Logger::kLogLevelError, "ImGui_ImplGlfw_NewFrame()");
     ImGui::NewFrame();
+    VGFX_GL_CHECK(mp::Logger::kLogLevelError, "ImGui::NewFrame()");
 
     g_example->on_frame();
+    VGFX_GL_CHECK(mp::Logger::kLogLevelError, "ImGui::Render()");
+
+    if(show_demo_window_)
+        ImGui::ShowDemoWindow(&show_demo_window_);
 
     ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    VGFX_GL_CHECK(mp::Logger::kLogLevelError, "ImGui::Render()");
 
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    VGFX_GL_CHECK(mp::Logger::kLogLevelError, "ImGui::GetDrawData()");
 #if defined(__linux)
     //  usleep(16e3);
 #endif
 
     glfwSwapBuffers(window);
+    VGFX_GL_CHECK(mp::Logger::kLogLevelError, "glfwSwapBuffers()");
     glfwPollEvents();
+    VGFX_GL_CHECK(mp::Logger::kLogLevelError, "glfwPollEvents()");
   }
 
   g_example->on_deinit();

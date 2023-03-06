@@ -8,44 +8,27 @@
 namespace mr {
 namespace sdmp {
 
-class PlayerPrivateContex
-        : public IGraphEvent
-        , public IFilterExtentionVideoOutputProxy::Observer{
+class PlayerPrivateContex : public IFilterExtentionVideoOutputProxy::Observer{
 public:
-    PlayerPrivateContex(Player* player)
+    PlayerPrivateContex(Player* player,const std::string& script)
         :player_(player){
 
-    }
-    std::shared_ptr<sdmp::IGraph> graph;
-
-    int32_t set_event(PlayerEvent* event){
-        event_ = event;
-        return 0;
-    }
-    // IGraphEvent interface
-public:
-    virtual int32_t on_graph_init(IGraph *graph) override
-    {
-        sol::state& state = *graph->vm();
-        state["luaCallNative"] = &PlayerPrivateContex::lua_call_native;
-        state["nativeContext"] = this;
-        return 0;
-    }
-    virtual int32_t on_graph_created(IGraph *graph) override
-    {        
-        ComPointer<IFilterExtentionVideoOutputProxy> render;
-        sdmp::GraphHelper::append_video_observer(graph,"",static_cast<IFilterExtentionVideoOutputProxy::Observer*>(this),true,render);
-        graph->execute_command(kGraphCommandConnect);
-        graph->execute_command(kGraphCommandPlay);
-        return 0;
-    }
-    virtual int32_t on_graph_error(IGraph *graph, int32_t error_code) override
-    {
-        return 0;
-    }
-    virtual int32_t on_graph_master_loop(IGraph *graph) override
-    {
-        return 0;
+        graph = sdmp::Factory::create_graph_from(script,[this](sdmp::IGraph* graph,GraphEventType event,int32_t param){
+            if(event == kGraphEventLoaded){
+                sol::state& state = *graph->vm();
+                state["luaCallNative"] = &PlayerPrivateContex::lua_call_native;
+                state["nativeContext"] = this;
+                return 0;
+            }
+            else if(event == kGraphEventCreated){
+                ComPointer<IFilterExtentionVideoOutputProxy> render;
+                sdmp::GraphHelper::append_video_observer(graph,"",static_cast<IFilterExtentionVideoOutputProxy::Observer*>(this),true,render);
+                graph->execute_command(kGraphCommandConnect);
+                graph->execute_command(kGraphCommandPlay);
+                return 0;
+            }
+            return 0;
+        });
     }
     // Observer interface
 public:
@@ -121,6 +104,7 @@ private:
 public:
     Player* player_ = nullptr;
     PlayerEvent* event_ = nullptr;
+    std::shared_ptr<sdmp::IGraph> graph;
     bool     auto_replay_ = false;
     int64_t  duration_ = 0;
     int64_t  position_ = 0;
@@ -142,14 +126,12 @@ Player::Player(const std::string& base_scipts_dir, const std::string& easy_scipt
     sdmp::FeatureMap features;
     sdmp::Factory::initialnize_engine(base_scipts_dir,std::filesystem::path(base_scipts_dir)/"engine.lua",features);
 
-    context_ = new PlayerPrivateContex(this);
-    context_->graph = sdmp::Factory::create_graph_from(std::filesystem::path(easy_scipts_dir)/"player.lua",
-                                                       static_cast<sdmp::IGraphEvent*>(context_));
+    context_ = new PlayerPrivateContex(this,std::filesystem::path(easy_scipts_dir)/"player.lua");
 }
 
 int32_t Player::set_event(PlayerEvent *event)
 {
-    context_->set_event(event);
+    context_->event_ = event;
     return 0;
 }
 

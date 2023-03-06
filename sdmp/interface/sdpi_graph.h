@@ -1,19 +1,14 @@
 #ifndef SDP_GRAPH_H
 #define SDP_GRAPH_H
 #include <string>
+#include <functional>
 #include "sdpi_filter.h"
 #include "sdpi_filter_extentions.h"
 
 namespace mr::sdmp {
 
-class IGraphEvent{
-public:
-    virtual ~IGraphEvent(){}
-    virtual int32_t on_graph_init(sdmp::IGraph *graph) = 0;
-    virtual int32_t on_graph_created(IGraph* graph) = 0;
-    virtual int32_t on_graph_error(IGraph* graph,int32_t error_code) = 0;
-    virtual int32_t on_graph_master_loop(IGraph* graph) = 0;
-};
+//graph event as (IGraph* graph,GraphEventType event,int32_t param)
+typedef std::function<int32_t(sdmp::IGraph*,GraphEventType,int32_t)> GraphEvent;
 
 class IGraph{
 public:

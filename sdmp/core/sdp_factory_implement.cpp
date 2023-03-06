@@ -84,7 +84,7 @@ const std::string &Factory::script_root()
 }
 
 
-std::shared_ptr<IGraph> Factory::create_graph_from(const std::string &declear_file, IGraphEvent *event)
+std::shared_ptr<IGraph> Factory::create_graph_from(const std::string &declear_file, GraphEvent event)
 {
     auto graph = new GraphImplement(event);
     graph->create(factory_->script_dir(),declear_file);

@@ -64,9 +64,9 @@ private:
     std::queue<CacheFrame> cached_frames_;
     int32_t totle_frame_count_ = 0;
 
-    uint32_t texture0_ = 0;
-    uint32_t texture1_ = 0;
-    uint32_t texture2_ = 0;
+    uint32_t textures_[4] = {0};
+    uint32_t texture_locations_[4] = {0};
+    uint32_t texture_unit_base_ = 2;
     uint32_t program_;
     uint32_t g_vao = 0;
 
@@ -74,7 +74,6 @@ private:
     //ui stuff
     int  channel_mode_ = 0;
     int  select_track_ = 0;
-    bool show_demo_window_ = false;
     bool resized_ = true;
 
     int32_t duration_ = 0;

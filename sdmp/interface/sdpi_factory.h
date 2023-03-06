@@ -16,7 +16,7 @@ namespace mr::sdmp {
                                           const FeatureMap& features);
         static const std::string& script_root();
         //create a graph for playback
-        static std::shared_ptr<IGraph> create_graph_from(const std::string& declear_file,IGraphEvent* event);
+        static std::shared_ptr<IGraph> create_graph_from(const std::string& declear_file,GraphEvent event);
 
         //create a stub objects
         static ISdpStub* create_stub(const std::string& class_name);

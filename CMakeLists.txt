@@ -37,12 +37,18 @@ endif()
 if(${MP_TARGET_OS} MATCHES "linux")
     include_directories(/usr/include/drm)
 elseif(${MP_TARGET_OS} MATCHES "windows")
-
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(MP_TARGET_OS "mingw")
+    endif()
 elseif(${MP_TARGET_OS} MATCHES "darwin")
 
 elseif(${MP_TARGET_OS} MATCHES "android")
 
 elseif(${MP_TARGET_OS} MATCHES "ios")
+endif()
+
+if(${MP_TARGET_ARCH} MATCHES "AMD64")
+    set(MP_TARGET_ARCH "x86_64")
 endif()
 
 #mountain rippers third_party library builds

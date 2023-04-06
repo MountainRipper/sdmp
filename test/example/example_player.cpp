@@ -1,3 +1,4 @@
+
 #include <spdlog/fmt/chrono.h>
 #include <filesystem>
 #include <glad/gl.h>
@@ -201,7 +202,7 @@ int32_t PlayerExample::on_init(void* window)
     else
         vertex_shader = std::string("#version 430") + vertex_shader;
 
-    auto fragment_shader = TextureIO::reference_shader_software(kGraphicApiOpenGL,kSoftwareFrameI420);
+    auto fragment_shader = TextureIO::reference_shader_software(kGraphicApiOpenGL,kSoftwareFormatI420);
 
     MP_INFO("{}",fragment_shader)
 
@@ -229,7 +230,7 @@ int32_t PlayerExample::on_frame()
 
         MP_TIMER_NEW(upload_texture);
         AVFrame* av_frame = frame.frame->frame;
-        SoftwareFrame frame = {kSoftwareFrameI420,(uint32_t)av_frame->width,(uint32_t)av_frame->height};
+        SoftwareFrame frame = {kSoftwareFormatI420,(uint32_t)av_frame->width,(uint32_t)av_frame->height};
         GraphicTexture textures = {kGraphicApiOpenGL};
         for(int index = 0; index < 4; index++){
             frame.data[index] = av_frame->data[index];

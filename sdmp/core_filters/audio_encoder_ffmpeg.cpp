@@ -121,7 +121,7 @@ int32_t AudioEncoderFFmpegFilter::open_encoder(const Format& format)
     }
 
     if (avcodec_open2(codec_context, codec,nullptr) < 0){
-         MP_ERROR( "Failed to open encoder (encoder open failed)!");
+         MR_ERROR( "Failed to open encoder (encoder open failed)!");
         return -1;
     }
 

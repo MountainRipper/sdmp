@@ -40,7 +40,7 @@ int32_t VideoOutputProxyFilter::process_command(const std::string &command, cons
         while (frames_cache_.size()) {
             frames_cache_.pop();
         }
-        MP_LOG_DEAULT("VideoOutputProxyFilter clear frames");
+        MR_LOG_DEAULT("VideoOutputProxyFilter clear frames");
     }
     return GeneralFilter::process_command(command,param);
 }
@@ -90,7 +90,7 @@ int32_t VideoOutputProxyFilter::receive(IPin* input_pin,FramePointer frame)
     }
 
     frames_cache_.push(frame);
-    //MP_LOG_DEAULT("VideoOutputProxyFilter receive frame:{} count:{}",frame->frame->pts,frames_cache_.size());
+    //MR_LOG_DEAULT("VideoOutputProxyFilter receive frame:{} count:{}",frame->frame->pts,frames_cache_.size());
     return 0;
 }
 
@@ -157,7 +157,7 @@ int32_t VideoOutputProxyFilter::pull_render_sync()
 
     bool without_sync = properties_["withoutSync"].as_bool();
 
-    //MP_LOG_DEAULT("video render check: frame:{} cur:{} {}",frame->frame->pts,global_pts,without_sync?"!SYNC":"");
+    //MR_LOG_DEAULT("video render check: frame:{} cur:{} {}",frame->frame->pts,global_pts,without_sync?"!SYNC":"");
 
     bool less_in_range = ((global_pts - cur_pts) <= properties_["lessRangeMs"].as_int64());
     if(!without_sync && (cur_pts >= global_pts || less_in_range))

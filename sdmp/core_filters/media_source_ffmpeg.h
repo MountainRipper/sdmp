@@ -152,7 +152,7 @@ private:
 
     int32_t             keyframes_read_         = 0;
     ComPointer<IFilterHandleMediaSourceCustomIO> custom_io_;
-    MP_TIMER_DEFINE(timeout_timer_);
+    MR_TIMER_DEFINE(timeout_timer_);
 };
 }
 

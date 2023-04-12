@@ -133,7 +133,7 @@ int32_t VideoDecoderFFmpegFilter::receive(IPin* input_pin,FramePointer frame)
     if(status_ == kStatusStoped)
         return 0;
 //    if(frame->packet)
-//        MP_LOG_DEAULT("Receive:{}",frame->packet->flags & AV_PKT_FLAG_KEY);
+//        MR_LOG_DEAULT("Receive:{}",frame->packet->flags & AV_PKT_FLAG_KEY);
     received_frames_.push(frame);
     return 0;
 }
@@ -188,7 +188,7 @@ int32_t VideoDecoderFFmpegFilter::open_decoder(const Format &format)
     if(codec_name_manually.size()){
         //try open codec set by user
         codec_ = avcodec_find_decoder_by_name(codec_name_manually.c_str());
-        MP_LOG_DEAULT("ffmpeg decoder try open codec:{} get:{}",codec_name_manually.c_str(),codec_?codec_->long_name:"null");
+        MR_LOG_DEAULT("ffmpeg decoder try open codec:{} get:{}",codec_name_manually.c_str(),codec_?codec_->long_name:"null");
     }
     if(codec_ == nullptr){
         codec_ = avcodec_find_decoder((AVCodecID)format.codec);
@@ -214,7 +214,7 @@ int32_t VideoDecoderFFmpegFilter::open_decoder(const Format &format)
     ret = avcodec_open2(decoder_,codec_,nullptr);
     if(ret < 0){
         char error_msg[128];
-        MP_ERROR("create ffmpeg decoder failed:{}",av_make_error_string(error_msg,128,ret));
+        MR_ERROR("create ffmpeg decoder failed:{}",av_make_error_string(error_msg,128,ret));
         return -7;
     }
 
@@ -239,7 +239,7 @@ int32_t VideoDecoderFFmpegFilter::open_decoder(const Format &format)
 int32_t VideoDecoderFFmpegFilter::try_open_hardware_context()
 {
     std::string hardware_api_manually = properties_["hardwareApi"];
-    MP_INFO("Try to use hardware decode api:{}",hardware_api_manually);
+    MR_INFO("Try to use hardware decode api:{}",hardware_api_manually);
 
     if(hardware_api_manually.empty())
         return 0;
@@ -270,7 +270,7 @@ int32_t VideoDecoderFFmpegFilter::try_open_hardware_context()
         }
     }
     if(hw_device_type == AV_HWDEVICE_TYPE_NONE){
-        MP_WARN("WARNNING: hardware api:{} invalid",hardware_api_manually);
+        MR_WARN("WARNNING: hardware api:{} invalid",hardware_api_manually);
         return -1;
     }
 
@@ -288,7 +288,7 @@ int32_t VideoDecoderFFmpegFilter::try_open_hardware_context()
     }
 
     if( hw_format_ == AV_PIX_FMT_NONE){
-        MP_WARN("WARNNING: hardware api:{} not support codec:{}",hardware_api_manually,avcodec_get_name(codec_->id));
+        MR_WARN("WARNNING: hardware api:{} not support codec:{}",hardware_api_manually,avcodec_get_name(codec_->id));
         return -3;
     }
     else{
@@ -306,7 +306,7 @@ int32_t VideoDecoderFFmpegFilter::try_open_hardware_context()
 
         if (err < 0) {
             char error_msg[128];
-            MP_WARN("WARNNING: hardware api:{} can't create context, driver:{} error:{}",hardware_api_manually,hw_driver_,
+            MR_WARN("WARNNING: hardware api:{} can't create context, driver:{} error:{}",hardware_api_manually,hw_driver_,
                         av_make_error_string(error_msg,128,err));
             return err;
         }
@@ -321,7 +321,7 @@ int32_t VideoDecoderFFmpegFilter::try_open_hardware_context()
             }
             return AV_PIX_FMT_NONE;
         };
-        MP_INFO("hardware api:{} driver:{} inited successed",hardware_api_manually,hw_driver_);
+        MR_INFO("hardware api:{} driver:{} inited successed",hardware_api_manually,hw_driver_);
         decoder_->hw_device_ctx = av_buffer_ref(hw_device_ctx_);
         decoder_->hw_frames_ctx = av_hwframe_ctx_alloc(decoder_->hw_device_ctx);
     }
@@ -375,7 +375,7 @@ int32_t VideoDecoderFFmpegFilter::decode_proc()
                 if(current_decode_frames_ >= decode_to_frames_)
                     break;
             }
-            //MP_LOG_DEAULT("decoder has cached frames:{} decode:{}",received_frames_.size(),frames.size());
+            //MR_LOG_DEAULT("decoder has cached frames:{} decode:{}",received_frames_.size(),frames.size());
         }
 
         while (frames.size()) {

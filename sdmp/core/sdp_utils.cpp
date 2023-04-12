@@ -52,12 +52,12 @@ ValueType Value::type_of_typeid(const std::type_info & typeinfo){
             typeinfo == typeid(sol::lua_value*) ||
             typeinfo == typeid(const sol::lua_value*) ||
             typeinfo == typeid(sol::lua_value const*)){
-        MP_ERROR("ERROR: sdmp::Value can't use sol::lua_value directly, "
+        MR_ERROR("ERROR: sdmp::Value can't use sol::lua_value directly, "
                  "plese use Value(sol::table) or Value(sol::function) for sol data,"
                  "or Value::from_lua_value(),Value::create_from_lua_value() to use it's c++ compatible data");
     }
     else{
-        MP_WARN("Warnning: Value hold uncompatible type:{}",typeinfo.name());
+        MR_WARN("Warnning: Value hold uncompatible type:{}",typeinfo.name());
     }
     return kPorpertyNone;
 }
@@ -491,7 +491,7 @@ bool BitStreamConvert::create(AVCodecParameters *param)
         }
         std::vector<uint8_t> buf(context->par_out->extradata,context->par_out->extradata+context->par_out->extradata_size);
         auto s = StringUtils::bytes_to_hex(buf);
-        MP_LOG_DEAULT("context->par_out->extradata: {}",s.c_str());
+        MR_LOG_DEAULT("context->par_out->extradata: {}",s.c_str());
         context_ = context;
     }while(false);
 

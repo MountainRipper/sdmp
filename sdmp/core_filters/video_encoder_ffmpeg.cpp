@@ -178,7 +178,7 @@ int32_t VideoEncoderFFmpegFilter::open_encoder(const Format& format)
     av_dict_set(&param, "tune", properties_["tune"].as_string().c_str(), 0);
 
     if (avcodec_open2(codec_context, codec,&param) < 0){
-         MP_ERROR("Failed to open encoder (encoder open failed) \n!");
+         MR_ERROR("Failed to open encoder (encoder open failed) \n!");
         return -1;
     }
     av_dict_free(&param);
@@ -244,7 +244,7 @@ int32_t VideoEncoderFFmpegFilter::encode_a_frame(FramePointer frame)
 
         //static int32_t bytes = 0;
         //bytes += encode_packet->size;
-        //MP_LOG_DEAULT("pts:{} totle:{} avrg bitrate:{:.2f}kbps frame pts:{}",encode_packet->pts,bytes,bytes*8.0/(pts/1000.0)/1000,frame->frame->pts);
+        //MR_LOG_DEAULT("pts:{} totle:{} avrg bitrate:{:.2f}kbps frame pts:{}",encode_packet->pts,bytes,bytes*8.0/(pts/1000.0)/1000,frame->frame->pts);
         auto new_frame = Frame::make_packet(encode_packet);
         new_frame->releaser = sdp_frame_free_packet_releaser;
         get_pin(kOutputPin,0)->deliver(new_frame);

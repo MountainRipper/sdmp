@@ -143,7 +143,7 @@ FramePointer SdpAudioResampler::pull(int32_t samples)
     if(ret < 0){
         char sz[32];
         av_strerror(ret, sz, 32);
-        MP_ERROR("SdpAudioResampler swr_convert_frame error: {}",sz);
+        MR_ERROR("SdpAudioResampler swr_convert_frame error: {}",sz);
         return frame;
     }
     frame = Frame::make_frame(av_frame);

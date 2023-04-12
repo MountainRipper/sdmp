@@ -287,11 +287,11 @@ int32_t VideoDecoderRkmppFilter::decode_a_frame(FramePointer sdp_frame)
                         usleep(2000);
                         goto try_again;
                     }
-                    MP_LOG_DEAULT("decode_get_frame failed too much time.");
+                    MR_LOG_DEAULT("decode_get_frame failed too much time.");
                 }
 
                 if (ret != MPP_OK) {
-                    MP_LOG_DEAULT("decode_get_frame failed ret {}.", ret);
+                    MR_LOG_DEAULT("decode_get_frame failed ret {}.", ret);
                     break;
                 }
 
@@ -338,7 +338,7 @@ int32_t VideoDecoderRkmppFilter::decode_a_frame(FramePointer sdp_frame)
                 }
 
                 if (frm_eos) {
-                    MP_LOG_DEAULT("found last frame.");
+                    MR_LOG_DEAULT("found last frame.");
                     break;
                 }
 
@@ -382,7 +382,7 @@ int32_t VideoDecoderRkmppFilter::decode_param()
     ret = decoder->mpi->decode_put_packet(decoder->ctx, pack);
     if (ret != MPP_OK) {
         if (ret == MPP_ERR_BUFFER_FULL) {
-            MP_LOG_DEAULT( "Buffer full writing {} bytes to decoder",params_->extradata_size);
+            MR_LOG_DEAULT( "Buffer full writing {} bytes to decoder",params_->extradata_size);
             ret = AVERROR(EAGAIN);
         } else
             ret = AVERROR_UNKNOWN;
@@ -466,10 +466,10 @@ int32_t VideoDecoderRkmppFilter::export_frame(MppFrame* mppframe_pointer)
         auto new_frame = Frame::make_frame(frame);
         new_frame->releaser = [](AVFrame* frame,AVPacket*){
             AVDRMFrameDescriptor* frame_desc = (AVDRMFrameDescriptor*)frame->data[0];
-            //MP_LOG_DEAULT "DRM FRAME:{} Released ",frame_desc->objects[0].fd);
+            //MR_LOG_DEAULT "DRM FRAME:{} Released ",frame_desc->objects[0].fd);
             av_frame_free(&frame);
         };
-        //MP_LOG_DEAULT "DRM FRAME:{} emit ",desc->objects[0].fd);
+        //MR_LOG_DEAULT "DRM FRAME:{} emit ",desc->objects[0].fd);
         get_pin(kOutputPin,0)->deliver(new_frame);
     }
     return 0;

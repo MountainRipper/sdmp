@@ -40,25 +40,25 @@ int32_t FilterLinksFlow::create_from_graph(IGraph *graph)
 
     std::vector<std::vector<FilterPointer>> links;
     for(auto item : source_filters){
-        MP_LOG_DEAULT(">>Find source filter:{}",item->id().c_str());
+        MR_LOG_DEAULT(">>Find source filter:{}",item->id().c_str());
         FilterHelper::get_filter_receiver_links(item,links);
     }
 
-    MP_LOG_DEAULT(">>Connecting check get filter links:");
+    MR_LOG_DEAULT(">>Connecting check get filter links:");
     for (auto& link : links) {
 
         if(link.empty())
             continue;
         auto tail_filter_type = link.back()->type();
         if(FILTER_IS_OUTPUT(tail_filter_type) == false){
-            MP_LOG_DEAULT("INVALID: ");
+            MR_LOG_DEAULT("INVALID: ");
             FilterHelper::print_filter_list(link,"->");
             continue;
         }
 
         push_activale_link(link);
 
-        MP_LOG_DEAULT("VALID: ");
+        MR_LOG_DEAULT("VALID: ");
         FilterHelper::print_filter_list(link,"->");
     }
 
@@ -69,7 +69,7 @@ int32_t FilterLinksFlow::create_from_graph(IGraph *graph)
             inactivable_filters_.insert(filter);
         }
     }
-    MP_LOG_DEAULT(">>Connecting check get inactivable filters:");
+    MR_LOG_DEAULT(">>Connecting check get inactivable filters:");
     std::vector<FilterPointer> temp(inactivable_filters_.begin(),inactivable_filters_.end());
     FilterHelper::print_filter_list(temp,",");
 
@@ -140,7 +140,7 @@ int32_t FilterLinksFlow::request_flow_stream_shot()
     timeline_decision_.calculation_current_timeline();
 
     if(eos_tree_count == render_filter_tree_.size()){
-        MP_LOG_DEAULT(">>flow checked all filter trees eos:");
+        MR_LOG_DEAULT(">>flow checked all filter trees eos:");
         switch_status(kStatusEos);
         ret = kStatusEos;
     }
@@ -285,7 +285,7 @@ int32_t FilterLinksFlow::process_command(const std::string &command, const Value
     bool forward_direction = true;
     if(command == kGraphCommandSeek || command == kGraphCommandPlay){
         if(render_filter_tree_.empty()){
-            MP_ERROR("there is no valid filter links to run");
+            MR_ERROR("there is no valid filter links to run");
             return -1;
         }
         //pass command from receiver to sender, so receiver can prepair for status.
@@ -303,7 +303,7 @@ int32_t FilterLinksFlow::process_command(const std::string &command, const Value
             //ingore when process none-stop command faild
             if(command != kGraphCommandStop && ret < 0)
                 return;
-            MP_LOG_DEAULT("filter:{} level:{} process_command:{}",filter->id().c_str(),filter->level(),command.c_str());
+            MR_LOG_DEAULT("filter:{} level:{} process_command:{}",filter->id().c_str(),filter->level(),command.c_str());
             ret = filter->process_command(command,param);
             if (command != kGraphCommandStop  && ret < 0) {
                 filter_suspend = filter;
@@ -319,7 +319,7 @@ int32_t FilterLinksFlow::process_command(const std::string &command, const Value
 
     if(filter_suspend)
     {
-        MP_ERROR("FilterLinksFlow::process_command '{}' failed:{} and suspend, at filter [{}]",
+        MR_ERROR("FilterLinksFlow::process_command '{}' failed:{} and suspend, at filter [{}]",
                   command.c_str(),
                   ret,
                   filter_suspend->id().c_str());

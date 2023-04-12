@@ -16,7 +16,7 @@
 #include <ttf/IconsMaterialDesign.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
-#include "imgui_helper.h"
+#include <mr/imgui_mr.h>
 #include "example_player.h"
 
 

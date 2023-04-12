@@ -66,7 +66,7 @@ int32_t MediaMuxerFFmpegFilter::receive(sdmp::IPin *input_pin, std::shared_ptr<s
     if(it->second == 1)
         rational = {1, 48000};
 
-    MP_LOG_DEAULT("muxer write packet: stream:{} size:{} pts:{}",it->second,frame->packet->size,frame->packet->pts);
+    MR_LOG_DEAULT("muxer write packet: stream:{} size:{} pts:{}",it->second,frame->packet->size,frame->packet->pts);
 
     frame->packet->pts = av_rescale_q(frame->packet->pts, rational, time_base);
     frame->packet->dts = av_rescale_q(frame->packet->dts, rational, time_base);
@@ -237,7 +237,7 @@ int32_t MediaMuxerFFmpegFilter::write_proc()
 
             frame->packet->pts = av_rescale_q(frame->packet->pts, frame_timebase, stream_timebase);
             frame->packet->dts = av_rescale_q(frame->packet->dts, frame_timebase, stream_timebase);
-            //MP_LOG_DEAULT("muxer write packet: stream:{} size:{} pts:{}",it->second,frame->packet->size,frame->packet->pts);
+            //MR_LOG_DEAULT("muxer write packet: stream:{} size:{} pts:{}",it->second,frame->packet->size,frame->packet->pts);
             av_interleaved_write_frame(muxer_,frame->packet);
         }
         else if(quit_flag_)
@@ -270,7 +270,7 @@ int32_t MediaMuxerFFmpegFilter::finish_write_thread()
         write_thread_.join();
     header_writed_ = false;
     if(packet_cache_.size()){
-        MP_LOG_DEAULT("WARNNING: MediaMuxerFFmpegFilter::finish_write_thread not all packets writed!");
+        MR_LOG_DEAULT("WARNNING: MediaMuxerFFmpegFilter::finish_write_thread not all packets writed!");
         packet_cache_.clear();
     }
     return 0;

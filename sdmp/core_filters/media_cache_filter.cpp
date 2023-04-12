@@ -36,7 +36,7 @@ public:
 
         // segment is mp4 file?
         std::string cache_file = cache_dir_ + uri_md5_ + ".mp4";
-        MP_LOG_DEAULT("cached file name ======>>>>>>{}", cache_file);
+        MR_LOG_DEAULT("cached file name ======>>>>>>{}", cache_file);
         const char* out_filename = cache_file.c_str();
         int ret = 0;
         avformat_alloc_output_context2(&muxer_, NULL, NULL, out_filename);
@@ -135,7 +135,7 @@ public:
             packet_clone->pts = av_rescale_q(packet->pts,{1,1000},muxer_->streams[packet_clone->stream_index]->time_base);
             packet_clone->dts = av_rescale_q(packet->dts,{1,1000},muxer_->streams[packet_clone->stream_index]->time_base);
 
-            MP_LOG_DEAULT("stream:{} pts:{} dts:{} timebase:{}/{}",packet_clone->stream_index,packet_clone->pts,packet_clone->dts,tb.num,tb.den );
+            MR_LOG_DEAULT("stream:{} pts:{} dts:{} timebase:{}/{}",packet_clone->stream_index,packet_clone->pts,packet_clone->dts,tb.num,tb.den );
             av_interleaved_write_frame(muxer_,packet_clone);
             av_packet_free(&packet_clone);
         }
@@ -180,7 +180,7 @@ private:
         try {
             manifest_ = nlohmann::json::parse(fstream,nullptr,true,true);
         }  catch (nlohmann::json::parse_error& e) {
-            MP_ERROR("open_mainfest() Error: {} exception id:{} byte position of error:{}",e.what(),e.id, e.byte);
+            MR_ERROR("open_mainfest() Error: {} exception id:{} byte position of error:{}",e.what(),e.id, e.byte);
             return -1;
         }
         auto & segments = manifest_["segments"];
@@ -251,14 +251,14 @@ int32_t MediaCacheSaverFilter::connect_before_match(IFilter *sender_filter)
         ComPointer<IFilter> filter(sender_filter);
         cache_source_ = filter.As<IFilterExtentionMediaCacheSource>();
         if(!cache_source_){
-            MP_ERROR("MediaCacheSaveFilter::connect_before_match sender not support IFilterExtentionMediaCacheSource");
+            MR_ERROR("MediaCacheSaveFilter::connect_before_match sender not support IFilterExtentionMediaCacheSource");
             return kErrorFilterNoInterfce;
         }
         sender_filter_ = sender_filter;
 
         auto ret = cache_source_->get_source_media_info(source_info_);
         if(ret < 0){
-            MP_ERROR("MediaCacheSaveFilter::connect_before_match get source media info failed");
+            MR_ERROR("MediaCacheSaveFilter::connect_before_match get source media info failed");
             return kErrorFilterInvalid;
         }
 
@@ -266,18 +266,18 @@ int32_t MediaCacheSaverFilter::connect_before_match(IFilter *sender_filter)
         manager_->init(properties_["cacheDir"],source_info_.uri_key);
 
         if(source_info_.output_pins.empty()){
-            MP_ERROR("MediaCacheSaveFilter::connect_before_match get empty output pins");
+            MR_ERROR("MediaCacheSaveFilter::connect_before_match get empty output pins");
             return kErrorConnectFailedNoOutputPin;
         }
         if(source_info_.uri_key.empty() || source_info_.protocol.empty() || source_info_.format_name.empty()){
-            MP_ERROR("MediaCacheSaveFilter::check_input_format get source media info not complate: uri_key:{} protoco;:{} format_name:{}",
+            MR_ERROR("MediaCacheSaveFilter::check_input_format get source media info not complate: uri_key:{} protoco;:{} format_name:{}",
                       source_info_.uri_key.c_str() , source_info_.protocol.c_str() , source_info_.format_name.c_str());
             return kErrorInvalidParameter;
         }
 
         pass_though_mode_ = (source_info_.protocol == "file");
         if(pass_though_mode_){
-            MP_INFO("MediaCacheSaveFilter::connect_before_match source is local file use pass though mode");
+            MR_INFO("MediaCacheSaveFilter::connect_before_match source is local file use pass though mode");
         }
         //cache_source_->active_cache_mode(!pass_though_mode_);
 
@@ -292,7 +292,7 @@ int32_t MediaCacheSaverFilter::connect_before_match(IFilter *sender_filter)
         manager_->create_fragment(source_info_, 0);
     }
     if(sender_filter_ != nullptr && sender_filter_ != sender_filter){
-        MP_ERROR("MediaCacheSaveFilter::check_input_format not from same sender");
+        MR_ERROR("MediaCacheSaveFilter::check_input_format not from same sender");
         return -1;
     }
     return 0;

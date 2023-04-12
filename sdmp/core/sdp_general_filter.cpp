@@ -30,7 +30,7 @@ int32_t GeneralFilter::initialize(IGraph *graph, const Value &filter_values)
             sol::optional<sol::table> context_opt = graph_state.value()["filters"][id_];
             if(context_opt == sol::nullopt)
             {
-                MP_ERROR("Filter bind to script failed: graph.filters.{} not fount",id_.c_str());
+                MR_ERROR("Filter bind to script failed: graph.filters.{} not fount",id_.c_str());
                 return kErrorBadScript;
             }
             filter_state_ = context_opt.value();
@@ -79,7 +79,7 @@ GeneralFilter::~GeneralFilter()
 {
     remove_pin(kInputPin,kPinIndexAll);
     remove_pin(kOutputPin,kPinIndexAll);
-    MP_INFO("### GeneralFilter Release: {} {} {}",module_,id_,(void*)this);
+    MR_INFO("### GeneralFilter Release: {} {} {}",module_,id_,(void*)this);
 }
 
 const std::string& GeneralFilter::id()
@@ -165,7 +165,7 @@ PinVector &GeneralFilter::get_pins(PinDirection direction)
 
 Value GeneralFilter::call_method(const Arguments& args)
 {
-    MP_WARN("the filter of {} call_method not implement!",module_);
+    MR_WARN("the filter of {} call_method not implement!",module_);
     (void)args;
     return 0;
 }
@@ -272,16 +272,16 @@ int32_t GeneralFilter::set_property(const std::string &property, const Value &va
 
     auto it = properties_.find(property);
     if(it == properties_.end()){
-        MP_ERROR("Filter {} not has a property {}",id_.c_str(),property.c_str());
+        MR_ERROR("Filter {} not has a property {}",id_.c_str(),property.c_str());
         return 0;
     }
     auto& property_value = it->second;
     if(property_value.type_ != value.type_){
-        MP_ERROR("Filter {} property {} type not match",id_.c_str(),property.c_str());
+        MR_ERROR("Filter {} property {} type not match",id_.c_str(),property.c_str());
         return -1;
     }
     else if(property_value.readonly_ && from_script){
-        MP_ERROR("Filter {} property {} is read only,script not allowed overwrite",id_.c_str(),property.c_str());
+        MR_ERROR("Filter {} property {} is read only,script not allowed overwrite",id_.c_str(),property.c_str());
         return -2;
     }
     else{
@@ -289,7 +289,7 @@ int32_t GeneralFilter::set_property(const std::string &property, const Value &va
         if(!from_script)
             put_property_to_script(property,value);
 
-        MP_LOG_DEAULT("Filter {} set property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(property_value));
+        MR_LOG_DEAULT("Filter {} set property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(property_value));
         property_changed(property,property_value);
         //already changed
         property_value.value_changed_ = false;
@@ -356,11 +356,11 @@ int32_t GeneralFilter::bind_filter_to_script()
         if(propert_opt.valid()){
             sol::lua_value value = filter_state_[property];
             symbol.from_lua_value(&value);
-            MP_LOG_DEAULT("Filter {} read pre-defined property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(symbol));
+            MR_LOG_DEAULT("Filter {} read pre-defined property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(symbol));
         }
         else{
             put_property_to_script(property,symbol);
-            MP_LOG_DEAULT("Filter {} create un-defined property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(symbol));
+            MR_LOG_DEAULT("Filter {} create un-defined property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(symbol));
         }
     }
     return 0;

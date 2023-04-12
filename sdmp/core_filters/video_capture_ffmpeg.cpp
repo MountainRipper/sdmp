@@ -65,7 +65,7 @@ int32_t VideoCaptureFFmpegFilter::open_device()
     int err = 0;
     do{
         if(avformat_open_input(&format_context,properties_["device"].as_string().c_str(),ifmt,&dict)!=0){
-            MP_LOG_DEAULT("Couldn't open input stream.");
+            MR_LOG_DEAULT("Couldn't open input stream.");
         }
         if(format_context == nullptr){
             err = -1;
@@ -74,7 +74,7 @@ int32_t VideoCaptureFFmpegFilter::open_device()
 
         if(format_context->nb_streams == 0)
         {
-            MP_LOG_DEAULT("Couldn't find stream information.");
+            MR_LOG_DEAULT("Couldn't find stream information.");
             err = -2;
             break;
         }
@@ -93,19 +93,19 @@ int32_t VideoCaptureFFmpegFilter::open_device()
         }
         if(video_stream_index==-1)
         {
-            MP_LOG_DEAULT("Couldn't find a video stream.");
+            MR_LOG_DEAULT("Couldn't find a video stream.");
             err = -2;
             break;
         }
 
         codec_context = avcodec_alloc_context3(nullptr);
         if (!codec_context) {
-            MP_LOG_DEAULT("Could not allocate AVCodecContext.");
+            MR_LOG_DEAULT("Could not allocate AVCodecContext.");
             err = -3;
             break;
         }
         if (avcodec_parameters_to_context(codec_context, format_context->streams[video_stream_index]->codecpar) < 0) {
-            MP_LOG_DEAULT("avcodec_parameters_to_context() failed.");
+            MR_LOG_DEAULT("avcodec_parameters_to_context() failed.");
             err = -3;
             break;
         }
@@ -113,13 +113,13 @@ int32_t VideoCaptureFFmpegFilter::open_device()
         codec=avcodec_find_decoder(codec_context->codec_id);
         if(codec==NULL)
         {
-            MP_LOG_DEAULT("Codec not found.");
+            MR_LOG_DEAULT("Codec not found.");
             err = -3;
             break;
         }
         if(avcodec_open2(codec_context, codec,NULL)<0)
         {
-            MP_LOG_DEAULT("Could not open codec.");
+            MR_LOG_DEAULT("Could not open codec.");
             err = -4;
             break;
         }

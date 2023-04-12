@@ -16,7 +16,7 @@ int32_t enum_receivers(TreeNode<FilterPointer>& node,std::set<FilterPointer>& al
     std::set<FilterPointer> receivers = FilterHelper::get_filter_receivers(node.value_);
     for(auto filter : receivers){
         if(all_filters.find(filter) != all_filters.end()){
-            MP_WARN("enum_receivers tree find a multi linked filter {}, if realy multi input pin from multi link, ingore this message",filter->id());
+            MR_WARN("enum_receivers tree find a multi linked filter {}, if realy multi input pin from multi link, ingore this message",filter->id());
             //return -1;
         }
         TreeNode<FilterPointer> child_node(filter);
@@ -47,7 +47,7 @@ int32_t FilterHelper::print_filter_list(const std::vector<FilterPointer> &list, 
         stream<<filter->id();
     }
     stream<<"]";
-    MP_LOG_DEAULT(stream.str());
+    MR_LOG_DEAULT(stream.str());
     return 0;
 }
 

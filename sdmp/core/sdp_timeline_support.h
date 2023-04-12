@@ -39,7 +39,7 @@ private:
     int64_t last_calculation_timeline_  = 0;
     int64_t last_calculation_tick_      = 0;
 
-    MP_TIMER_DEFINE(start_time_point_);
+    MR_TIMER_DEFINE(start_time_point_);
 };
 
 }

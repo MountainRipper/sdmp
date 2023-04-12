@@ -36,7 +36,7 @@ int32_t GeneralTimeline::set_timeline_status(TimelineStatus status)
 
 int32_t TimelineDecisionGroup::append_timeline(IFilterExtentionTimeline *timeline)
 {
-    start_time_point_ = MP_TIMER_NOW;
+    start_time_point_ = MR_TIMER_NOW;
     timelines_.insert(timeline);
     return 0;
 }
@@ -65,7 +65,7 @@ int64_t TimelineDecisionGroup::calculation_current_timeline()
         }
     }
     last_calculation_timeline_ = max_val;
-    last_calculation_tick_ = MP_TIMER_MS(start_time_point_);
+    last_calculation_tick_ = MR_TIMER_MS(start_time_point_);
     return max_val;
 }
 
@@ -76,7 +76,7 @@ int64_t TimelineDecisionGroup::timeline_current()
 
 int64_t TimelineDecisionGroup::timeline_current_in_linear()
 {
-    return last_calculation_timeline_ + (MP_TIMER_MS(start_time_point_) - last_calculation_tick_);
+    return last_calculation_timeline_ + (MR_TIMER_MS(start_time_point_) - last_calculation_tick_);
 }
 
 IFilterExtentionTimeline::TimelineStatus TimelineDecisionGroup::status()

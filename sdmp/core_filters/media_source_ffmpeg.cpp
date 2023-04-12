@@ -11,7 +11,7 @@ COM_REGISTER_OBJECT(MediaSourceFFmpegFilter)
 MediaSourceFFmpegFilter::MediaSourceFFmpegFilter()
 {    
     avformat_network_init();
-    timeout_timer_ = MP_TIMER_NOW;
+    timeout_timer_ = MR_TIMER_NOW;
     timeout_check_ms_ = double(properties_["timeout"]);
 }
 
@@ -30,10 +30,10 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
     network_timeout_ = false;
     quit_reading_flag_ = false;
 
-    MP_LOG_DEAULT("MediaSourceFFmpegFilter::open_media : {} ", uri.data());
+    MR_LOG_DEAULT("MediaSourceFFmpegFilter::open_media : {} ", uri.data());
     uri_ = uri;
     if(!uri_.size()) {
-        MP_LOG_DEAULT("MediaSourceFFmpegFilter::open_media media source uri is empty skipping....");
+        MR_LOG_DEAULT("MediaSourceFFmpegFilter::open_media media source uri is empty skipping....");
         return 0;
     }
     put_property_to_script("uri", uri_);
@@ -90,7 +90,7 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
         return -1;
     }    
     if(quit_reading_flag_){
-        MP_WARN("MediaSourceFFmpegFilter::open_media check closed reading!");
+        MR_WARN("MediaSourceFFmpegFilter::open_media check closed reading!");
         return -1;
     }
 
@@ -153,7 +153,7 @@ int32_t MediaSourceFFmpegFilter::initialize(IGraph *graph, const Value &filter_v
 {
     GeneralFilter::initialize(graph,filter_values);
     std::string uri = filter_state_.get_or("uri",std::string());
-    MP_INFO("MediaSourceFFmpegFilter::init with uri : {} ", uri.c_str());
+    MR_INFO("MediaSourceFFmpegFilter::init with uri : {} ", uri.c_str());
     if(uri.size())
         open_media(uri);
 
@@ -225,7 +225,7 @@ int32_t MediaSourceFFmpegFilter::requare(int32_t duration,const std::vector<PinI
     if(want_read_to > request_read_to_)
         request_read_to_ = want_read_to;
     read_condition_.notify_one();
-    //MP_LOG_DEAULT("MediaSourceFFmpegFilter::requare: cur:{} need {} pre-buffer:{} read to:{}", current_read_pts_,duration,pre_buffer,request_read_to_);
+    //MR_LOG_DEAULT("MediaSourceFFmpegFilter::requare: cur:{} need {} pre-buffer:{} read to:{}", current_read_pts_,duration,pre_buffer,request_read_to_);
     return 0;
 }
 
@@ -233,7 +233,7 @@ int32_t MediaSourceFFmpegFilter::property_changed(const std::string& name,Value&
 {
     int ret = 0;
     if(name == "uri"){
-        MP_LOG_DEAULT("MediaSourceFFmpegFilter uri changed: {} ", StringUtils::printable(symbol));
+        MR_LOG_DEAULT("MediaSourceFFmpegFilter uri changed: {} ", StringUtils::printable(symbol));
         const auto& new_uri = symbol.as_string();
         if(!new_uri.size() && !uri_.size())
             return 0;
@@ -314,7 +314,7 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
         request_read_to_ = 0;
         while(true){
             if(network_timeout_) {
-                MP_LOG_DEAULT("WARNING:Network timeout...");
+                MR_LOG_DEAULT("WARNING:Network timeout...");
                 //can't call lua functions throw_job_error("timeout");
                 Value status((double)kStatusEos);
                 set_property_async(kFilterPropertyStatus, status);
@@ -331,12 +331,12 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                     double seek_back_ms = properties_["seekBackMs"];
                     bool re_connect = properties_["seekBackReConnect"];
                     if(re_connect && reconnect_count_ > 0) {
-                        MP_LOG_DEAULT("Reconnectinng net work... {}", reconnect_count_);
+                        MR_LOG_DEAULT("Reconnectinng net work... {}", reconnect_count_);
                         reconnect_count_--;
                         if (open_media(uri_,true) != 0)
                             continue;
                     } else {
-                        MP_ERROR("Reconnect failed, break to end...");
+                        MR_ERROR("Reconnect failed, break to end...");
                         break;
                     }
                     skip_read_pts_to_ = current_read_pts_;
@@ -344,10 +344,10 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                     if(seek_to < 100)
                         seek_to = 0;
                     do_seek(seek_to,AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_ANY);
-                    MP_WARN("ffmpeg read failed [AVERROR_INVALIDDATA],re-seek back and re-read [from:{} seek:{} re-connect:{}]",current_read_pts_,seek_to,re_connect);
+                    MR_WARN("ffmpeg read failed [AVERROR_INVALIDDATA],re-seek back and re-read [from:{} seek:{} re-connect:{}]",current_read_pts_,seek_to,re_connect);
                     continue;
                 }
-                MP_LOG_DEAULT("MediaSourceFFmpegFilter::reading_proc() eof");
+                MR_LOG_DEAULT("MediaSourceFFmpegFilter::reading_proc() eof");
 
                 Value status((double)kStatusEos);
                 set_property_async(kFilterPropertyStatus, status);
@@ -369,10 +369,10 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                 if(pts == skip_read_pts_to_)
                     skip_read_pts_to_ = 0;
                 else
-                    MP_LOG_DEAULT("WARNNING:ffmpeg read skip frame at[need:{} read:{}]\n",skip_read_pts_to_,pts);
+                    MR_LOG_DEAULT("WARNNING:ffmpeg read skip frame at[need:{} read:{}]\n",skip_read_pts_to_,pts);
                 continue;
             }
-//            MP_WARN(">>>stream {}[{}] read packet pts:{} dts:{} timebase:{}/{}",packet->stream_index,
+//            MR_WARN(">>>stream {}[{}] read packet pts:{} dts:{} timebase:{}/{}",packet->stream_index,
 //                      av_get_media_type_string(stream->codecpar->codec_type),
 //                      pts,dts,
 //                      stream->time_base.num,stream->time_base.den);
@@ -392,7 +392,7 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
 
             output_pin->deliver(new_frame);
 
-            // MP_LOG_DEAULT("reading proc: {} {} {}", pts, current_read_pts_, request_read_to_);
+            // MR_LOG_DEAULT("reading proc: {} {} {}", pts, current_read_pts_, request_read_to_);
 
             //pts of mp3 pic maybe AV_NOPTS_VALUE
             if(first_pts == -1 && pts >= 0)
@@ -400,7 +400,7 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
 
             if(stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && packet->flags & AV_PKT_FLAG_KEY){
                 keyframes_read_++;
-                MP_LOG_DEAULT("got a keyframe {}",pts);
+                MR_LOG_DEAULT("got a keyframe {}",pts);
             }
 
             if(properties_["readKeyfarameSection"].as_bool()){
@@ -409,7 +409,7 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                     //seek reset to 0 to read key-to-key
                     //linear read reset to 1 to read to next key
                     keyframes_read_ = 1;
-                    MP_LOG_DEAULT("READ A WHOLE KEYFRAME SECTION");
+                    MR_LOG_DEAULT("READ A WHOLE KEYFRAME SECTION");
                     break;
                 }
             }
@@ -426,20 +426,20 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
 
 int32_t MediaSourceFFmpegFilter::reset_timeout()
 {
-    timeout_check_start_  = MP_TIMER_MS(timeout_timer_);
+    timeout_check_start_  = MR_TIMER_MS(timeout_timer_);
     return 0;
 }
 
 int32_t MediaSourceFFmpegFilter::check_timeout()
 {
-    int32_t interval = MP_TIMER_MS(timeout_timer_) - timeout_check_start_ ;
+    int32_t interval = MR_TIMER_MS(timeout_timer_) - timeout_check_start_ ;
     if(interval > timeout_check_ms_){
-        MP_ERROR("MediaSourceFFmpegFilter::check_timeout checked a timeout, stop reading media stream!");
+        MR_ERROR("MediaSourceFFmpegFilter::check_timeout checked a timeout, stop reading media stream!");
         network_timeout_ = true;
         return 1;
     }
     if(quit_reading_flag_){
-        MP_WARN("MediaSourceFFmpegFilter::check_timeout checked close reading proc, stop reading media stream!");
+        MR_WARN("MediaSourceFFmpegFilter::check_timeout checked close reading proc, stop reading media stream!");
         return 1;
     }
     return 0;

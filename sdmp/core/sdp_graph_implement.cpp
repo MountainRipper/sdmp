@@ -41,7 +41,7 @@ GraphImplement::~GraphImplement()
     quit_flag_ = true;
     if(master_thread_.joinable())
         master_thread_.join();    
-    MP_INFO("### GraphImplement Release: {}",(void*)this);
+    MR_INFO("### GraphImplement Release: {}",(void*)this);
 }
 
 int32_t GraphImplement::create(const std::string &root_dir, const std::string &script)
@@ -56,7 +56,7 @@ int32_t GraphImplement::create(const std::string &root_dir, const std::string &s
 
 int32_t GraphImplement::cmd_connect()
 {
-    MP_LOG_DEAULT("{}",__FUNCTION__);
+    MR_LOG_DEAULT("{}",__FUNCTION__);
     lua_connect_function_(graph_context_);
     check_graph_connectings();
     lua_connect_done_function_(graph_context_);
@@ -65,7 +65,7 @@ int32_t GraphImplement::cmd_connect()
 
 int32_t GraphImplement::cmd_disconnect()
 {
-    MP_LOG_DEAULT("{}",__FUNCTION__);
+    MR_LOG_DEAULT("{}",__FUNCTION__);
     do_disconnet_all();
     // filters_flow_.create_from_graph(this);
     return 0;
@@ -73,14 +73,14 @@ int32_t GraphImplement::cmd_disconnect()
 
 int32_t GraphImplement::cmd_play()
 {
-    MP_LOG_DEAULT("{}",__FUNCTION__);
+    MR_LOG_DEAULT("{}",__FUNCTION__);
     return workflow_execute_command(kGraphCommandPlay,.0);
 }
 
 int32_t GraphImplement::cmd_pause()
 {
     workflow_execute_command(kGraphCommandPause,.0);
-    MP_LOG_DEAULT("{}",__FUNCTION__);
+    MR_LOG_DEAULT("{}",__FUNCTION__);
     return 0;
 }
 
@@ -92,13 +92,13 @@ int32_t GraphImplement::cmd_stop()
     current_pts_ = kGraphInvalidPts;
     //emit a invalid position manually
     lua_position_function_(graph_context_,(double)current_pts_);
-    MP_LOG_DEAULT("{}",__FUNCTION__);
+    MR_LOG_DEAULT("{}",__FUNCTION__);
     return 0;
 }
 
 int32_t GraphImplement::cmd_seek(int64_t millisecond)
 {    
-    MP_LOG_DEAULT("{}: {}",__FUNCTION__,millisecond);
+    MR_LOG_DEAULT("{}: {}",__FUNCTION__,millisecond);
     workflow_execute_command(kGraphCommandPause,millisecond);
     workflow_execute_command(kGraphCommandSeek,millisecond);
     current_pts_ = kGraphInvalidPts;
@@ -107,7 +107,7 @@ int32_t GraphImplement::cmd_seek(int64_t millisecond)
 
 int32_t GraphImplement::cmd_close()
 {
-    MP_LOG_DEAULT("{}",__FUNCTION__);
+    MR_LOG_DEAULT("{}",__FUNCTION__);
     cmd_stop();
     filters_flow_.reset();
     return 0;
@@ -226,7 +226,7 @@ int32_t GraphImplement::master_thread_proc()
 
     sol::optional<sol::table> graph_opt = vm[kLuaCreateGraphFunctionName]();
     if(graph_opt == sol::nullopt){
-        MP_ERROR("wrong graph script: graph create function \"createGraph\" get nil graph;");
+        MR_ERROR("wrong graph script: graph create function \"createGraph\" get nil graph;");
         return emit_error("graph",kErrorCreateGraphScriptObject,false);
     }
 
@@ -333,7 +333,7 @@ int32_t GraphImplement::create_filters()
 {
     sol::optional<sol::table> filters_opt = graph_context_["filters"];
     if(filters_opt == sol::nullopt){
-        MP_ERROR("wrong graph script: no graph.filters table defined;");
+        MR_ERROR("wrong graph script: no graph.filters table defined;");
         return -1;
     }
 
@@ -342,13 +342,13 @@ int32_t GraphImplement::create_filters()
     int32_t ret = 0;
     for(auto item : filters){
         if(item.first.get_type() != sol::type::string){
-            MP_ERROR("Check filter config failed: 'filters' key not all string");
+            MR_ERROR("Check filter config failed: 'filters' key not all string");
             ret = -1;
             continue;//break;
         }
 
         if(item.second.get_type() != sol::type::table){
-            MP_ERROR("Check filter config failed: 'filters' value not all tables");
+            MR_ERROR("Check filter config failed: 'filters' value not all tables");
             ret = -1;
             continue;//break;
         }
@@ -374,7 +374,7 @@ int32_t GraphImplement::workflow_execute_command(const std::string &command, con
         auto status = command_cause_status(command);
         switch_status(status);
     } else {
-        MP_ERROR("GraphImplement::do_flow_command failed, forcing anything to stop... ");
+        MR_ERROR("GraphImplement::do_flow_command failed, forcing anything to stop... ");
         filters_flow_.process_command(kGraphCommandStop, param);
         switch_status(kStatusStoped);
     }
@@ -383,7 +383,7 @@ int32_t GraphImplement::workflow_execute_command(const std::string &command, con
 
 int32_t GraphImplement::switch_status(GraphStatus status)
 {
-    MP_LOG_DEAULT("==== GraphImplement::switch_status {}", (int)status);
+    MR_LOG_DEAULT("==== GraphImplement::switch_status {}", (int)status);
     if(status_ != status){
         status_ = status;
         lua_status_function_(graph_context_,status);
@@ -413,7 +413,7 @@ int32_t GraphImplement::do_connect(IFilter *sender, IFilter *receiver, int32_t s
         return ret;
     auto s = sender->id();
     auto r = receiver->id();
-    MP_LOG_DEAULT("Connect Filter {}[{}] -> {}[{}]:",s.c_str(),sender_pin_index,r.c_str(),receiver_pin_index);
+    MR_LOG_DEAULT("Connect Filter {}[{}] -> {}[{}]:",s.c_str(),sender_pin_index,r.c_str(),receiver_pin_index);
 
     PinVector sender_pins;
     PinVector receiver_pins;
@@ -465,11 +465,11 @@ int32_t GraphImplement::do_connect(IFilter *sender, IFilter *receiver, int32_t s
     }
 
     if(sender_pins.empty()){
-        MP_ERROR("connect filter failed,sender not has valid pins.");
+        MR_ERROR("connect filter failed,sender not has valid pins.");
         return emit_error("graph",kErrorConnectFailedNoOutputPin);
     }
     if(receiver_pins.empty()){
-        MP_ERROR("connect filter failed,receiver_pins not has valid pins.");
+        MR_ERROR("connect filter failed,receiver_pins not has valid pins.");
         return emit_error("graph",kErrorConnectFailedNoInputPin);
     }
 
@@ -489,7 +489,7 @@ int32_t GraphImplement::do_connect(IFilter *sender, IFilter *receiver, int32_t s
                 sender->connect_chose_output_format(sender_pin.Get(),format_index);
                 sender->connect(sender_pin.Get(),receive_pin.Get());
                 auto str_format = sdmp::FormatUtils::printable(sender_formats[format_index]);
-                MP_LOG_DEAULT("SUCCESSED: connect filter done: [{}].",str_format.c_str());
+                MR_LOG_DEAULT("SUCCESSED: connect filter done: [{}].",str_format.c_str());
                 connected_count++;
                 //receiver connected, match next sender pin
                 break;
@@ -500,7 +500,7 @@ int32_t GraphImplement::do_connect(IFilter *sender, IFilter *receiver, int32_t s
     if(connected_count > 0)
         return 0;
 
-    MP_ERROR("connect filter failed,sender/receiver pins format not march.");
+    MR_ERROR("connect filter failed,sender/receiver pins format not march.");
     return emit_error("graph",kErrorConnectFailedNotMatchFormat);
 }
 
@@ -530,22 +530,22 @@ const std::map<std::string ,FilterPointer> &GraphImplement::filters()
 
 int32_t GraphImplement::create_filter(const std::string &id, const Value &filter_config)
 {
-    MP_LOG_DEAULT("-------- GraphImplement::create_filter: {} ", id.data());
+    MR_LOG_DEAULT("-------- GraphImplement::create_filter: {} ", id.data());
     auto filter = filter_config.as<sol::table>();
     std::string module = filter.get_or("module",std::string());
     if(module.empty() || id.empty() || filters_.find(id) != filters_.end()){
-        MP_ERROR("Check filter [id:{}][module:{}] failed: property unset",id,module);
+        MR_ERROR("Check filter [id:{}][module:{}] failed: property unset",id,module);
         return kErrorInvalidParameter;
     }
     auto filter_object = Factory::factory()->create_filter(module);
     if(!filter_object){
-        MP_ERROR("Create filter [id:{}][module:{}] failed: no registered module",id,module);
+        MR_ERROR("Create filter [id:{}][module:{}] failed: no registered module",id,module);
         return kErrorInvalidParameter;
     }
     filters_[id] = filter_object;
     int32_t ret = filter_object->initialize(this,filter);
     if(ret < 0){
-        MP_ERROR("Init filter [id:{}][module:{}] failed:{}",id,module,ret);
+        MR_ERROR("Init filter [id:{}][module:{}] failed:{}",id,module,ret);
         remove_filter(id);
         return kErrorInvalidParameter;
     }
@@ -572,7 +572,7 @@ int32_t GraphImplement::set_property(const std::string &property, Value &value)
     if(property == kGraphPropertyCurrentPts){
         //use timeline decision , not need it anymore.
         //current_pts_ = value;
-        //MP_LOG_DEAULT(">>>>Graph Refresh PTS:{}",current_pts_);
+        //MR_LOG_DEAULT(">>>>Graph Refresh PTS:{}",current_pts_);
     }
     else {
         properties_[property]=value;

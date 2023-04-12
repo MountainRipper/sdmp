@@ -96,7 +96,7 @@ private:
             position_ = args[0].as<double>();
         }
         else {
-            MP_INFO(type);
+            MR_INFO(type);
         }
 
         return 0;

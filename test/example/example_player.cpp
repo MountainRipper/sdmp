@@ -8,9 +8,9 @@
 #include <imgui.h>
 #include <ttf/IconsFontAwesome6.h>
 #include <tio/tio_hardware_graphic.h>
+#include <mr/imgui_mr.h>
 
 #include "example_player.h"
-#include "imgui_helper.h"
 
 using namespace mr::tio;
 static const std::string VS_VIDEO = R"(
@@ -70,7 +70,7 @@ public:
         //glfwMakeContextCurrent(win);
         cache_frame.create_to_texture();
         cached_frames_.push(cache_frame);
-        //MP_INFO("get video frame type:{}",frame->frame->format);
+        //MR_INFO("get video frame type:{}",frame->frame->format);
         return 0;
     }
     CacheFrame pop_frame(){
@@ -109,7 +109,7 @@ int32_t PlayerExample::on_video_frame(sdmp::Player *player, sdmp::FramePointer f
     //glfwMakeContextCurrent(win);
     cache_frame.create_to_texture();
     cached_frames_.push(cache_frame);
-    //MP_INFO("get video frame type:{}",frame->frame->format);
+    //MR_INFO("get video frame type:{}",frame->frame->format);
     return 0;
 }
 
@@ -204,7 +204,7 @@ int32_t PlayerExample::on_init(void* window)
 
     auto fragment_shader = TextureIO::reference_shader_software(kGraphicApiOpenGL,kSoftwareFormatI420);
 
-    MP_INFO("{}",fragment_shader)
+    MR_INFO("{}",fragment_shader)
 
     program_ = create_program(vertex_shader.c_str(),fragment_shader.c_str());
 
@@ -225,33 +225,29 @@ int32_t PlayerExample::on_frame()
 {
     //now render the video frame use opengl
     auto frame = pop_frame();
+    glUseProgram(program_);
 
     if(frame.frame){
 
-        MP_TIMER_NEW(upload_texture);
+        MR_TIMER_NEW(upload_texture);
         AVFrame* av_frame = frame.frame->frame;
         SoftwareFrame frame = {kSoftwareFormatI420,(uint32_t)av_frame->width,(uint32_t)av_frame->height};
-        GraphicTexture textures = {kGraphicApiOpenGL};
+        GraphicTexture textures = {kGraphicApiOpenGL,program_};
         for(int index = 0; index < 4; index++){
             frame.data[index] = av_frame->data[index];
             frame.line_size[index] = av_frame->linesize[index];
 
             textures.context[index] = textures_[index];
-            textures.flags[index] = GL_TEXTURE0+texture_unit_base_+index;
+            textures.flags[index] = texture_unit_base_+index;
         }
         TextureIO::software_frame_to_graphic(frame,textures);
 
-        MP_INFO("upload yuv420 3 texture use {}ms , pts:{}",MP_TIMER_MS_RESET(upload_texture),av_frame->pts);
+        MR_INFO("upload yuv420 3 texture use {}ms , pts:{}",MR_TIMER_MS_RESET(upload_texture),av_frame->pts);
     }
     else{
 
     }
 
-    glUniform1i(texture_locations_[0], texture_unit_base_);
-    glUniform1i(texture_locations_[1], texture_unit_base_+1);
-    glUniform1i(texture_locations_[2], texture_unit_base_+2);
-
-    glUseProgram(program_);
     glBindVertexArray(g_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -263,7 +259,7 @@ int32_t PlayerExample::on_frame()
                 drop_frame_count++;
             }
         }while (frame.frame);
-        MP_INFO("Drop Video Frames Totle:{} Droped:{}",totle_frame_count() ,drop_frame_count);
+        MR_INFO("Drop Video Frames Totle:{} Droped:{}",totle_frame_count() ,drop_frame_count);
     }
 
     render_ui();
@@ -305,6 +301,79 @@ void PlayerExample::command(std::string command)
 
 }
 
+
+// Define a struct to represent a grid item
+struct GridItem {
+    std::string label;
+    ImVec2 size;
+};
+
+// Define a class for the GridView
+class GridView {
+public:
+    GridView(int numColumns, float itemSize, float spacing) :
+        m_NumColumns(numColumns),
+        m_ItemSize(itemSize),
+        m_Spacing(spacing),
+        m_CurrentScroll(0.0f) {
+        // Calculate the size of each item including spacing
+        m_ItemSizeWithSpacing = m_ItemSize + m_Spacing;
+    }
+
+    // Add an item to the grid
+    void AddItem(const std::string& label, const ImVec2& size) {
+        GridItem item;
+        item.label = label;
+        item.size = size;
+        m_Items.push_back(item);
+    }
+
+    // Update and draw the grid
+    void Update() {
+        // Calculate the number of rows and the total height of the grid
+        int numRows = static_cast<int>(m_Items.size()) / m_NumColumns + 1;
+        float gridHeight = numRows * m_ItemSizeWithSpacing;
+
+        // Begin a scrollable region for the grid
+        ImGui::BeginChild("GridView", ImVec2(0, gridHeight));
+
+        // Update the scroll position based on touch input
+        if (ImGui::IsMouseDragging(0) && ImGui::IsWindowHovered()) {
+            ImVec2 delta = ImGui::GetIO().MouseDelta;
+            m_CurrentScroll += delta.y;
+        }
+
+        // Clamp the scroll position within the valid range
+        float maxScroll = std::max(0.0f, gridHeight - ImGui::GetWindowHeight());
+        m_CurrentScroll = std::clamp(m_CurrentScroll, 0.0f, maxScroll);
+
+        // Calculate the starting index and offset for the visible items
+        int startIndex = static_cast<int>(m_CurrentScroll / m_ItemSizeWithSpacing) * m_NumColumns;
+        float yOffset = fmodf(m_CurrentScroll, m_ItemSizeWithSpacing) - m_Spacing;
+
+        // Iterate over the visible items and draw them
+        for (int i = startIndex; i < static_cast<int>(m_Items.size()); ++i) {
+            ImVec2 pos = ImGui::GetCursorScreenPos();
+            pos.x += (i % m_NumColumns) * (m_ItemSize + m_Spacing);
+            pos.y += (i / m_NumColumns) * m_ItemSizeWithSpacing + yOffset;
+            ImVec2 size = m_Items[i].size;
+            ImGui::SetCursorScreenPos(pos);
+            ImGui::Button(m_Items[i].label.c_str(), size);
+        }
+
+        // End the scrollable region
+        ImGui::EndChild();
+    }
+
+private:
+    int m_NumColumns;
+    float m_ItemSize;
+    float m_Spacing;
+    float m_ItemSizeWithSpacing;
+    float m_CurrentScroll;
+    std::vector<GridItem> m_Items;
+};
+
 void PlayerExample::render_ui()
 {
     if(duration_ == 0)
@@ -313,7 +382,6 @@ void PlayerExample::render_ui()
     auto& font_helper = ImGuiHelper::get();
 
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-
 
     {
         window_flags |= ImGuiWindowFlags_NoMove;
@@ -342,7 +410,7 @@ void PlayerExample::render_ui()
         }
         if (ImGui::IsItemDeactivatedAfterEdit())
         {
-            MP_INFO("seek_position:{}",seek_position_);
+            MR_INFO("seek_position:{}",seek_position_);
             if(seek_position_ >= 0)
                 g_player->play(seek_position_*g_player->duration());
             seek_position_ = -1;
@@ -368,7 +436,7 @@ void PlayerExample::render_ui()
         ImGui::RadioButton("L", &channel_mode_, 1); ImGui::SameLine();
         ImGui::RadioButton("R", &channel_mode_, 2);
         if(old_channel_mode != channel_mode_){
-            MP_INFO("set channel mode:{}",channel_mode_);
+            MR_INFO("set channel mode:{}",channel_mode_);
             g_player->set_channel_mode(channel_mode_);
         }
         int32_t tracks = g_player->tracks_count();
@@ -380,7 +448,7 @@ void PlayerExample::render_ui()
             ImGui::RadioButton(fmt::format("T{}",index).c_str(), &select_track_, index);
         }
         if(old_track != select_track_){
-            MP_INFO("select track :{}",select_track_);
+            MR_INFO("select track :{}",select_track_);
             g_player->set_track(select_track_);
         }
 
@@ -414,4 +482,6 @@ void PlayerExample::render_ui()
 
         font_helper.restore_font_size();
     }
+
+
 }

@@ -10,7 +10,7 @@ AudioDecoderFFmpegFilter::AudioDecoderFFmpegFilter()
 
 AudioDecoderFFmpegFilter::~AudioDecoderFFmpegFilter()
 {
-    MP_LOG_DEAULT("AudioDecoderFFmpegFilter::~AudioDecoderFFmpegFilter() {} ", id_.data());
+    MR_LOG_DEAULT("AudioDecoderFFmpegFilter::~AudioDecoderFFmpegFilter() {} ", id_.data());
     close_decoder();
 }
 

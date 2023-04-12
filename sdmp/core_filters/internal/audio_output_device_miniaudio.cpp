@@ -7,7 +7,7 @@ namespace mr::sdmp {
 
 void on_log(void* pUserData, ma_uint32 level, const char* message)
 {
-    MP_TRACE("{}: {}", ma_log_level_to_string(level), message);
+    MR_TRACE("{}: {}", ma_log_level_to_string(level), message);
 }
 
 void on_data(ma_device* pDevice, void* pFramesOut, const void* pFramesIn, ma_uint32 frameCount)
@@ -105,7 +105,7 @@ AudioOutputDeviceMiniaudioFilter::~AudioOutputDeviceMiniaudioFilter()
         ma_pcm_rb_uninit(&pull_ring_buffer_);
     }
     //static resource release in c++ runtime, logger_xxx call spdlog::set_pattern will crash
-    MP_INFO("MiniAudio Stopped");
+    MR_INFO("MiniAudio Stopped");
 }
 
 int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const Value &filter_values)
@@ -133,22 +133,22 @@ int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const 
 
     context_ = std::shared_ptr<ma_context>(new ma_context());
     auto result = ma_context_init(get?chose_backend:nullptr, 1, &contextConfig, context_.get());
-    MP_LOG_DEAULT("select backend: {} {} {}", backend, (int)chose_backend[0], (void*)this);
+    MR_LOG_DEAULT("select backend: {} {} {}", backend, (int)chose_backend[0], (void*)this);
 
     int32_t select_index = -1;
     ma_device_info* playback_devices_info;
     ma_uint32 playback_devices_count;
     if(selector.size()){
-        MP_LOG_DEAULT("--------------------------------------opening selected device: {}", selector.data());
+        MR_LOG_DEAULT("--------------------------------------opening selected device: {}", selector.data());
         device_id_ = std::shared_ptr<BufferObject>(new BufferObject(sizeof (ma_device_id)));
         result = ma_context_get_devices(context_.get(), &playback_devices_info, &playback_devices_count, nullptr, nullptr);
         if (result != MA_SUCCESS) {
-            MP_LOG_DEAULT("---------------------------------- Failed to retrieve device information.");
+            MR_LOG_DEAULT("---------------------------------- Failed to retrieve device information.");
             return -3;
         }
-        MP_LOG_DEAULT("Playback Devices");
+        MR_LOG_DEAULT("Playback Devices");
         for (int index = 0; index < playback_devices_count; ++index) {
-            MP_LOG_DEAULT("    {}: {} {}", index, playback_devices_info[index].name,playback_devices_info[index].id.alsa);
+            MR_LOG_DEAULT("    {}: {} {}", index, playback_devices_info[index].name,playback_devices_info[index].id.alsa);
             std::string name = playback_devices_info[index].name;
             if(name.find(selector) !=  std::string::npos){
                 select_index = index;
@@ -156,7 +156,7 @@ int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const 
         }
     }
 
-    MP_LOG_DEAULT("---------------------- selector index: {}", select_index);
+    MR_LOG_DEAULT("---------------------- selector index: {}", select_index);
 
     auto deviceConfig = ma_device_config_init(ma_device_type_playback);
     if(select_index >= 0)
@@ -171,7 +171,7 @@ int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const 
     device_ = std::shared_ptr<ma_device>(new ma_device());
     result = ma_device_init(context_.get(), &deviceConfig, device_.get());
     if (result != MA_SUCCESS) {
-        MP_LOG_DEAULT("Failed to initialize device.");
+        MR_LOG_DEAULT("Failed to initialize device.");
         ma_context_uninit(context_.get());
         return -1;
     }
@@ -208,13 +208,13 @@ int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const 
     device_->pUserData = this;
 
 
-    MP_LOG_DEAULT("AudioOutputMiniaudio::init Device: [{}][{}]",ma_get_backend_name(context_->backend), device_->playback.name);
+    MR_LOG_DEAULT("AudioOutputMiniaudio::init Device: [{}][{}]",ma_get_backend_name(context_->backend), device_->playback.name);
     return 0;
 }
 
 int32_t AudioOutputDeviceMiniaudioFilter::process_command(const std::string &command, const Value& param)
 {
-    MP_LOG_DEAULT("AudioOutputDeviceMiniaudioFilter::process_command {}", command, (void*)device_.get());
+    MR_LOG_DEAULT("AudioOutputDeviceMiniaudioFilter::process_command {}", command, (void*)device_.get());
     (void)param;
     if(!device_)
         return -1;
@@ -224,17 +224,17 @@ int32_t AudioOutputDeviceMiniaudioFilter::process_command(const std::string &com
     if(command == kGraphCommandPlay && !stated){
         result = ma_device_start(device_.get());
         if (result != MA_SUCCESS){
-            MP_LOG_DEAULT("Failed to start device.");
+            MR_LOG_DEAULT("Failed to start device.");
         }else
-            MP_LOG_DEAULT("audio device {} started  {}", device_->playback.name, (void*)this);
+            MR_LOG_DEAULT("audio device {} started  {}", device_->playback.name, (void*)this);
     }
     else if(command == kGraphCommandStop && stated){
         result = ma_device_stop(device_.get());
         if (result != MA_SUCCESS){
-            MP_LOG_DEAULT("Failed to start device.","");
+            MR_LOG_DEAULT("Failed to start device.","");
         }
         else
-            MP_LOG_DEAULT("audio device {} stoped ", device_->playback.name);
+            MR_LOG_DEAULT("audio device {} stoped ", device_->playback.name);
     }
     return 0;
 }
@@ -299,7 +299,7 @@ int32_t AudioOutputDeviceMiniaudioFilter::on_playback(void *pcm, int32_t frames)
             }
             ma_pcm_rb_commit_read(&pull_ring_buffer_, framesToRead);
 
-            //MP_LOG_DEAULT("AudioOutputMiniaudio::on_playback: read RB {}",framesToRead);
+            //MR_LOG_DEAULT("AudioOutputMiniaudio::on_playback: read RB {}",framesToRead);
 
             pRunningOutput += framesToRead * ma_get_bytes_per_frame(format_, channels_);
             pcmFramesProcessed += framesToRead;
@@ -320,7 +320,7 @@ int32_t AudioOutputDeviceMiniaudioFilter::on_playback(void *pcm, int32_t frames)
                 //data_callback_fixed(pDevice, pWriteBuffer, NULL, framesToWrite);
 
                 pin_requare_data(pWriteBuffer,frame_size_);
-                //MP_LOG_DEAULT("AudioOutputMiniaudio::on_playback: Request RB {}",frame_size_);
+                //MR_LOG_DEAULT("AudioOutputMiniaudio::on_playback: Request RB {}",frame_size_);
             }
             ma_pcm_rb_commit_write(&pull_ring_buffer_, framesToWrite);
         }

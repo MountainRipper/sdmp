@@ -86,7 +86,7 @@ int32_t MediaSourceMemoryFilter::grabber_get_frame(const std::string &id, FrameP
             output_format_.height != av_frame->height||
             output_format_.samplerate != av_frame->sample_rate ||
             output_format_.channels != av_frame->ch_layout.nb_channels){
-            MP_ERROR("MediaSourceMemoryFilter::grabber_get_frame get frame not match format set");
+            MR_ERROR("MediaSourceMemoryFilter::grabber_get_frame get frame not match format set");
             return kErrorConnectFailedNotMatchFormat;
         }
     }

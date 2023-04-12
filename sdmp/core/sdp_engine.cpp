@@ -68,17 +68,17 @@ int32_t Engine::create_device(sol::table& config)
         return -1;
 
 
-    MP_LOG_DEAULT("Engine::create_device id: {}, module: {}", id.data(), module.data());
+    MR_LOG_DEAULT("Engine::create_device id: {}, module: {}", id.data(), module.data());
 
     FilterPointer device_filter = Factory::factory()->create_filter(module);
-    MP_LOG_DEAULT("created device filter: {}", (void*)device_filter.Get());
+    MR_LOG_DEAULT("created device filter: {}", (void*)device_filter.Get());
     int32_t result = device_filter->initialize(this,config);
     if(result >= 0){
         audio_outputs_devices_[id] = device_filter;
         return 0;
     }
     else{
-        MP_ERROR("create device failed:{} id: {}, module: {}",result, id.data(), module.data())
+        MR_ERROR("create device failed:{} id: {}, module: {}",result, id.data(), module.data())
     }
     return -1;
 }

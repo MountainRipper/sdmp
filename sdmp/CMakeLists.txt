@@ -31,7 +31,7 @@ SET(TARGET_ARCH  ${CMAKE_SYSTEM_PROCESSOR})
 SET(SEARCHED_LIBS "")
 SET(EXTERNAL_SOURCE "")
 
-add_definitions(-D MP_LOG_DEAULT=MP_DEBUG)
+add_definitions(-D MR_LOG_DEAULT=MR_DEBUG)
 add_definitions(-D SDMP_LOG_LEVEL=mp::Logger::LogLevel::kLogLevelDebug)
 
 macro(search_library libName macroDefine debugSuffix)

@@ -29,7 +29,7 @@ AudioOutputParticipantFilter::AudioOutputParticipantFilter()
 
 AudioOutputParticipantFilter::~AudioOutputParticipantFilter()
 {
-    MP_LOG_DEAULT("AudioOutputParticipantFilter::~AudioOutputParticipantFilter() {} ", id_.data());
+    MR_LOG_DEAULT("AudioOutputParticipantFilter::~AudioOutputParticipantFilter() {} ", id_.data());
     //disconnect to engine
     quit_flag_ = true;    
 }
@@ -148,7 +148,7 @@ int32_t AudioOutputParticipantFilter::receive(IPin* input_pin,FramePointer frame
     std::lock_guard<std::mutex> lock(mutex_);
     resampler_.push_audio_samples(frame->frame);
     last_push_pts_ = frame->frame->pts + frame->frame->nb_samples * 1000 / format_input_.samplerate;
-    //MP_LOG_DEAULT("audio last_push_pts_:{}",last_push_pts_);
+    //MR_LOG_DEAULT("audio last_push_pts_:{}",last_push_pts_);
     return 0;
 }
 
@@ -206,7 +206,7 @@ int32_t AudioOutputParticipantFilter::requare_samples(uint8_t *pcm, int32_t samp
     double volume_percent = properties_["volume"];
     int32_t volume = volume_percent * 100;
     int32_t samples_has = resampler_.samples();
-    //MP_LOG_DEAULT("### audio output cur:{}  samples:{}",last_push_pts_,samples_has);
+    //MR_LOG_DEAULT("### audio output cur:{}  samples:{}",last_push_pts_,samples_has);
 
     if(samples_has >= samples){        
         current_pts_ = last_push_pts_ - samples_has * 1000.0 / format_output_.samplerate;
@@ -272,7 +272,7 @@ int32_t AudioOutputParticipantFilter::requare_samples(uint8_t *pcm, int32_t samp
     }
     else{
         set_timeline_status(kTimelineBlocking);
-        MP_LOG_DEAULT(">>>>Audio Buffer Hungry");
+        MR_LOG_DEAULT(">>>>Audio Buffer Hungry");
     }
     return volume;
 }
@@ -287,7 +287,7 @@ int32_t AudioOutputParticipantFilter::connect_to_device()
 
     auto device_filter = Factory::factory()->engine()->get_audio_output_filter(output_engine_);
     if(!device_filter){
-        MP_LOG_DEAULT("{} can't find march output engine {}",__FUNCTION__,output_engine_);
+        MR_LOG_DEAULT("{} can't find march output engine {}",__FUNCTION__,output_engine_);
         return  -2;
     }
     graph_->do_connect(this,device_filter.Get(),0,0);

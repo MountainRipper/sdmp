@@ -93,7 +93,7 @@ int32_t GeneralPin::connect(IPin *pin){
 }
 
 int32_t GeneralPin::disconnect(IPin *pin){
-    MP_LOG_DEAULT("pin[{}-{}] disconnect [{}-{}]",direction_==kInputPin?"in":"out",(void*)this,
+    MR_LOG_DEAULT("pin[{}-{}] disconnect [{}-{}]",direction_==kInputPin?"in":"out",(void*)this,
                    direction_==kInputPin?"out":"int",(void*)pin);
     if(direction_ == kInputPin){
         if(pin == sender_){

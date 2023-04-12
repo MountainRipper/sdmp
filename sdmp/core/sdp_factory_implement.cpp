@@ -39,7 +39,7 @@ int32_t sdmp::Factory::initialize_factory()
 {
     mp::Logger::set_level(SDMP_LOG_LEVEL);
     //spdlog::set_level(spdlog::level::trace);
-    MP_LOG_DEAULT("Factory::initialize_factory");
+    MR_LOG_DEAULT("Factory::initialize_factory");
     factory_.reset(new FactoryImplement());
     return 0;
 }
@@ -66,7 +66,7 @@ int32_t sdmp::Factory::initialnize_engine(const std::string &root_dir,
         if(format_temp[strlen(format_temp)-1] == '\n')
             format_temp[strlen(format_temp)-1]='\0';
         vsprintf(msg,format_temp,valist);
-        MP_LOG_DEAULT("ffmpeg: {}",msg);
+        MR_LOG_DEAULT("ffmpeg: {}",msg);
     });
 
     // factory can be created seperatly befor initialize_engine.
@@ -103,7 +103,7 @@ IUnknownPointer Factory::create_object(const TGUID &clsid)
     IUnknownPointer object;
     if(!factory_)
     {
-        MP_ERROR("Factory::register_new_filter failed because of factory_ is not created");
+        MR_ERROR("Factory::register_new_filter failed because of factory_ is not created");
         return object;
     }
     object = factory_->create_object(clsid);
@@ -139,7 +139,7 @@ int32_t FactoryImplement::initialnize_engine(const std::string& root_dir, const 
 
     root_dir_ = std::filesystem::path(root_dir).make_preferred() / "";
 
-    MP_INFO("sdp engine use script root in: {}",root_dir_);
+    MR_INFO("sdp engine use script root in: {}",root_dir_);
 
     auto engine = std::shared_ptr<Engine>(new Engine(root_dir_,declear_file));
     auto result = engine->init();
@@ -170,7 +170,7 @@ const FilterDelear *FactoryImplement::filter_declear(const TGUID &clsid)
 
 FilterPointer FactoryImplement::create_filter(const std::string &module)
 {
-    MP_LOG_DEAULT("FactoryImplement::create_filter {}", module.data());
+    MR_LOG_DEAULT("FactoryImplement::create_filter {}", module.data());
     FilterPointer filter;
 
     for(auto& item : filter_declears_){
@@ -256,13 +256,13 @@ int32_t FactoryImplement::enum_module_filters(mr::tinycom::IComModule *module)
                         prop.value_ = sol::table();
                     }
                     else{
-                        MP_WARN("unknown property type: {}#{}",declear.module,prop.name_);
+                        MR_WARN("unknown property type: {}#{}",declear.module,prop.name_);
                         continue;
                     }
                     declear.properties.push_back(prop);
                 }
                 filter_declears_[declear.clsid] = declear;
-                //MP_INFO("Enum objects found filter:{} metainfo:\n{}",declear.module,metadata);
+                //MR_INFO("Enum objects found filter:{} metainfo:\n{}",declear.module,metadata);
             }
 
         }

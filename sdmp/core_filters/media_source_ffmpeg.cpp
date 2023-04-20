@@ -247,6 +247,9 @@ int32_t MediaSourceFFmpegFilter::property_changed(const std::string& name,Value&
     else if(name == "timeout"){
         timeout_check_ms_ = double(symbol);
     }
+    else if(name == "timeout"){
+        emit_keyframe_only_ = properties_["emitKeyframeOnly"];
+    }
     return ret;
 }
 
@@ -354,14 +357,21 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                 deliver_eos_frame();
                 break;
             }
+
             auto it = stream_pins_map_.find(packet->stream_index);
             if( it == stream_pins_map_.end()){
                 av_packet_free(&packet);
                 continue;
             }
-            PinPointer& output_pin = it->second;
 
             AVStream* stream = media_file_->streams[packet->stream_index];
+
+            if(stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && emit_keyframe_only_ && !(packet->flags & AV_PKT_FLAG_KEY)){
+                continue;
+            }
+
+            PinPointer& output_pin = it->second;
+
             int64_t pts = 1000.0 * packet->pts * av_q2d(stream->time_base);
             int64_t dts = 1000.0 * packet->dts * av_q2d(stream->time_base);
 

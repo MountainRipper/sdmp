@@ -1,6 +1,4 @@
 #include <algorithm>
-
-#include "logger.h"
 #include "sdp_timeline_support.h"
 using namespace mr::sdmp;
 

@@ -2,7 +2,6 @@
 #include "sdp_filter_links_flow.h"
 #include "sdp_filter_helper.h"
 #include "sdpi_graph.h"
-#include "logger.h"
 namespace mr::sdmp {
 
 FilterLinksFlow::FilterLinksFlow()

@@ -3,7 +3,6 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <logger.h>
 #include "sdp_general_filter.h"
 namespace mr::sdmp {
 
@@ -84,6 +83,11 @@ R"({
       "name": "readKeyfarameSection",
       "type": "bool",
       "value": false
+    },
+    {
+      "name": "emitKeyframeOnly",
+      "type": "bool",
+      "value": false
     }
   ],
   "type": "sdp-filter"
@@ -143,6 +147,7 @@ private:
 
     uint64_t            timeout_check_start_    = 0;
     int64_t             timeout_check_ms_       = 0;
+    bool                emit_keyframe_only_     = false;
     bool                network_timeout_        = false;
     int64_t             reconnect_count_        = 10;
     bool                media_loaded_            = false;

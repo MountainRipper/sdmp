@@ -1,7 +1,6 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "audio_output_device_miniaudio.h"
 #include "audio_mixer_input_pin.h"
-#include <logger.h>
 
 namespace mr::sdmp {
 

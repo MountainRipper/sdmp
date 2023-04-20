@@ -1,6 +1,5 @@
 #include <sstream>
 #include <iomanip>
-#include <logger.h>
 #include <spdlog/fmt/bin_to_hex.h>
 #include <libyuv.h>
 #include <sol/sol.hpp>

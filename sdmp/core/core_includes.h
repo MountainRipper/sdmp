@@ -1,7 +1,7 @@
 #ifndef CORE_INCLUDES_H
 #define CORE_INCLUDES_H
 
-#include <logger.h>
+#include <mr/logger.h>
 #include "sdpi_graph.h"
 #include "sdpi_factory.h"
 #include "sdpi_utils.h"

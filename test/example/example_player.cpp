@@ -2,15 +2,15 @@
 #include <spdlog/fmt/chrono.h>
 #include <filesystem>
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
 #include <libavutil/frame.h>
-#include <logger.h>
 #include <imgui.h>
 #include <ttf/IconsFontAwesome6.h>
 #include <tio/tio_hardware_graphic.h>
 #include <mr/imgui_mr.h>
 
 #include "example_player.h"
+
+MR_MR_SDL_RUNNER_SHOWCASE(PlayerExample)
 
 using namespace mr::tio;
 static const std::string VS_VIDEO = R"(
@@ -182,8 +182,16 @@ int32_t PlayerExample::totle_frame_count(){
     return totle_frame_count_;
 }
 
+int32_t PlayerExample::on_set_params(cxxopts::Options &options)
+{
+    return 0;
+}
 
-int32_t PlayerExample::on_init(void* window)
+int32_t PlayerExample::on_pre_init(cxxopts::ParseResult &options_result, uint32_t &window_flags)
+{
+    return 0;
+}
+int32_t PlayerExample::on_init(void *window,int width, int height)
 {
     std::filesystem::path script_path = std::filesystem::path(CMAKE_FILE_DIR) / ".." / "script";
     std::filesystem::path easy_path = std::filesystem::path(CMAKE_FILE_DIR)/"../easy/script-easy";
@@ -266,21 +274,19 @@ int32_t PlayerExample::on_frame()
     return 0;
 }
 
-void PlayerExample::button_callback( int bt, int action, int mods)
+void PlayerExample::button_callback(int bt, int type, int clicks, double x, double y)
 {
+
 }
+
 
 void PlayerExample::cursor_callback(double x, double y)
 {
 }
 
-void PlayerExample::key_callback(int key, int scancode, int action, int mods)
+void PlayerExample::key_callback(int key, int type, int scancode, int mods)
 {
 
-}
-
-void PlayerExample::char_callback( unsigned int key)
-{
 }
 
 void PlayerExample::error_callback(int err, const char *desc)
@@ -290,10 +296,6 @@ void PlayerExample::error_callback(int err, const char *desc)
 void PlayerExample::resize_callback(int width, int height)
 {
     resized_ = true;
-}
-
-void PlayerExample::scroll_callback(double xoffset, double yoffset)
-{
 }
 
 void PlayerExample::command(std::string command)

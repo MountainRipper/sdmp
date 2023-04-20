@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include <set>
 #include <chrono>
-#include "logger.h"
+#include <mr/logger.h>
 #include "sdpi_filter_extentions.h"
 
 namespace mr::sdmp {

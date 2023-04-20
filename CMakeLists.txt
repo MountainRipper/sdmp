@@ -75,7 +75,7 @@ if(NOT ${CMAKE_SYSROOT} STREQUAL "")
         message(STATUS "INFO: ADD CROSS-COMPILE SERACH ROOT:${PARENT} DIR:/${LASTPART}")
     endforeach()
 endif()
-
+add_subdirectory(textureio)
 add_subdirectory(sdmp)
 add_subdirectory(easy)
 add_subdirectory(test)

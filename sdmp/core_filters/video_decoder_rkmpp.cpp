@@ -1,6 +1,6 @@
 #include "video_decoder_rkmpp.h"
 #if defined(HAS_ROCKCHIP_MPP)
-#include "logger.h"
+
 #include <rockchip/mpp_buffer.h>
 #include <rockchip/rk_mpi.h>
 #include <libdrm/drm_fourcc.h>

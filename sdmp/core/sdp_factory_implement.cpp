@@ -6,7 +6,6 @@
 
 #include <libavformat/avformat.h>
 #include <nlohmann/json.hpp>
-#include <logger.h>
 
 namespace mr::sdmp {
 
@@ -37,7 +36,7 @@ COM_MODULE_END()
 
 int32_t sdmp::Factory::initialize_factory()
 {
-    mp::Logger::set_level(SDMP_LOG_LEVEL);
+    mr::Logger::set_level(mr::Logger::LogLevel::kLogLevelDebug);
     //spdlog::set_level(spdlog::level::trace);
     MR_LOG_DEAULT("Factory::initialize_factory");
     factory_.reset(new FactoryImplement());

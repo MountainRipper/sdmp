@@ -2,7 +2,7 @@
 #include <sol/sol.hpp>
 #include <sdmp/interface/sdpi_factory.h>
 #include <sdmp/interface/sdpi_filter_extentions.h>
-#include "logger.h"
+#include <mr/logger.h>
 #include "player.h"
 
 namespace mr {

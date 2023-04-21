@@ -13,17 +13,6 @@
 MR_MR_SDL_RUNNER_SHOWCASE(PlayerExample)
 
 using namespace mr::tio;
-static const std::string VS_VIDEO = R"(
-  precision mediump float;
-  out vec2 v_texCoord;
-  void main() {
-    float x = -1.0 + float((gl_VertexID & 1) << 2);
-    float y = -1.0 + float((gl_VertexID & 2) << 1);
-    v_texCoord.x = (x+1.0)*0.5;
-    v_texCoord.y = (y+1.0)*0.5;
-    gl_Position = vec4(x, -y, 0, 1);
-})";
-
 
 CacheFrame::CacheFrame(const CacheFrame &other){
     texture_y = other.texture_y;
@@ -193,6 +182,9 @@ int32_t PlayerExample::on_pre_init(cxxopts::ParseResult &options_result, uint32_
 }
 int32_t PlayerExample::on_init(void *window,int width, int height)
 {
+    width_ = width;
+    height_ = height;
+
     std::filesystem::path script_path = std::filesystem::path(CMAKE_FILE_DIR) / ".." / "script";
     std::filesystem::path easy_path = std::filesystem::path(CMAKE_FILE_DIR)/"../easy/script-easy";
     g_player = new sdmp::Player(script_path,easy_path);
@@ -203,24 +195,7 @@ int32_t PlayerExample::on_init(void *window,int width, int height)
     textures_[1] = create_texture(128,128,128);
     textures_[2] = create_texture(128,128,128);
 
-    std::string vertex_shader = VS_VIDEO;
-    auto version = (const char*)glGetString(GL_VERSION);
-    if(version && strstr(version,"OpenGL ES"))
-        vertex_shader = std::string("#version 300 es") + vertex_shader;
-    else
-        vertex_shader = std::string("#version 430") + vertex_shader;
-
-    auto fragment_shader = TextureIO::reference_shader_software(kGraphicApiOpenGL,kSoftwareFormatI420);
-
-    MR_INFO("{}",fragment_shader)
-
-    program_ = create_program(vertex_shader.c_str(),fragment_shader.c_str());
-
-    texture_locations_[0] = glGetUniformLocation(program_, "tex1");
-    texture_locations_[1] = glGetUniformLocation(program_, "tex2");
-    texture_locations_[2] = glGetUniformLocation(program_, "tex3");
-    glGenVertexArrays(1, &g_vao);
-
+    shader_ = TextureIO::create_reference_shader(mr::tio::kGraphicApiOpenGL,mr::tio::kSoftwareFormatI420);
     return 0;
 }
 
@@ -233,14 +208,14 @@ int32_t PlayerExample::on_frame()
 {
     //now render the video frame use opengl
     auto frame = pop_frame();
-    glUseProgram(program_);
+    shader_->use();
 
     if(frame.frame){
 
         MR_TIMER_NEW(upload_texture);
         AVFrame* av_frame = frame.frame->frame;
         SoftwareFrame frame = {kSoftwareFormatI420,(uint32_t)av_frame->width,(uint32_t)av_frame->height};
-        GraphicTexture textures = {kGraphicApiOpenGL,program_};
+        GraphicTexture textures = {kGraphicApiOpenGL};
         for(int index = 0; index < 4; index++){
             frame.data[index] = av_frame->data[index];
             frame.line_size[index] = av_frame->linesize[index];
@@ -250,14 +225,15 @@ int32_t PlayerExample::on_frame()
         }
         TextureIO::software_frame_to_graphic(frame,textures);
 
+        mr::tio::ReferenceShader::RenderParam param{width_,height_,0,1,1,0,0};
+        shader_->render(textures,param);
+        glFinish();
         MR_INFO("upload yuv420 3 texture use {}ms , pts:{}",MR_TIMER_MS_RESET(upload_texture),av_frame->pts);
     }
     else{
 
     }
 
-    glBindVertexArray(g_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
 
     if(cache_frame_count() > 5){
         static int32_t  drop_frame_count  = 0;
@@ -295,6 +271,8 @@ void PlayerExample::error_callback(int err, const char *desc)
 
 void PlayerExample::resize_callback(int width, int height)
 {
+    width_ = width;
+    height_ = height;
     resized_ = true;
 }
 
@@ -303,78 +281,6 @@ void PlayerExample::command(std::string command)
 
 }
 
-
-// Define a struct to represent a grid item
-struct GridItem {
-    std::string label;
-    ImVec2 size;
-};
-
-// Define a class for the GridView
-class GridView {
-public:
-    GridView(int numColumns, float itemSize, float spacing) :
-        m_NumColumns(numColumns),
-        m_ItemSize(itemSize),
-        m_Spacing(spacing),
-        m_CurrentScroll(0.0f) {
-        // Calculate the size of each item including spacing
-        m_ItemSizeWithSpacing = m_ItemSize + m_Spacing;
-    }
-
-    // Add an item to the grid
-    void AddItem(const std::string& label, const ImVec2& size) {
-        GridItem item;
-        item.label = label;
-        item.size = size;
-        m_Items.push_back(item);
-    }
-
-    // Update and draw the grid
-    void Update() {
-        // Calculate the number of rows and the total height of the grid
-        int numRows = static_cast<int>(m_Items.size()) / m_NumColumns + 1;
-        float gridHeight = numRows * m_ItemSizeWithSpacing;
-
-        // Begin a scrollable region for the grid
-        ImGui::BeginChild("GridView", ImVec2(0, gridHeight));
-
-        // Update the scroll position based on touch input
-        if (ImGui::IsMouseDragging(0) && ImGui::IsWindowHovered()) {
-            ImVec2 delta = ImGui::GetIO().MouseDelta;
-            m_CurrentScroll += delta.y;
-        }
-
-        // Clamp the scroll position within the valid range
-        float maxScroll = std::max(0.0f, gridHeight - ImGui::GetWindowHeight());
-        m_CurrentScroll = std::clamp(m_CurrentScroll, 0.0f, maxScroll);
-
-        // Calculate the starting index and offset for the visible items
-        int startIndex = static_cast<int>(m_CurrentScroll / m_ItemSizeWithSpacing) * m_NumColumns;
-        float yOffset = fmodf(m_CurrentScroll, m_ItemSizeWithSpacing) - m_Spacing;
-
-        // Iterate over the visible items and draw them
-        for (int i = startIndex; i < static_cast<int>(m_Items.size()); ++i) {
-            ImVec2 pos = ImGui::GetCursorScreenPos();
-            pos.x += (i % m_NumColumns) * (m_ItemSize + m_Spacing);
-            pos.y += (i / m_NumColumns) * m_ItemSizeWithSpacing + yOffset;
-            ImVec2 size = m_Items[i].size;
-            ImGui::SetCursorScreenPos(pos);
-            ImGui::Button(m_Items[i].label.c_str(), size);
-        }
-
-        // End the scrollable region
-        ImGui::EndChild();
-    }
-
-private:
-    int m_NumColumns;
-    float m_ItemSize;
-    float m_Spacing;
-    float m_ItemSizeWithSpacing;
-    float m_CurrentScroll;
-    std::vector<GridItem> m_Items;
-};
 
 void PlayerExample::render_ui()
 {

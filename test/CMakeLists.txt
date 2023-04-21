@@ -13,4 +13,4 @@ add_executable(sdl_player ${SOURCE_EXAMPLE} ${SOURCE_IMGUI})
 target_compile_definitions(sdl_player PRIVATE CMAKE_FILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}" USE_GLES=0)
 target_include_directories(sdl_player PRIVATE example/imgui)
 target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mr-common SDL2 freetype drm ssl X11)
-target_include_directories(sdl_player PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../textureio/include)
+

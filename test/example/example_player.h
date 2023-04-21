@@ -1,5 +1,6 @@
 #ifndef PLAYEREXAMPLE_H
 #define PLAYEREXAMPLE_H
+#include <tio/tio_types.h>
 #include <mutex>
 #include <queue>
 #include <mr/sdl_runner.h>
@@ -66,11 +67,13 @@ private:
     uint32_t textures_[4] = {0};
     uint32_t texture_locations_[4] = {0};
     uint32_t texture_unit_base_ = 2;
-    uint32_t program_;
+    std::shared_ptr<mr::tio::ReferenceShader> shader_;
     uint32_t g_vao = 0;
 
 
     //ui stuff
+    int width_ = 0;
+    int height_ = 0;
     int  channel_mode_ = 0;
     int  select_track_ = 0;
     bool resized_ = true;

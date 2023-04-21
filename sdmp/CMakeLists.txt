@@ -104,7 +104,7 @@ add_library(sdmp STATIC
     ${EXTERNAL_SOURCE}
 )
 target_include_directories(sdmp PUBLIC ./interface ./interface/core_stubs)
-target_include_directories(sdmp PRIVATE ./core ./core_deps)
+target_include_directories(sdmp PRIVATE ./core ./core_deps ../textureio/include)
 
 set_target_properties(
   sdmp

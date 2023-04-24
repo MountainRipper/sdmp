@@ -1,7 +1,7 @@
 #ifndef AUDIOOUTPUTDEVICEMINIAUDIO_H
 #define AUDIOOUTPUTDEVICEMINIAUDIO_H
 #include "miniaudio.h"
-#include "sdp_general_filter.h"
+#include "sdmp_general_filter.h"
 
 namespace mr::sdmp {
 

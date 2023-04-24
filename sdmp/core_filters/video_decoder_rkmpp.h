@@ -1,6 +1,6 @@
 #ifndef VIDEODECODERRKMPP_H
 #define VIDEODECODERRKMPP_H
-#include "sdp_general_filter.h"
+#include "sdmp_general_filter.h"
 #if defined(HAS_ROCKCHIP_MPP)
 typedef void* MppCtx;
 typedef void* MppParam;

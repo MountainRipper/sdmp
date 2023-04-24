@@ -49,6 +49,13 @@ function Player:init()
 			-- module='videoDecoderRkmpp',
 			hardwareApi=""
 		},
+		videoConverter={
+			module='videoFrameConvert',
+			width=640,
+			height=640,
+			format="RGBA32",
+			fillMode="fit"
+		},
 		videoOutput={
 			module='videoOutputProxy',
 			modePullPush=false
@@ -130,6 +137,7 @@ function Player:onConnectEvent()
 	
 
     	self:connectAuto(mediaSource,videoDecoder)
+	--self:connectAuto(videoDecoder,videoConverter)
 	self:connectAuto(videoDecoder,videoOutput)
 
 	

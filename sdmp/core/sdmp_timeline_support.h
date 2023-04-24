@@ -4,7 +4,7 @@
 #include <set>
 #include <chrono>
 #include <mr/logger.h>
-#include "sdpi_filter_extentions.h"
+#include "sdmpi_filter_extentions.h"
 
 namespace mr::sdmp {
 

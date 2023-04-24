@@ -5,6 +5,7 @@
 #include <queue>
 #include <mr/sdl_runner.h>
 #include <easy/player.h>
+#include "sdmpi_filter_extentions.h"
 
 using namespace mr;
 
@@ -21,7 +22,7 @@ public:
     uint32_t texture_y = 0;
     uint32_t texture_u = 0;
     uint32_t texture_v = 0;
-    sdmp::FramePointer frame;
+    sdmp::FramePointer frame_pointer;
 };
 
 
@@ -60,16 +61,11 @@ private:
     void render_ui();
 private:
     sdmp::Player* g_player;
+    ComPointer<mr::sdmp::IFilterExtentionVideoRenderer> renderer_;
+
     std::mutex cache_mutex_;
     std::queue<CacheFrame> cached_frames_;
     int32_t totle_frame_count_ = 0;
-
-    uint32_t textures_[4] = {0};
-    uint32_t texture_locations_[4] = {0};
-    uint32_t texture_unit_base_ = 2;
-    std::shared_ptr<mr::tio::ReferenceShader> shader_;
-    uint32_t g_vao = 0;
-
 
     //ui stuff
     int width_ = 0;

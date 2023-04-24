@@ -1,9 +1,9 @@
 #ifndef AUDIO_MIXER_INPUT_PIN_H
 #define AUDIO_MIXER_INPUT_PIN_H
 #include <mutex>
-#include "sdp_general_pin.h"
-#include "sdpi_objects.h"
-#include "sdpi_filter_extentions.h"
+#include "sdmp_general_pin.h"
+#include "sdmpi_objects.h"
+#include "sdmpi_filter_extentions.h"
 namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT("0ef73af8-a212-11ed-b92f-775b7675e60a", "", AudioMixerInputPin)

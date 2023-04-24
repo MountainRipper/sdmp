@@ -10,7 +10,7 @@
 #include <functional>
 #include <condition_variable>
 #include <sol/forward.hpp>
-#include "sdpi_objects.h"
+#include "sdmpi_objects.h"
 
 extern "C"{
     struct AVRational;
@@ -22,16 +22,16 @@ typedef struct AVCodecParameters AVCodecParameters;
 
 namespace mr::sdmp {
 
-void sdp_frame_free_packet_releaser(AVFrame*, AVPacket* packet);
-void sdp_frame_unref_packet_releaser(AVFrame*,AVPacket* packet);
-void sdp_frame_free_frame_releaser(AVFrame*frame, AVPacket*);
-void sdp_frame_unref_frame_releaser(AVFrame* frame,AVPacket*);
-void sdp_frame_free_both_releaser(AVFrame*frame, AVPacket* packet);
-FramePointer sdp_frame_make_color_frame(int32_t av_format,int32_t width,int32_t height,uint8_t r,uint8_t g,uint8_t b,uint8_t a);
+void sdmp_frame_free_packet_releaser(AVFrame*, AVPacket* packet);
+void sdmp_frame_unref_packet_releaser(AVFrame*,AVPacket* packet);
+void sdmp_frame_free_frame_releaser(AVFrame*frame, AVPacket*);
+void sdmp_frame_unref_frame_releaser(AVFrame* frame,AVPacket*);
+void sdmp_frame_free_both_releaser(AVFrame*frame, AVPacket* packet);
+FramePointer sdmp_frame_new(int32_t av_format,int32_t width,int32_t height);
 FramePointer make_test_frame_from_yuv420p(std::shared_ptr<sdmp::Frame> src_frame);
 
-const char* sdp_os();
-const char* sdp_arch();
+const char* sdmp_os();
+const char* sdmp_arch();
 
 namespace ValueUtils {
     int32_t arguments_to_lua_values(const Arguments& args, sol::state& state, std::vector<sol::lua_value> &lua_values);

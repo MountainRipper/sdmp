@@ -4,7 +4,7 @@
 #include <libyuv.h>
 #include <sol/sol.hpp>
 #include "core_includes.h"
-#include "sdpi_utils.h"
+#include "sdmpi_utils.h"
 extern "C"{
 #include <libavcodec/bsf.h>
 }
@@ -110,7 +110,7 @@ int32_t Value::any_to_lua(const std::any& any_value,sol::state* state,sol::lua_v
     return ret;
 }
 
-void sdp_frame_free_packet_releaser(AVFrame*,AVPacket* packet){
+void sdmp_frame_free_packet_releaser(AVFrame*,AVPacket* packet){
     if(packet){
         av_packet_free(&packet);
     }
@@ -120,7 +120,7 @@ void sdp_frame_unref_packet_releaser(AVFrame*,AVPacket* packet){
         av_packet_unref(packet);
     }
 }
-void sdp_frame_free_frame_releaser(AVFrame* frame,AVPacket*){
+void sdmp_frame_free_frame_releaser(AVFrame* frame,AVPacket*){
     if(frame){
         av_frame_free(&frame);
     }
@@ -131,7 +131,7 @@ void sdp_frame_unref_frame_releaser(AVFrame* frame,AVPacket*){
     }
 }
 
-void sdp_frame_free_both_releaser(AVFrame*frame, AVPacket* packet){
+void sdmp_frame_free_both_releaser(AVFrame*frame, AVPacket* packet){
     if(packet){
         av_packet_free(&packet);
     }
@@ -140,37 +140,15 @@ void sdp_frame_free_both_releaser(AVFrame*frame, AVPacket* packet){
     }
 }
 
-FramePointer sdp_frame_make_color_frame(int32_t av_format, int32_t width, int32_t height, uint8_t r, uint8_t g, uint8_t b, uint8_t a){
+FramePointer sdmp_frame_new(int32_t av_format, int32_t width, int32_t height){
     AVFrame *frame = av_frame_alloc();
     frame->width = width;
     frame->height = height;
     frame->format = av_format;
     av_frame_get_buffer(frame,1);
 
-    if (av_format == AV_PIX_FMT_RGBA || av_format == AV_PIX_FMT_BGRA) {
-        int32_t pixels = width*height;
-        uint32_t value = 0;
-        uint8_t* ptr_value = (uint8_t*)&value;
-        if(av_format == AV_PIX_FMT_RGBA){
-            ptr_value[0] = b;
-            ptr_value[1] = g;
-            ptr_value[2] = r;
-            ptr_value[3] = a;
-        }
-        else{
-            ptr_value[0] = r;
-            ptr_value[1] = g;
-            ptr_value[2] = b;
-            ptr_value[3] = a;
-        }
-        uint32_t* dest_ptr = (uint32_t*)frame->data[0];
-        for (int i = 0; i < pixels; i++) {
-            dest_ptr[i] = value;
-        }
-
-    }
     auto sdp_frame = Frame::make_frame(frame);
-    sdp_frame->releaser = sdp_frame_free_frame_releaser;
+    sdp_frame->releaser = sdmp_frame_free_frame_releaser;
     return sdp_frame;
 }
 
@@ -275,10 +253,10 @@ FramePointer make_test_frame_from_yuv420p(std::shared_ptr<sdmp::Frame> src_frame
 
 
 
-const char* sdp_os(){
+const char* sdmp_os(){
     return SDP_OS;
 }
-const char* sdp_arch(){
+const char* sdmp_arch(){
     return SDP_ARCH;
 }
 
@@ -530,7 +508,7 @@ bool BitStreamConvert::convert(AVPacket* packet)
             return false;
         }
         FramePointer new_frame = FramePointer(new Frame());
-        new_frame->releaser = sdp_frame_free_packet_releaser;
+        new_frame->releaser = sdmp_frame_free_packet_releaser;
         new_frame->packet = converted_pack;
         converted_packets_.push(new_frame);
     }while(true);

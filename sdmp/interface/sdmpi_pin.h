@@ -1,6 +1,6 @@
 #ifndef SDPI_PIN_H_
 #define SDPI_PIN_H_
-#include "sdpi_objects.h"
+#include "sdmpi_objects.h"
 
 namespace mr::sdmp {
 

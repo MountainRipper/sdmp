@@ -1,7 +1,7 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 #include <set>
-#include "sdpi_graph.h"
+#include "sdmpi_graph.h"
 #include "sol_lua_operator.h"
 namespace mr::sdmp {
 

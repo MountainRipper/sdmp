@@ -46,7 +46,7 @@ FramePointer avframe_transfer_ffmpeg_inner(AVFrame* frame){
     }
     sw_frame->pts = frame->pts;
     sdp_frame = Frame::make_frame(sw_frame);
-    sdp_frame->releaser = sdp_frame_free_frame_releaser;
+    sdp_frame->releaser = sdmp_frame_free_frame_releaser;
     return sdp_frame;
 }
 
@@ -245,7 +245,7 @@ int32_t VideoDecoderFFmpegFilter::try_open_hardware_context()
         return 0;
 
 
-    std::string os = sdp_os();
+    std::string os = sdmp_os();
     if(hardware_api_manually == "auto"){
         if(os == "linux"){
             hardware_api_manually = "vaapi";
@@ -444,7 +444,7 @@ int32_t VideoDecoderFFmpegFilter::decode_a_frame(FramePointer frame)
                     new_frame->transfer = it->second;
             }
 
-            new_frame->releaser = sdp_frame_free_frame_releaser;
+            new_frame->releaser = sdmp_frame_free_frame_releaser;
 
             get_pin(kOutputPin,0)->deliver(new_frame);
         }

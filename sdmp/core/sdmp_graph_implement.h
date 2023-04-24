@@ -1,8 +1,8 @@
 #ifndef GRAPHIMPLEMENT_H
 #define GRAPHIMPLEMENT_H
 #include <thread>
-#include "sdpi_graph.h"
-#include "sdp_filter_links_flow.h"
+#include "sdmpi_graph.h"
+#include "sdmp_filter_links_flow.h"
 #include "sol_lua_operator.h"
 #include <eventpp/eventqueue.h>
 namespace mr::sdmp {

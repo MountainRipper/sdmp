@@ -1,8 +1,8 @@
 #include <filesystem>
-#include "sdp_factory_implement.h"
-#include "sdp_graph_implement.h"
-#include "sdpi_basic_types.h"
-#include "sdpi_factory.h"
+#include "sdmp_factory_implement.h"
+#include "sdmp_graph_implement.h"
+#include "sdmpi_basic_types.h"
+#include "sdmpi_factory.h"
 
 #include <libavformat/avformat.h>
 #include <nlohmann/json.hpp>
@@ -11,7 +11,7 @@ namespace mr::sdmp {
 
 std::shared_ptr<FactoryImplement> sdmp::Factory::factory_;
 
-COM_MODULE_BEGINE("5b8aab92-a452-11ed-bcb9-9b38750c5c76",SDP_INTERNAL_COM_MODULE)
+COM_MODULE_BEGINE("5b8aab92-a452-11ed-bcb9-9b38750c5c76",SDMP_INTERNAL_FILTERS)
     COM_MODULE_OBJECT_ENTRY(AudioOutputDeviceMiniaudioFilter)
 
     //common filter
@@ -25,6 +25,7 @@ COM_MODULE_BEGINE("5b8aab92-a452-11ed-bcb9-9b38750c5c76",SDP_INTERNAL_COM_MODULE
     COM_MODULE_OBJECT_ENTRY(VideoEncoderFFmpegFilter)
     COM_MODULE_OBJECT_ENTRY(VideoDecoderFFmpegFilter)
     COM_MODULE_OBJECT_ENTRY(DataGrabber)
+    COM_MODULE_OBJECT_ENTRY(VideoFrameConvert)
     #if defined(HAS_ROCKCHIP_MPP)
     COM_MODULE_OBJECT_ENTRY(VideoDecoderRkmppFilter)
     #endif
@@ -32,6 +33,10 @@ COM_MODULE_BEGINE("5b8aab92-a452-11ed-bcb9-9b38750c5c76",SDP_INTERNAL_COM_MODULE
     COM_MODULE_OBJECT_ENTRY(AudioOutputParticipantFilter)
     COM_MODULE_OBJECT_ENTRY(VideoOutputProxyFilter)
     COM_MODULE_OBJECT_ENTRY(MediaMuxerFFmpegFilter)
+COM_MODULE_END()
+
+COM_MODULE_BEGINE("bd32bb24-e27c-11ed-995a-3bfee4287c74",SDMP_INTERNAL_ATTENDANTS)
+    COM_MODULE_OBJECT_ENTRY(VideoGraphicRenderer)
 COM_MODULE_END()
 
 int32_t sdmp::Factory::initialize_factory()
@@ -125,10 +130,15 @@ const FilterDelear *Factory::filter_declear(const TGUID &clsid)
 
 
 FactoryImplement::FactoryImplement(){
-    COM_MODULE_IMPORT(SDP_INTERNAL_COM_MODULE);
-    auto internal_module = COM_MODULE_GET(SDP_INTERNAL_COM_MODULE);
-    com_repository_.RegisterModule(internal_module);
-    enum_module_filters(internal_module);
+    COM_MODULE_IMPORT(SDMP_INTERNAL_FILTERS);
+    auto internal_filters = COM_MODULE_GET(SDMP_INTERNAL_FILTERS);
+    com_repository_.RegisterModule(internal_filters);
+    enum_module_filters(internal_filters);
+
+
+    COM_MODULE_IMPORT(SDMP_INTERNAL_ATTENDANTS)
+    auto internal_attendants = COM_MODULE_GET(SDMP_INTERNAL_ATTENDANTS);
+    com_repository_.RegisterModule(internal_attendants);
 }
 
 int32_t FactoryImplement::initialnize_engine(const std::string& root_dir, const std::string &declear_file, const FeatureMap &features){
@@ -200,15 +210,13 @@ int32_t FactoryImplement::enum_module_filters(mr::tinycom::IComModule *module)
         try{
             nlohmann::json filter_meta = nlohmann::json::parse(metadata);
             if(filter_meta.is_object()){
-                if(!filter_meta.contains("type"))
-                    continue;
-                if(filter_meta["type"] != "sdp-filter")
+                if(filter_meta.value("type","") != "sdp-filter")
                     continue;
 
                 FilterDelear declear;
-                declear.clsid = mr::tinycom::TGUID(filter_meta["clsid"].get<std::string>().c_str());
-                declear.describe = filter_meta["describe"].get<std::string>();
-                declear.module = filter_meta["name"].get<std::string>();
+                declear.clsid = mr::tinycom::TGUID(filter_meta.value("clsid","").c_str());
+                declear.describe = filter_meta.value("describe","");
+                declear.module = filter_meta.value("name","");
 
                 int type = 0;
                 auto &types = filter_meta["filtertype"];
@@ -220,8 +228,9 @@ int32_t FactoryImplement::enum_module_filters(mr::tinycom::IComModule *module)
                 auto &props = filter_meta["properties"];
                 for(auto& item : props){
                     Value prop;
-                    prop.name_ = item["name"];
-                    std::string type = item["type"];
+                    prop.name_ = item.value("name","null");
+                    prop.readonly_ = item.value("readonly",false);
+                    std::string type = item.value("type","null");
                     if(type == "number"){
                         prop.type_ = ValueType::kPorpertyNumber;
                         prop.value_ = item["value"].get<double>();
@@ -265,9 +274,9 @@ int32_t FactoryImplement::enum_module_filters(mr::tinycom::IComModule *module)
             }
 
         }
-        catch (const nlohmann::json::parse_error&)
+        catch (const nlohmann::json::parse_error& err)
         {
-
+            MR_ERROR("parse metadata failed:{} {}",metadata,err.what());
         }
     }
     return 0;

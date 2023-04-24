@@ -1,7 +1,7 @@
 #ifndef SDPI_FILTER_H_
 #define SDPI_FILTER_H_
-#include "sdpi_basic_types.h"
-#include "sdpi_pin.h"
+#include "sdmpi_basic_types.h"
+#include "sdmpi_pin.h"
 #include <any>
 //#include <sol/forward.hpp>//TODO: remove this use a own-var class
 

@@ -6,7 +6,7 @@
 #include <set>
 #include <atomic>
 #include "tinycom.h"
-#include "sdpi_basic_types.h"
+#include "sdmpi_basic_types.h"
 
 namespace mr::sdmp {
 

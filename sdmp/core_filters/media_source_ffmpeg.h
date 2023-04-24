@@ -3,7 +3,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include "sdp_general_filter.h"
+#include "sdmp_general_filter.h"
 namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(
@@ -32,7 +32,8 @@ R"({
     {
       "name": "duration",
       "type": "number",
-      "value": 0.0
+      "value": 0.0,
+      "readonly":true
     },
     {
       "name": "exceptionHandler",
@@ -42,7 +43,8 @@ R"({
     {
       "name": "fps",
       "type": "number",
-      "value": 0.0
+      "value": 0.0,
+      "readonly":true
     },
     {
       "name": "preBufferMs",
@@ -52,7 +54,8 @@ R"({
     {
       "name": "protocol",
       "type": "string",
-      "value": ""
+      "value": "",
+      "readonly":true
     },
     {
       "name": "readingMode",

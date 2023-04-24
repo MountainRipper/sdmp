@@ -246,7 +246,7 @@ int32_t VideoEncoderFFmpegFilter::encode_a_frame(FramePointer frame)
         //bytes += encode_packet->size;
         //MR_LOG_DEAULT("pts:{} totle:{} avrg bitrate:{:.2f}kbps frame pts:{}",encode_packet->pts,bytes,bytes*8.0/(pts/1000.0)/1000,frame->frame->pts);
         auto new_frame = Frame::make_packet(encode_packet);
-        new_frame->releaser = sdp_frame_free_packet_releaser;
+        new_frame->releaser = sdmp_frame_free_packet_releaser;
         get_pin(kOutputPin,0)->deliver(new_frame);
     }
     return 0;

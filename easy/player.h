@@ -2,7 +2,7 @@
 #define PLAYER_H
 #include <cstdint>
 #include <string>
-#include "sdpi_basic_types.h"
+#include "sdmpi_basic_types.h"
 namespace mr {
 namespace sdmp {
 

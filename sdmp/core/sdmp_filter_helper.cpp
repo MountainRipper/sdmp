@@ -2,8 +2,8 @@
 #include <set>
 #include <sstream>
 #include <mr/logger.h>
-#include <sdpi_pin.h>
-#include <sdpi_filter.h>
+#include <sdmpi_pin.h>
+#include <sdmpi_filter.h>
 #include "tree_recursive.h"
 
 namespace mr::sdmp {

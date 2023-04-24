@@ -1,7 +1,7 @@
 #ifndef VIDEOENCODERFFMPEG_H
 #define VIDEOENCODERFFMPEG_H
 
-#include "sdp_general_filter.h"
+#include "sdmp_general_filter.h"
 
 namespace mr::sdmp {
 

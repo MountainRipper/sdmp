@@ -2,11 +2,11 @@
 #include <spdlog/fmt/chrono.h>
 #include <filesystem>
 #include <glad/gl.h>
-#include <libavutil/frame.h>
 #include <imgui.h>
-#include <ttf/IconsFontAwesome6.h>
-#include <tio/tio_hardware_graphic.h>
 #include <mr/imgui_mr.h>
+#include <ttf/IconsFontAwesome6.h>
+#include <libavutil/frame.h>
+#include <sdmpi_factory.h>
 
 #include "example_player.h"
 
@@ -18,7 +18,7 @@ CacheFrame::CacheFrame(const CacheFrame &other){
     texture_y = other.texture_y;
     texture_u = other.texture_u;
     texture_v = other.texture_v;
-    frame = other.frame;
+    frame_pointer = other.frame_pointer;
 }
 
 void CacheFrame::create_to_texture(){
@@ -55,7 +55,7 @@ public:
         std::lock_guard<std::mutex> lock(cache_mutex_);
         totle_frame_count_++;
         CacheFrame cache_frame;
-        cache_frame.frame = frame;
+        cache_frame.frame_pointer = frame;
         //glfwMakeContextCurrent(win);
         cache_frame.create_to_texture();
         cached_frames_.push(cache_frame);
@@ -94,7 +94,7 @@ int32_t PlayerExample::on_video_frame(sdmp::Player *player, sdmp::FramePointer f
     std::lock_guard<std::mutex> lock(cache_mutex_);
     totle_frame_count_++;
     CacheFrame cache_frame;
-    cache_frame.frame = frame;
+    cache_frame.frame_pointer = frame;
     //glfwMakeContextCurrent(win);
     cache_frame.create_to_texture();
     cached_frames_.push(cache_frame);
@@ -190,59 +190,45 @@ int32_t PlayerExample::on_init(void *window,int width, int height)
     g_player = new sdmp::Player(script_path,easy_path);
     g_player->set_event(static_cast<sdmp::PlayerEvent*>(this));
 
-
-    textures_[0] = create_texture(128,128,0);
-    textures_[1] = create_texture(128,128,128);
-    textures_[2] = create_texture(128,128,128);
-
-    shader_ = TextureIO::create_reference_shader(mr::tio::kGraphicApiOpenGL,mr::tio::kSoftwareFormatI420);
+    renderer_ = mr::sdmp::Factory::create_object(CLSID_ATTENDANT_VIDEO_GRAPHIC_RENDERER);
     return 0;
 }
 
 int32_t PlayerExample::on_deinit()
 {
+    renderer_ = nullptr;
     return 0;
 }
 
 int32_t PlayerExample::on_frame()
 {
+    glClearColor(1.0,0.5,0.0,0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    SoftwareFrameFormat render_format = kSoftwareFormatRGBA32;
     //now render the video frame use opengl
-    auto frame = pop_frame();
-    shader_->use();
+    auto cache_frame = pop_frame();
 
-    if(frame.frame){
-
-        MR_TIMER_NEW(upload_texture);
-        AVFrame* av_frame = frame.frame->frame;
-        SoftwareFrame frame = {kSoftwareFormatI420,(uint32_t)av_frame->width,(uint32_t)av_frame->height};
-        GraphicTexture textures = {kGraphicApiOpenGL};
-        for(int index = 0; index < 4; index++){
-            frame.data[index] = av_frame->data[index];
-            frame.line_size[index] = av_frame->linesize[index];
-
-            textures.context[index] = textures_[index];
-            textures.flags[index] = texture_unit_base_+index;
-        }
-        TextureIO::software_frame_to_graphic(frame,textures);
-
-        mr::tio::ReferenceShader::RenderParam param{width_,height_,0,1,1,0,0};
-        shader_->render(textures,param);
-        glFinish();
-        MR_INFO("upload yuv420 3 texture use {}ms , pts:{}",MR_TIMER_MS_RESET(upload_texture),av_frame->pts);
+    static int rotate = 0;
+    if((++rotate) > 360)
+        rotate = 0;
+    sdmp::IFilterExtentionVideoRenderer::RenderParam param = {width_,height_,(float)rotate,1,1,0,0};
+    if(cache_frame.frame_pointer){
+        renderer_->render_video_frame(cache_frame.frame_pointer,param);
     }
     else{
-
+        renderer_->render_current_frame(param);
     }
 
 
     if(cache_frame_count() > 5){
         static int32_t  drop_frame_count  = 0;
         do{
-            frame = pop_frame();
-            if(frame.frame){
+            cache_frame = pop_frame();
+            if(cache_frame.frame_pointer){
                 drop_frame_count++;
             }
-        }while (frame.frame);
+        }while (cache_frame.frame_pointer);
         MR_INFO("Drop Video Frames Totle:{} Droped:{}",totle_frame_count() ,drop_frame_count);
     }
 

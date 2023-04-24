@@ -1,22 +1,24 @@
 #ifndef DATAGRABBER_H
 #define DATAGRABBER_H
-#include "sdp_general_filter.h"
+#include "sdmp_general_filter.h"
 
 namespace mr::sdmp {
+
+class VideoFrameConvertPrivate;
 
 COM_MULTITHREADED_OBJECT(
 "7569e094-b9a3-11ed-a62d-03f03fb39753",
 R"({
   "clsid": "7569e094-b9a3-11ed-a62d-03f03fb39753",
   "describe": "video software frame format convert",
-  "filtertype": ["AudioProcessor","VideoProcessor"],
+  "filtertype": ["VideoProcessor"],
   "name": "videoFrameConvert",
   "properties": [
     {
       "name": "format",
       "type": "string",
-      "value": "yuv420p",
-      "describe":"input:yuv420p,nv12,nv21,rgb,rgba, output:yuv420p,nv12,nv21,rgb,bgr,rgba,yuyv,yvyu,uyvy,yuv444,yuv444p"
+      "value": "I420",
+      "describe":"I420,YV12(false),NV12,NV21,I422,NV16,NV61(false),YUYV422,YVYU422,UYVY422,I444,NV24,NV42,YUV444(false),RGB24,BGR24,RGBA32,BGRA32,ARGB32,ABGR32,GRAY8,GRAY8A"
     },
     {
       "name": "width",
@@ -29,7 +31,7 @@ R"({
       "value": 0
     },
     {
-      "name": "cropMode",
+      "name": "fillMode",
       "type": "string",
       "value": "fit",
       "describe":"fill,fit,crop"
@@ -55,6 +57,11 @@ public:
     // GeneralFilter interface
 public:
     virtual int32_t property_changed(const std::string &property, Value &symbol) override;
+private:
+    void refresh_property();
+private:
+    int32_t output_fillmode_ = kStretchFill;
+    Format  format_out_;
 };
 
 };

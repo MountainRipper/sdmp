@@ -296,6 +296,7 @@ class IComModule{
 public:
     virtual const TGUID& uuid() = 0;
     virtual const char* name() = 0;
+    virtual const int32_t count() = 0;
     virtual const CLSID& GetClass(int32_t index) = 0;
     virtual const char* GetMetadata(int32_t index) = 0;
     virtual HRESULT CreateInstance(CLSID clsid,void** unknown) = 0;
@@ -322,7 +323,9 @@ public:
     virtual const char* name(){
         return name_.c_str();
     }
-
+    virtual const int32_t count(){
+        return entries_.size();
+    }
     virtual const TGUID& GetClass(int32_t index){
         const static TGUID null_guid;;
         if(index >= entries_.size())
@@ -624,12 +627,14 @@ COM MODULE REGISTER MACROS
 #define COM_MODULE_BEGINE(ID,MODULENAME) \
 mr::tinycom::IComModule* g_com_get_module_##MODULENAME(){\
     static mr::tinycom::ComModule s_com_module_(ID,AS_STR(MODULENAME));\
+    if(s_com_module_.count() == 0){
 
 #define COM_MODULE_OBJECT_ENTRY(CLS)\
     COM_OBJECT_ENTRY_IMPORT(CLS)\
     s_com_module_.RegisterObject(COM_OBJECT_ENTRY_UUID(CLS),COM_OBJECT_ENTRY_METADATA(CLS),COM_OBJECT_ENTRY_CREATOR(CLS));\
 
 #define COM_MODULE_END() \
+    }\
     return static_cast<mr::tinycom::IComModule*>(&s_com_module_);\
 }
 

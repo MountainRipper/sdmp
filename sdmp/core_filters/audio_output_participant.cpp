@@ -1,6 +1,6 @@
 #include "audio_output_participant.h"
-#include "sdp_factory_implement.h"
-#include "sdpi_factory.h"
+#include "sdmp_factory_implement.h"
+#include "sdmpi_factory.h"
 
 
 namespace mr::sdmp {
@@ -250,7 +250,7 @@ int32_t AudioOutputParticipantFilter::requare_samples(uint8_t *pcm, int32_t samp
             memcpy(frame->data[0],pcm,audio->linesize[0]);
 
             std::shared_ptr<sdmp::Frame> sdp_frame = sdmp::Frame::make_frame(frame);
-            sdp_frame->releaser = sdp_frame_free_frame_releaser;
+            sdp_frame->releaser = sdmp_frame_free_frame_releaser;
             handler_->grabber_get_frame(id_,sdp_frame);
         }
         return volume;

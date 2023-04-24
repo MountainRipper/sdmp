@@ -1,4 +1,4 @@
-#include "sdp_audio_resampler.h"
+#include "sdmp_audio_resampler.h"
 namespace mr::sdmp {
 
 
@@ -147,7 +147,7 @@ FramePointer SdpAudioResampler::pull(int32_t samples)
         return frame;
     }
     frame = Frame::make_frame(av_frame);
-    frame->releaser = sdp_frame_free_frame_releaser;
+    frame->releaser = sdmp_frame_free_frame_releaser;
     return frame;
 }
 

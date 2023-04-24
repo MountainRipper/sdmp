@@ -182,7 +182,7 @@ int32_t AudioEncoderFFmpegFilter::encode_a_frame(AVFrame *frame)
         if(encode_packet->pts < 0)
             continue;
         auto new_frame = Frame::make_packet(encode_packet);
-        new_frame->releaser = sdp_frame_free_packet_releaser;
+        new_frame->releaser = sdmp_frame_free_packet_releaser;
         get_pin(kOutputPin,0)->deliver(new_frame);
     }
     return 0;

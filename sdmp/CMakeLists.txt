@@ -85,7 +85,7 @@ file( GLOB SOURCE_SDL_MIXER core_deps/sdl_mixer/*.cpp core_deps/sdl_mixer/*.c co
 file( GLOB SOURCE_CORE core/*.cpp core/*.c core/*.h)
 file( GLOB SOURCE_CORE_FILTERS core_filters/*.cpp core_filters/*.c core_filters/*.h)
 file( GLOB SOURCE_CORE_FILTERS_INTERNAL core_filters/internal/*.cpp core_filters/internal/*.c core_filters/internal/*.h)
-file( GLOB SOURCE_CORE_STUBS core_stubs/*.cpp core_stubs/*.c core_stubs/*.h)
+file( GLOB SOURCE_CORE_ATTENDANT core_attendant/*.cpp core_attendant/*.c core_attendant/*.h)
 
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 foreach(dir ${dirs})
@@ -98,7 +98,7 @@ add_library(sdmp STATIC
     ${SOURCE_SYSTEM}
     ${SOURCE_CORE_FILTERS}
     ${SOURCE_CORE_FILTERS_INTERNAL}
-    ${SOURCE_CORE_STUBS}
+    ${SOURCE_CORE_ATTENDANT}
     ${SOURCE_DEPS}
     ${SOURCE_SDL_MIXER}
     ${EXTERNAL_SOURCE}

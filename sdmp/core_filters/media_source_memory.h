@@ -1,7 +1,7 @@
 #ifndef MEDIASOURCEMEMORY_H
 #define MEDIASOURCEMEMORY_H
 
-#include "sdp_general_filter.h"
+#include "sdmp_general_filter.h"
 
 namespace mr::sdmp {
 

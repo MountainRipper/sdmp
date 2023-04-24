@@ -2,8 +2,8 @@
 #define MEDIADEMUXER_H
 #include <queue>
 #include <mutex>
-#include "sdp_general_filter.h"
-#include "sdpi_filter_extentions.h"
+#include "sdmp_general_filter.h"
+#include "sdmpi_filter_extentions.h"
 namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(

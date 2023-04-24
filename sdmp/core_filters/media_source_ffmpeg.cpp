@@ -1,5 +1,5 @@
 #include <chrono>
-#include <sdpi_factory.h>
+#include <sdmpi_factory.h>
 #include "media_source_ffmpeg.h"
 
 
@@ -398,7 +398,7 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
             current_read_pts_= std::max(current_read_pts_,pts);
 
             auto new_frame = Frame::make_packet(packet);
-            new_frame->releaser = sdp_frame_free_packet_releaser;
+            new_frame->releaser = sdmp_frame_free_packet_releaser;
 
             output_pin->deliver(new_frame);
 

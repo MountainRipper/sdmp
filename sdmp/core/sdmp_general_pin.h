@@ -1,6 +1,6 @@
 #ifndef GENERALPIN_H
 #define GENERALPIN_H
-#include <sdpi_pin.h>
+#include <sdmpi_pin.h>
 
 namespace mr::sdmp {
 

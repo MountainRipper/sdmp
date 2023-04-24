@@ -1,11 +1,11 @@
 #ifndef AUDIOOUTPUTENGINE_H
 #define AUDIOOUTPUTENGINE_H
 #include <mutex>
-#include "sdp_general_filter.h"
-#include "sdp_general_pin.h"
-#include "sdpi_filter_extentions.h"
-#include "sdp_timeline_support.h"
-#include "sdp_audio_resampler.h"
+#include "sdmp_general_filter.h"
+#include "sdmp_general_pin.h"
+#include "sdmpi_filter_extentions.h"
+#include "sdmp_timeline_support.h"
+#include "sdmp_audio_resampler.h"
 
 namespace mr::sdmp {
 

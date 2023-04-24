@@ -1,5 +1,5 @@
-#include "sdp_general_filter.h"
-#include "sdp_general_pin.h"
+#include "sdmp_general_filter.h"
+#include "sdmp_general_pin.h"
 
 #include <sstream>
 namespace mr::sdmp {

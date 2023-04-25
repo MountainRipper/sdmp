@@ -36,7 +36,7 @@ COM_IMPLEMENT_INTERFACE(IRed)
     ~Apple(){
         fprintf(stderr,"%s destructor\n",__FUNCTION_NAME__);
     }
-    HRESULT count(int size){
+    TRESULT count(int size){
         fprintf(stderr,"%s size:%d\n",__FUNCTION_NAME__,size);
         return size * 2;
     }
@@ -45,7 +45,7 @@ COM_IMPLEMENT_INTERFACE(IRed)
         return "apple";
     }
 
-    HRESULT red(){
+    TRESULT red(){
         fprintf(stderr,"%s red:apple is red\n",__FUNCTION_NAME__);
         return 0;
     }
@@ -68,7 +68,7 @@ COM_IMPLEMENT_INTERFACE(IYellow)
     ~Pear(){
         fprintf(stderr,"%s destructor\n",__FUNCTION_NAME__);
     }
-    HRESULT count(int size){
+    TRESULT count(int size){
         fprintf(stderr,"%s size:%d\n",__FUNCTION_NAME__,size);
         return size * 2;
     }
@@ -76,7 +76,7 @@ COM_IMPLEMENT_INTERFACE(IYellow)
         fprintf(stderr,"%s name: pear\n",__FUNCTION_NAME__);
         return "apple";
     }
-    HRESULT yellow(){
+    TRESULT yellow(){
         fprintf(stderr,"%s yellow:pear is yellow\n",__FUNCTION_NAME__);
         return 0;
     }

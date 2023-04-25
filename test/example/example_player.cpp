@@ -187,7 +187,7 @@ int32_t PlayerExample::on_init(void *window,int width, int height)
 
     std::filesystem::path script_path = std::filesystem::path(CMAKE_FILE_DIR) / ".." / "script";
     std::filesystem::path easy_path = std::filesystem::path(CMAKE_FILE_DIR)/"../easy/script-easy";
-    g_player = new sdmp::Player(script_path,easy_path);
+    g_player = new sdmp::Player(script_path.string(),easy_path.string());
     g_player->set_event(static_cast<sdmp::PlayerEvent*>(this));
 
     renderer_ = mr::sdmp::Factory::create_object(CLSID_ATTENDANT_VIDEO_GRAPHIC_RENDERER);
@@ -212,7 +212,7 @@ int32_t PlayerExample::on_frame()
     static int rotate = 0;
     if((++rotate) > 360)
         rotate = 0;
-    sdmp::IFilterExtentionVideoRenderer::RenderParam param = {width_,height_,(float)rotate,1,1,0,0};
+    sdmp::IFilterExtentionVideoRenderer::RenderParam param = {width_,height_,(float)0,1,1,0,0};
     if(cache_frame.frame_pointer){
         renderer_->render_video_frame(cache_frame.frame_pointer,param);
     }

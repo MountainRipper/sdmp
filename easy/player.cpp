@@ -124,9 +124,9 @@ Player::Player(const std::string& base_scipts_dir, const std::string& easy_scipt
 {
     sdmp::Factory::initialize_factory();
     sdmp::FeatureMap features;
-    sdmp::Factory::initialnize_engine(base_scipts_dir,std::filesystem::path(base_scipts_dir)/"engine.lua",features);
+    sdmp::Factory::initialnize_engine(base_scipts_dir,(std::filesystem::path(base_scipts_dir)/"engine.lua").string(),features);
 
-    context_ = new PlayerPrivateContex(this,std::filesystem::path(easy_scipts_dir)/"player.lua");
+    context_ = new PlayerPrivateContex(this,(std::filesystem::path(easy_scipts_dir)/"player.lua").string());
 }
 
 int32_t Player::set_event(PlayerEvent *event)

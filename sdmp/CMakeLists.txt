@@ -116,7 +116,7 @@ target_compile_definitions(sdmp PRIVATE SDP_LIBRARY)
 
 if(${MP_TARGET_OS} MATCHES "linux")
 target_link_libraries(sdmp ${SEARCHED_LIBS})
-elseif(${MP_TARGET_OS} MATCHES "windows")
+elseif(${MP_TARGET_OS} MATCHES "mingw")
 target_link_libraries(sdmp ${SEARCHED_LIBS})
 elseif(${MP_TARGET_OS} MATCHES "darwin" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
 target_link_libraries(sdmp ${SEARCHED_LIBS} c++ "-framework Cocoa" "-framework OpenGL" "-framework IOKit" "-framework CoreFoundation" "-framework CoreVideo")

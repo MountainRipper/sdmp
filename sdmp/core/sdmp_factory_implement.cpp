@@ -146,7 +146,7 @@ int32_t FactoryImplement::initialnize_engine(const std::string& root_dir, const 
         return -1;
     }
 
-    root_dir_ = std::filesystem::path(root_dir).make_preferred() / "";
+    root_dir_ = (std::filesystem::path(root_dir).make_preferred() / "").string();
 
     MR_INFO("sdp engine use script root in: {}",root_dir_);
 

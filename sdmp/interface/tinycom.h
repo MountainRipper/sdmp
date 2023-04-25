@@ -14,7 +14,8 @@ xuwei - xiaoxuweier@gmail.com
 #include <vector>
 #include <algorithm>
 #include <map>
-typedef int32_t        HRESULT;
+
+typedef int32_t        TRESULT;
 #define S_OK           static_cast<int32_t>(0L)
 #define E_BOUNDS       static_cast<int32_t>(0x8000000BL)
 #define E_NOTIMPL      static_cast<int32_t>(0x80004001L)
@@ -28,27 +29,29 @@ typedef int32_t        HRESULT;
 #define E_OUTOFMEMORY  static_cast<int32_t>(0x8007000EL)
 #define E_INVALIDARG   static_cast<int32_t>(0x80070057L)
 #define E_NOT_SET      static_cast<int32_t>(0x80070490L)
+//#if !defined(WIN32) && !defined(WIN64)
 
-enum CLSCTX {
-  CLSCTX_INPROC_SERVER           = 0x1,
-  CLSCTX_INPROC_HANDLER          = 0x2,
-  CLSCTX_LOCAL_SERVER            = 0x4,
-  CLSCTX_REMOTE_SERVER           = 0x10,
-  CLSCTX_NO_CODE_DOWNLOAD        = 0x400,
-  CLSCTX_NO_CUSTOM_MARSHAL       = 0x1000,
-  CLSCTX_ENABLE_CODE_DOWNLOAD    = 0x2000,
-  CLSCTX_NO_FAILURE_LOG          = 0x4000,
-  CLSCTX_DISABLE_AAA             = 0x8000,
-  CLSCTX_ENABLE_AAA              = 0x10000,
-  CLSCTX_FROM_DEFAULT_CONTEXT    = 0x20000,
-  CLSCTX_ACTIVATE_32_BIT_SERVER  = 0x40000,
-  CLSCTX_ACTIVATE_64_BIT_SERVER  = 0x80000,
-  CLSCTX_ENABLE_CLOAKING         = 0x100000,
-  CLSCTX_APPCONTAINER            = 0x400000,
-  CLSCTX_ACTIVATE_AAA_AS_IU      = 0x800000,
-  CLSCTX_PS_DLL                  = 0x80000000
-};
-#define CLSCTX_ALL              (CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER)
+//enum CLSCTX {
+//  CLSCTX_INPROC_SERVER           = 0x1,
+//  CLSCTX_INPROC_HANDLER          = 0x2,
+//  CLSCTX_LOCAL_SERVER            = 0x4,
+//  CLSCTX_REMOTE_SERVER           = 0x10,
+//  CLSCTX_NO_CODE_DOWNLOAD        = 0x400,
+//  CLSCTX_NO_CUSTOM_MARSHAL       = 0x1000,
+//  CLSCTX_ENABLE_CODE_DOWNLOAD    = 0x2000,
+//  CLSCTX_NO_FAILURE_LOG          = 0x4000,
+//  CLSCTX_DISABLE_AAA             = 0x8000,
+//  CLSCTX_ENABLE_AAA              = 0x10000,
+//  CLSCTX_FROM_DEFAULT_CONTEXT    = 0x20000,
+//  CLSCTX_ACTIVATE_32_BIT_SERVER  = 0x40000,
+//  CLSCTX_ACTIVATE_64_BIT_SERVER  = 0x80000,
+//  CLSCTX_ENABLE_CLOAKING         = 0x100000,
+//  CLSCTX_APPCONTAINER            = 0x400000,
+//  CLSCTX_ACTIVATE_AAA_AS_IU      = 0x800000,
+//  CLSCTX_PS_DLL                  = 0x80000000
+//};
+//#define CLSCTX_ALL              (CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER)
+//#endif
 
 namespace mr::tinycom {
 
@@ -164,9 +167,6 @@ inline bool IsEqualUuid(const TGUID& a, const TGUID& b) {
 
 typedef mr::tinycom::TGUID  IID;
 typedef mr::tinycom::TGUID  CLSID;
-typedef const mr::tinycom::TGUID& REFGUID;
-typedef const mr::tinycom::TGUID& REFIID;
-typedef const mr::tinycom::TGUID& REFCLSID;
 
 #define IIDOF(x) IID_##x
 #define CLSIDOF(x) CLSID_##x
@@ -187,7 +187,7 @@ public:
     virtual ~IUnknown(){}
     virtual int32_t AddRef() = 0;
     virtual int32_t Release() = 0;
-    virtual int32_t QueryInterface(REFIID iid,void **interface) = 0;
+    virtual int32_t QueryInterface(const mr::tinycom::TGUID& iid,void **interface_ptr) = 0;
 
     static TGUID& uuid(){
         static TGUID iid_unknown(IID_IUnknown);
@@ -247,8 +247,8 @@ public:
         return refcount_;
     }
     static int32_t InternalQueryInterface(void* pThis, const InterfaceEntry* pEntries,
-                                   const TGUID& riid, void** interface) {
-        return _QueryInterface(pThis,pEntries,riid,interface);
+                                   const TGUID& riid, void** interface_ptr) {
+        return _QueryInterface(pThis,pEntries,riid,interface_ptr);
     }
 
 private:
@@ -276,8 +276,8 @@ public:
         }
         return ref;
     }
-    virtual int32_t QueryInterface(REFIID iid,void **interface) {
-        return _QueryInterface(this,cls::_GetEntries(),iid,interface);
+    virtual int32_t QueryInterface(const mr::tinycom::TGUID& iid,void **interface_ptr) {
+        return _QueryInterface(this,cls::_GetEntries(),iid,interface_ptr);
     }
 
     static mr::tinycom::IUnknown* Create() {
@@ -299,8 +299,8 @@ public:
     virtual const int32_t count() = 0;
     virtual const CLSID& GetClass(int32_t index) = 0;
     virtual const char* GetMetadata(int32_t index) = 0;
-    virtual HRESULT CreateInstance(CLSID clsid,void** unknown) = 0;
-    virtual HRESULT RegisterObject(CLSID clsid,const char* metadata,FuncComCreate creator) = 0;
+    virtual TRESULT CreateInstance(CLSID clsid,void** unknown) = 0;
+    virtual TRESULT RegisterObject(CLSID clsid,const char* metadata,FuncComCreate creator) = 0;
 };
 
 
@@ -337,7 +337,7 @@ public:
             return nullptr;
         return entries_[index].metadata.c_str();
     }
-    virtual HRESULT CreateInstance(CLSID clsid,void** unknown){
+    virtual TRESULT CreateInstance(CLSID clsid,void** unknown){
         *unknown = nullptr;
         for(const auto& item : entries_){
             if(item.clsid == clsid){
@@ -347,7 +347,7 @@ public:
         }
         return E_NOTIMPL;
     }
-    virtual HRESULT RegisterObject(CLSID clsid,const char* metadata,FuncComCreate creator){
+    virtual TRESULT RegisterObject(CLSID clsid,const char* metadata,FuncComCreate creator){
         for(const auto& item : entries_){
             if(item.clsid == clsid)
                 return E_INVALIDARG;
@@ -403,7 +403,7 @@ public:
         return tmp;
     }
     template <class Q>
-    HRESULT QueryInterface (Q** arg) const {
+    TRESULT QueryInterface (Q** arg) const {
         if (!p)
             return E_POINTER;
         if (!arg)
@@ -414,11 +414,11 @@ public:
         return p->QueryInterface(__t_uuidof(Q), reinterpret_cast<void**>(arg));
     }
     template <class CLS>
-    HRESULT CoCreateInstanceDirectly(){
+    TRESULT CoCreateInstanceDirectly(){
         ComPtr<IUnknown> unknown;
         unknown.Attach(ComCoClass<CLS>::Create());
         ComPtr tmp;
-        HRESULT ret = unknown.QueryInterface(&tmp);
+        TRESULT ret = unknown.QueryInterface(&tmp);
         Swap(tmp);
         return ret;
     }
@@ -428,7 +428,7 @@ public:
         return this_obj == other;
     }
 
-    HRESULT CopyTo (T** arg) {
+    TRESULT CopyTo (T** arg) {
         if (!arg)
             return E_POINTER;
         if (*arg)
@@ -551,10 +551,10 @@ public:                                                                         
     return iid_;                                                                                    \
   }
 
-#define COM_METHOD(_name_arg) virtual HRESULT _name_arg = 0;
+#define COM_METHOD(_name_arg) virtual TRESULT _name_arg = 0;
 #define COM_METHOD_RET(_type, _name_arg) virtual _type _name_arg = 0;
 
-#define COM_IMP_METHOD(_name_arg) virtual HRESULT _name_arg;
+#define COM_IMP_METHOD(_name_arg) virtual TRESULT _name_arg;
 #define COM_IMP_METHOD_RET(_type, _name_arg) virtual _type _name_arg;
 /*
 com object class define macros

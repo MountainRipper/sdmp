@@ -37,8 +37,8 @@ function Player:init()
 			exceptionHandler=mediaSoueceException,
                         --uri='',
                         -- uri='http://devmedia.aimymusic.com/02aebbde6571c5d9006a4bb7bfd62c1f'
-                        --uri = 'http://media.aimymusic.com/0042faffe7a8fad051a4107c96d806b3'
-                        uri='/home/xuwei/work/resources/nonono.mp4'
+                        uri = 'http://media.aimymusic.com/0042faffe7a8fad051a4107c96d806b3'
+                       -- uri='/home/xuwei/work/resources/nonono.mp4'
                         --uri='/home/xuwei/work/resources/2tracks.mp4'
 		},	
 		-- mediaCache={

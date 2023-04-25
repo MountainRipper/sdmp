@@ -12,5 +12,29 @@ file( GLOB SOURCE_IMGUI
 add_executable(sdl_player ${SOURCE_EXAMPLE} ${SOURCE_IMGUI})
 target_compile_definitions(sdl_player PRIVATE CMAKE_FILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}" USE_GLES=0)
 target_include_directories(sdl_player PRIVATE example/imgui)
-target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mr-common SDL2 freetype drm ssl X11)
 
+
+
+if(NOT DEFINED ${MP_TARGET_OS})
+    set(MP_TARGET_OS ${CMAKE_SYSTEM_NAME})
+endif()
+string(TOLOWER ${MP_TARGET_OS} MP_TARGET_OS)
+if(NOT DEFINED  ${MP_TARGET_ARCH})
+    set(MP_TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+
+
+if(${MP_TARGET_OS} MATCHES "linux")
+    include_directories(/usr/include/drm)
+    target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mr-common SDL2 freetype drm ssl X11)
+elseif(${MP_TARGET_OS} MATCHES "windows")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(MP_TARGET_OS "mingw")
+        target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mr-common SDL2.dll SDL2main luajit-5.1.dll )
+    endif()
+elseif(${MP_TARGET_OS} MATCHES "darwin")
+
+elseif(${MP_TARGET_OS} MATCHES "android")
+
+elseif(${MP_TARGET_OS} MATCHES "ios")
+endif()

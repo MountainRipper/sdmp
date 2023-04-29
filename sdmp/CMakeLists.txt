@@ -72,7 +72,7 @@ search_library(yuv HAS_LIBYUV "")
 #luajit
 search_library("luajit" HAS_LUAJIT "")
 #spdlog
-search_library(spdlog SPDLOG_COMPILED_LIB "d")
+search_library(mr-common HAS_MRCOMMON "")
 
 
 message(STATUS "INFO: LINK LIBRARIES:${SEARCHED_LIBS}")

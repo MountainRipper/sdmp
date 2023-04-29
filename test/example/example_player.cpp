@@ -1,11 +1,11 @@
-
-#include <spdlog/fmt/chrono.h>
 #include <filesystem>
 #include <glad/gl.h>
 #include <imgui.h>
 #include <mr/imgui_mr.h>
 #include <ttf/IconsFontAwesome6.h>
 #include <libavutil/frame.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/chrono.h>
 #include <sdmpi_factory.h>
 
 #include "example_player.h"
@@ -313,9 +313,10 @@ void PlayerExample::render_ui()
         ImGui::SameLine();
         const std::chrono::duration<float, std::milli> ms_p((int)(position_*duration_));
         const std::chrono::duration<float, std::milli> ms_d((int)duration_);
-        std::string  tm_str = fmt::format((ms_d >= std::chrono::hours(1))?"{:%H:%M:%S}/{:%H:%M:%S}":"{:%M:%S}/{:%M:%S}",
-                                          ms_p,
-                                          ms_d);
+        std::string  tm_str;
+        tm_str = fmt::format((ms_d >= std::chrono::hours(1))?"{:%H:%M:%S}/{:%H:%M:%S}":"{:%M:%S}/{:%M:%S}",
+                             ms_p,
+                             ms_d);
         ImGui::Text("%s", tm_str.c_str());
 
         bool old_autoreplay = auto_replay_;

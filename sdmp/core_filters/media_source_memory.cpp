@@ -70,7 +70,7 @@ int32_t MediaSourceMemoryFilter::grabber_get_format(const std::string &id, const
             output_format_.bitrate = av_image_get_buffer_size((AVPixelFormat)output_format_.format,output_format_.width,output_format_.height,1)*8*output_format_.fps;
         }
     }
-    update_pin_format(kOutputPin,0,0,output_format_);
+    sync_update_pin_format(kOutputPin,0,0,output_format_);
     return 0;
 }
 

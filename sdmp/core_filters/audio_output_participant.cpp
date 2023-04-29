@@ -91,7 +91,7 @@ int32_t AudioOutputParticipantFilter::connect_match_input_format(IPin *sender_pi
             continue;
 
         format_input_ = item;
-        update_pin_format(kInputPin,0,0,format_input_);
+        sync_update_pin_format(kInputPin,0,0,format_input_);
 
         if(handler_){
             handler_->grabber_get_format(id_,&item);
@@ -99,7 +99,7 @@ int32_t AudioOutputParticipantFilter::connect_match_input_format(IPin *sender_pi
 
         return index;
     }
-    update_pin_format(kInputPin,0,0,sdmp::Format());
+    sync_update_pin_format(kInputPin,0,0,sdmp::Format());
     return -1;
 }
 
@@ -110,7 +110,7 @@ int32_t AudioOutputParticipantFilter::connect_constraint_output_format(IPin *pin
         return -1;
     format_output_ = format[0];
     resampler_.reset(format_output_.samplerate,format_output_.channels,(AVSampleFormat)format_output_.format);
-    update_pin_format(kOutputPin,0,0,format_output_);
+    sync_update_pin_format(kOutputPin,0,0,format_output_);
 
     frame_size_ = 1024;
     AVCodecParameters* params = (AVCodecParameters*)format_output_.codec_parameters;
@@ -220,9 +220,6 @@ int32_t AudioOutputParticipantFilter::requare_samples(uint8_t *pcm, int32_t samp
         if(channel_mapping_.empty()){
             //direct copy to device
             memcpy(pcm,audio->data[0],audio->linesize[0]);
-            static FILE* f = fopen("aaa.pcm","wb");
-            fwrite(audio->data[0],1,audio->linesize[0],f);
-            fflush(f);
         }
         else{
             //remapp and copy

@@ -140,8 +140,8 @@ int32_t AudioEncoderFFmpegFilter::open_encoder(const Format& format)
 
     format_out_.timebase = format.timebase;
 
-    update_pin_format(kInputPin,0,0,format);
-    update_pin_format(kOutputPin,0,0,format_out_);
+    sync_update_pin_format(kInputPin,0,0,format);
+    sync_update_pin_format(kOutputPin,0,0,format_out_);
 
     resampler_.reset(format.samplerate,format.channels,(AVSampleFormat)codec_context->sample_fmt);
     return 0;

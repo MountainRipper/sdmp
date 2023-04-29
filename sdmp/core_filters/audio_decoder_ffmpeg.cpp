@@ -131,8 +131,8 @@ int32_t AudioDecoderFFmpegFilter::close_decoder()
         swr_free(&swr_to_packeted_);
         swr_to_packeted_ = nullptr;
     }
-    update_pin_format(kInputPin,0,0,sdmp::Format());
-    update_pin_format(kOutputPin,0,0,sdmp::Format());
+    sync_update_pin_format(kInputPin,0,0,sdmp::Format());
+    sync_update_pin_format(kOutputPin,0,0,sdmp::Format());
     return 0;
 }
 
@@ -190,8 +190,8 @@ int32_t AudioDecoderFFmpegFilter::open_decoder(const Format &format)
     if(ret < 0)
         return ret;
 
-    update_pin_format(kInputPin,0,0,format);
-    update_pin_format(kOutputPin,0,0,format_out_);
+    sync_update_pin_format(kInputPin,0,0,format);
+    sync_update_pin_format(kOutputPin,0,0,format_out_);
 
     return 0;
 }

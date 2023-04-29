@@ -231,8 +231,8 @@ int32_t VideoDecoderFFmpegFilter::open_decoder(const Format &format)
         format_out_.format = hw_format_;
     }
 
-    update_pin_format(kInputPin,0,0,format);
-    update_pin_format(kOutputPin,0,0,format_out_);
+    sync_update_pin_format(kInputPin,0,0,format);
+    sync_update_pin_format(kOutputPin,0,0,format_out_);
     return 0;
 }
 
@@ -344,8 +344,8 @@ int32_t VideoDecoderFFmpegFilter::close_decoder()
         av_buffer_unref(&hw_device_ctx_);
         hw_device_ctx_ = nullptr;
     }
-    update_pin_format(kInputPin,0,0,sdmp::Format());
-    update_pin_format(kOutputPin,0,0,sdmp::Format());
+    sync_update_pin_format(kInputPin,0,0,sdmp::Format());
+    sync_update_pin_format(kOutputPin,0,0,sdmp::Format());
     return 0;
 }
 
@@ -455,7 +455,7 @@ int32_t VideoDecoderFFmpegFilter::decode_a_frame(FramePointer frame)
     if(frame->packet == nullptr){
         if(frame->flag & kFrameFlagEos){
             Value status((double)kStatusEos);
-            set_property_async(kFilterPropertyStatus, status);
+            async_set_property_to_stript(kFilterPropertyStatus, status);
             deliver_eos_frame();
         }
     }

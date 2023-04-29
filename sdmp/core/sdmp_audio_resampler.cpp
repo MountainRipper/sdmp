@@ -102,10 +102,6 @@ int32_t SdpAudioResampler::push_audio_samples(const AVFrame *sample)
     if(!swr_is_initialized(resampler_))
         return -2;
 
-    static FILE* f = fopen("bbb.pcm","wb");
-    fwrite(sample->data[0],1,sample->linesize[0],f);
-    fflush(f);
-
     ret = swr_convert_frame(resampler_,nullptr,sample);
     if(ret < 0)
         return ret;

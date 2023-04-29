@@ -164,7 +164,7 @@ int32_t MediaMuxerFFmpegFilter::add_stream(const Format &format)
         stream->time_base.den = 24;
 
     auto pin_index = get_pins(kInputPin).size()-1;
-    update_pin_format(kInputPin,pin_index,0,format);
+    sync_update_pin_format(kInputPin,pin_index,0,format);
 
     pin_stream_map_[pin_index] = stream->id;
     pin_timebase_map_[pin_index] = format.timebase;

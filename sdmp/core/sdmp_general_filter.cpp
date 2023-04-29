@@ -41,9 +41,9 @@ int32_t GeneralFilter::initialize(IGraph *graph, const Value &filter_values)
         vm[id_] = filter_state_;
     }
 
-    bind_filter_to_script();
-    bind_pins_to_script(kInputPin);
-    bind_pins_to_script(kOutputPin);
+    sync_filter_to_script();
+    sync_pins_to_script(kInputPin);
+    sync_pins_to_script(kOutputPin);
     return 0;
 }
 
@@ -287,7 +287,7 @@ int32_t GeneralFilter::set_property(const std::string &property, const Value &va
     else{
         property_value = value;
         if(!from_script)
-            put_property_to_script(property,value);
+            sync_set_property_to_script(property,value);
 
         MR_LOG_DEAULT("Filter {} set property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(property_value));
         property_changed(property,property_value);
@@ -307,7 +307,7 @@ int32_t GeneralFilter::master_loop(bool before_after)
     //direct changed property use properties_["xxx"]=xxx, sync to script
     for(auto& item : properties_){
         if(item.second.value_changed_){
-            put_property_to_script(item.first,item.second);
+            sync_set_property_to_script(item.first,item.second);
             item.second.value_changed_ = false;
         }
     }
@@ -319,14 +319,14 @@ int32_t GeneralFilter::property_changed(const std::string &property, Value &valu
     return 0;
 }
 
-int32_t GeneralFilter::set_property_async(const std::string &property, const Value &value, const Value &call_param)
+int32_t GeneralFilter::async_set_property_to_stript(const std::string &property, const Value &value, const Value &call_param)
 {
     std::lock_guard<std::mutex> lock(async_mutex_);
     async_queue_.enqueue(kGeneralFilterAsyncSetPropertyEvent,this,property,value);
     return 0;
 }
 
-int32_t GeneralFilter::put_property_to_script(const std::string &property,const Value &value)
+int32_t GeneralFilter::sync_set_property_to_script(const std::string &property,const Value &value)
 {
     if(value.type_ == kPorpertyNumber)
         filter_state_[property] = value.as_double();
@@ -347,7 +347,7 @@ int32_t GeneralFilter::put_property_to_script(const std::string &property,const 
     return 0;
 }
 
-int32_t GeneralFilter::bind_filter_to_script()
+int32_t GeneralFilter::sync_filter_to_script()
 {
     for(auto& item : properties_){
         std::string property = item.first;
@@ -359,14 +359,14 @@ int32_t GeneralFilter::bind_filter_to_script()
             MR_LOG_DEAULT("Filter {} read pre-defined property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(symbol));
         }
         else{
-            put_property_to_script(property,symbol);
+            sync_set_property_to_script(property,symbol);
             MR_LOG_DEAULT("Filter {} create un-defined property {} to {}",id_.c_str(),property.c_str(),StringUtils::printable(symbol));
         }
     }
     return 0;
 }
 
-int32_t GeneralFilter::bind_pins_to_script(PinDirection direction)
+int32_t GeneralFilter::sync_pins_to_script(PinDirection direction)
 {
     std::string key = (direction == kInputPin ? "pinsInput" : "pinsOutput");
     auto& pins = get_pins(direction);
@@ -394,7 +394,7 @@ int32_t GeneralFilter::bind_pins_to_script(PinDirection direction)
     return 0;
 }
 
-int32_t GeneralFilter::update_pin_format(PinDirection direction, int32_t pin_index, int32_t format_index, const Format &format)
+int32_t GeneralFilter::sync_update_pin_format(PinDirection direction, int32_t pin_index, int32_t format_index, const Format &format)
 {
     auto pin = get_pin(direction,pin_index);
     if(pin == nullptr)
@@ -404,7 +404,7 @@ int32_t GeneralFilter::update_pin_format(PinDirection direction, int32_t pin_ind
         return -2;
 
     pin->formats()[format_index] = format;
-    bind_pins_to_script(direction);
+    sync_pins_to_script(direction);
     return 0;
 }
 
@@ -434,7 +434,7 @@ int32_t GeneralFilter::switch_status(GraphStatus status)
     if(graph_->in_master_loop())
         set_property(kFilterPropertyStatus,value);
     else
-        set_property_async(kFilterPropertyStatus,value);
+        async_set_property_to_stript(kFilterPropertyStatus,value);
     status_ = status;
     return 0;
 }

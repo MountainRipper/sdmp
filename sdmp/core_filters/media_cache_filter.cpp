@@ -286,8 +286,8 @@ int32_t MediaCacheSaverFilter::connect_before_match(IFilter *sender_filter)
             auto output_pin = create_general_pin(kOutputPin,pin->formats());
             source_pin_map_[pin] = std::pair<IPin*,IPin*>(input_pin.Get(),output_pin.Get());
         }
-        bind_pins_to_script(kInputPin);
-        bind_pins_to_script(kOutputPin);
+        sync_pins_to_script(kInputPin);
+        sync_pins_to_script(kOutputPin);
 
         manager_->create_fragment(source_info_, 0);
     }

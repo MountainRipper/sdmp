@@ -58,12 +58,12 @@ public:
     //virtual function declear by GeneralFilter
     virtual int32_t property_changed(const std::string& property, Value& symbol);
 protected:
-    int32_t set_property_async(const std::string& property, const Value& value,const Value& call_param = 0);
-    int32_t put_property_to_script(const std::string& property, const Value &value);
+    int32_t async_set_property_to_stript(const std::string& property, const Value& value,const Value& call_param = 0);
+    int32_t sync_set_property_to_script(const std::string& property, const Value &value);
 
-    int32_t bind_filter_to_script();
-    int32_t bind_pins_to_script(PinDirection direction);
-    int32_t update_pin_format(PinDirection direction, int32_t pin_index,int32_t format_index, const Format& format);    
+    int32_t sync_filter_to_script();
+    int32_t sync_pins_to_script(PinDirection direction);
+    int32_t sync_update_pin_format(PinDirection direction, int32_t pin_index,int32_t format_index, const Format& format);
 
     PinPointer create_general_pin(AVMediaType type,PinDirection direction);
     PinPointer create_general_pin(PinDirection direction,const Format& format);

@@ -31,6 +31,7 @@ int32_t VideoFrameConvert::connect_match_input_format(IPin *sender_pin,IPin *inp
     int index = 0;
     for (const auto& item :formats ) {
         if(av_tio_format_map.find((AVPixelFormat)item.format) != av_tio_format_map.end()){
+            sync_update_pin_format(kOutputPin,0,0,item);
             return index;
         }
         index++;
@@ -106,7 +107,7 @@ void VideoFrameConvert::refresh_property()
             }
         }
     }
-    update_pin_format(kOutputPin,0,0,format_out_);
+    sync_update_pin_format(kOutputPin,0,0,format_out_);
 }
 
 

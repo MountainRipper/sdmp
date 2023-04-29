@@ -36,7 +36,7 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
         MR_LOG_DEAULT("MediaSourceFFmpegFilter::open_media media source uri is empty skipping....");
         return 0;
     }
-    put_property_to_script("uri", uri_);
+    sync_set_property_to_script("uri", uri_);
 
     std::string protocol;
     {
@@ -141,7 +141,7 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
     set_property("duration",duration.seconds()*1000,false);
 
     if(!reconnect_in_proc){
-        bind_pins_to_script(kOutputPin);
+        sync_pins_to_script(kOutputPin);
         reading_thread_ = std::thread(&MediaSourceFFmpegFilter::reading_proc,this);
     }
     reconnect_count_ = 10;
@@ -264,7 +264,7 @@ int32_t MediaSourceFFmpegFilter::close()
 
     remove_pin(kOutputPin,kPinIndexAll);
     stream_pins_map_.clear();
-    bind_pins_to_script(kOutputPin);
+    sync_pins_to_script(kOutputPin);
     return 0;
 }
 
@@ -320,7 +320,7 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                 MR_LOG_DEAULT("WARNING:Network timeout...");
                 //can't call lua functions throw_job_error("timeout");
                 Value status((double)kStatusEos);
-                set_property_async(kFilterPropertyStatus, status);
+                async_set_property_to_stript(kFilterPropertyStatus, status);
                 deliver_eos_frame();
                 break;
             }
@@ -353,7 +353,7 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                 MR_LOG_DEAULT("MediaSourceFFmpegFilter::reading_proc() eof");
 
                 Value status((double)kStatusEos);
-                set_property_async(kFilterPropertyStatus, status);
+                async_set_property_to_stript(kFilterPropertyStatus, status);
                 deliver_eos_frame();
                 break;
             }

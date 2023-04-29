@@ -201,8 +201,8 @@ int32_t VideoEncoderFFmpegFilter::open_encoder(const Format& format)
     //but use higher precise format.timebase as stream's timebase, and processed by receivers
     format_out_.timebase = format.timebase;
 
-    update_pin_format(kInputPin,0,0,format);
-    update_pin_format(kOutputPin,0,0,format_out_);
+    sync_update_pin_format(kInputPin,0,0,format);
+    sync_update_pin_format(kOutputPin,0,0,format_out_);
     return 0;
 }
 

@@ -51,7 +51,7 @@ int32_t VideoOutputProxyFilter::connect_match_input_format(IPin *sender_pin,IPin
     int index = 0;
     for(auto& item : formats){
         if( support_avformat((AVPixelFormat)item.format) ){
-            update_pin_format(kInputPin,0,0,item);
+            sync_update_pin_format(kInputPin,0,0,item);
 
             if(item.fps > 0)
                 frame_interval_ = 1000.0 / item.fps;
@@ -61,7 +61,7 @@ int32_t VideoOutputProxyFilter::connect_match_input_format(IPin *sender_pin,IPin
         }
         index++;
     }
-    update_pin_format(kInputPin,0,0,sdmp::Format());    
+    sync_update_pin_format(kInputPin,0,0,sdmp::Format());
     return -1;
 }
 

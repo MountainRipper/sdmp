@@ -1,16 +1,16 @@
-#include "data_grabber.h"
+#include "video_thumbnail_pack.h"
 
 namespace mr::sdmp {
 
-COM_REGISTER_OBJECT(DataGrabber)
+COM_REGISTER_OBJECT(VideoThumbnailPack)
 
-DataGrabber::DataGrabber()
+VideoThumbnailPack::VideoThumbnailPack()
 {
 
 }
 
 
-int32_t sdmp::DataGrabber::initialize(IGraph *graph, const Value &filter_values)
+int32_t sdmp::VideoThumbnailPack::initialize(IGraph *graph, const Value &filter_values)
 {
     create_general_pin(AVMEDIA_TYPE_UNKNOWN,kInputPin);
     create_general_pin(AVMEDIA_TYPE_UNKNOWN,kOutputPin);
@@ -22,18 +22,14 @@ int32_t sdmp::DataGrabber::initialize(IGraph *graph, const Value &filter_values)
 }
 
 
-int32_t DataGrabber::connect_match_input_format(IPin *sender_pin,IPin *input_pin)
+int32_t VideoThumbnailPack::connect_match_input_format(IPin *sender_pin,IPin *input_pin)
 {
     (void)input_pin;
     const auto& formats = sender_pin->formats();
     int index = 0;
     for (const auto& item :formats ) {
-        if(item.type >=0 && item.codec >= 0 && item.format >= 0){
-            sync_update_pin_format(kInputPin,0,0,item);
+        if(av_tio_format_map.find((AVPixelFormat)item.format) != av_tio_format_map.end()){
             sync_update_pin_format(kOutputPin,0,0,item);
-            if(handler_){
-                handler_->grabber_get_format(id_,&item);
-            }
             return index;
         }
         index++;
@@ -41,7 +37,7 @@ int32_t DataGrabber::connect_match_input_format(IPin *sender_pin,IPin *input_pin
     return -1;
 }
 
-int32_t DataGrabber::receive(IPin *input_pin, FramePointer frame)
+int32_t VideoThumbnailPack::receive(IPin *input_pin, FramePointer frame)
 {
     (void)input_pin;
     get_pin(kOutputPin,0)->deliver(frame);
@@ -51,13 +47,13 @@ int32_t DataGrabber::receive(IPin *input_pin, FramePointer frame)
     return 0;
 }
 
-int32_t DataGrabber::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
+int32_t VideoThumbnailPack::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
 {
     (void)output_pins;
     return duration;
 }
 
-int32_t DataGrabber::connect_chose_output_format(IPin *output_pin, int32_t index)
+int32_t VideoThumbnailPack::connect_chose_output_format(IPin *output_pin, int32_t index)
 {
     (void)output_pin;
     (void)index;
@@ -65,7 +61,7 @@ int32_t DataGrabber::connect_chose_output_format(IPin *output_pin, int32_t index
 }
 
 
-int32_t DataGrabber::property_changed(const std::string &property, Value &symbol)
+int32_t VideoThumbnailPack::property_changed(const std::string &property, Value &symbol)
 {
     if(property == "grabber"){
         handler_ = (IFilterHandlerDataGrabber*)symbol.as_pointer();

@@ -5,11 +5,7 @@ add_executable(tinycom_test tinycom_test.cpp)
 target_include_directories(tinycom_test PRIVATE ../sdmp/interface)
 
 file( GLOB SOURCE_EXAMPLE example/*.cpp example/*.h)
-file( GLOB SOURCE_IMGUI
-    example/imgui/backends/imgui_impl_glfw.cpp
-    example/imgui/backends/imgui_impl_opengl3.cpp
-    example/imgui/*.cpp)
-add_executable(sdl_player ${SOURCE_EXAMPLE} ${SOURCE_IMGUI})
+add_executable(sdl_player ${SOURCE_EXAMPLE})
 target_compile_definitions(sdl_player PRIVATE CMAKE_FILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}" USE_GLES=0)
 target_include_directories(sdl_player PRIVATE example/imgui)
 

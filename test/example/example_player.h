@@ -10,22 +10,6 @@
 using namespace mr;
 
 
-struct CacheFrame{
-
-    CacheFrame(const CacheFrame& other);
-    CacheFrame(){
-
-    }
-    void create_to_texture();
-    void release_texture();
-public:
-    uint32_t texture_y = 0;
-    uint32_t texture_u = 0;
-    uint32_t texture_v = 0;
-    sdmp::FramePointer frame_pointer;
-};
-
-
 class PlayerExample : public SDLShowcaseBase
         ,public   sdmp::PlayerEvent
 {
@@ -41,7 +25,7 @@ public:
     virtual int32_t on_resumed() override;
     virtual int32_t on_stoped() override;
 
-    CacheFrame pop_frame();
+    sdmp::FramePointer pop_frame();
     int32_t cache_frame_count();
     int32_t totle_frame_count();
     // ExampleBase interface
@@ -64,7 +48,7 @@ private:
     ComPointer<mr::sdmp::IFilterExtentionVideoRenderer> renderer_;
 
     std::mutex cache_mutex_;
-    std::queue<CacheFrame> cached_frames_;
+    std::queue<sdmp::FramePointer> cached_frames_;
     int32_t totle_frame_count_ = 0;
 
     //ui stuff

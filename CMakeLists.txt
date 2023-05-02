@@ -24,7 +24,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-
+#######################arch and os detect#######################
 if(NOT DEFINED ${MP_TARGET_OS})
     set(MP_TARGET_OS ${CMAKE_SYSTEM_NAME})
 endif()
@@ -50,6 +50,7 @@ endif()
 if(${MP_TARGET_ARCH} MATCHES "AMD64")
     set(MP_TARGET_ARCH "x86_64")
 endif()
+#######################arch and os detect end#######################
 
 #mountain rippers third_party library builds
 set(THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../third_party")

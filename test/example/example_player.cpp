@@ -14,76 +14,6 @@ MR_MR_SDL_RUNNER_SHOWCASE(PlayerExample)
 
 using namespace mr::tio;
 
-CacheFrame::CacheFrame(const CacheFrame &other){
-    texture_y = other.texture_y;
-    texture_u = other.texture_u;
-    texture_v = other.texture_v;
-    frame_pointer = other.frame_pointer;
-}
-
-void CacheFrame::create_to_texture(){
-    return;
-}
-
-void CacheFrame::release_texture(){
-    if(texture_y){
-        glDeleteTextures(1,&texture_y);
-        texture_y = 0;
-    }
-    if(texture_u){
-        glDeleteTextures(1,&texture_u);
-        texture_u = 0;
-    }
-    if(texture_v){
-        glDeleteTextures(1,&texture_v);
-        texture_v = 0;
-    }
-}
-
-
-class PlayerEvent : public   mr::sdmp::PlayerEvent{
-public:
-
-
-    PlayerEvent(){
-
-    }
-    // PlayerEvent interface
-public:
-    virtual int32_t on_video_frame(sdmp::Player *player, sdmp::FramePointer frame) override{
-
-        std::lock_guard<std::mutex> lock(cache_mutex_);
-        totle_frame_count_++;
-        CacheFrame cache_frame;
-        cache_frame.frame_pointer = frame;
-        //glfwMakeContextCurrent(win);
-        cache_frame.create_to_texture();
-        cached_frames_.push(cache_frame);
-        //MR_INFO("get video frame type:{}",frame->frame->format);
-        return 0;
-    }
-    CacheFrame pop_frame(){
-        CacheFrame frame;
-        std::lock_guard<std::mutex> lock(cache_mutex_);
-        if(!cached_frames_.empty()){
-            frame = cached_frames_.front();
-            cached_frames_.pop();
-        }
-        return frame;
-    }
-    int32_t cache_frame_count(){
-        std::lock_guard<std::mutex> lock(cache_mutex_);
-        return cached_frames_.size();
-    }
-    int32_t totle_frame_count(){
-        return totle_frame_count_;
-    }
-private:
-    std::mutex cache_mutex_;
-    std::queue<CacheFrame> cached_frames_;
-    int32_t totle_frame_count_ = 0;
-};
-
 
 PlayerExample::PlayerExample()
 {
@@ -93,11 +23,7 @@ int32_t PlayerExample::on_video_frame(sdmp::Player *player, sdmp::FramePointer f
 
     std::lock_guard<std::mutex> lock(cache_mutex_);
     totle_frame_count_++;
-    CacheFrame cache_frame;
-    cache_frame.frame_pointer = frame;
-    //glfwMakeContextCurrent(win);
-    cache_frame.create_to_texture();
-    cached_frames_.push(cache_frame);
+    cached_frames_.push(frame);
     //MR_INFO("get video frame type:{}",frame->frame->format);
     return 0;
 }
@@ -152,8 +78,8 @@ int32_t PlayerExample::on_stoped()
     return 0;
 }
 
-CacheFrame PlayerExample::pop_frame(){
-    CacheFrame frame;
+sdmp::FramePointer PlayerExample::pop_frame(){
+    sdmp::FramePointer frame;
     std::lock_guard<std::mutex> lock(cache_mutex_);
     if(!cached_frames_.empty()){
         frame = cached_frames_.front();
@@ -213,8 +139,8 @@ int32_t PlayerExample::on_frame()
     if((++rotate) > 360)
         rotate = 0;
     sdmp::IFilterExtentionVideoRenderer::RenderParam param = {width_,height_,(float)0,1,1,0,0};
-    if(cache_frame.frame_pointer){
-        renderer_->render_video_frame(cache_frame.frame_pointer,param);
+    if(cache_frame){
+        renderer_->render_video_frame(cache_frame,param);
     }
     else{
         renderer_->render_current_frame(param);
@@ -225,10 +151,10 @@ int32_t PlayerExample::on_frame()
         static int32_t  drop_frame_count  = 0;
         do{
             cache_frame = pop_frame();
-            if(cache_frame.frame_pointer){
+            if(cache_frame){
                 drop_frame_count++;
             }
-        }while (cache_frame.frame_pointer);
+        }while (cache_frame);
         MR_INFO("Drop Video Frames Totle:{} Droped:{}",totle_frame_count() ,drop_frame_count);
     }
 

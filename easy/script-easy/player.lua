@@ -35,9 +35,9 @@ function Player:init()
 			customIO='f7b723d0-bd48-11eb-9155-4bbb70c16e00',
 			customIOCheckHandler=mediaSoueceCustomIOCheck,
 			exceptionHandler=mediaSoueceException,
-                        --uri='',
+                        uri='http://vfx.mtime.cn/Video/2021/07/10/mp4/210710171112971120.mp4',
                         -- uri='http://devmedia.aimymusic.com/02aebbde6571c5d9006a4bb7bfd62c1f'
-                        uri = 'http://media.aimymusic.com/0042faffe7a8fad051a4107c96d806b3'
+                       -- uri = 'http://media.aimymusic.com/0042faffe7a8fad051a4107c96d806b3'
                        -- uri='/home/xuwei/work/resources/nonono.mp4'
                         --uri='/home/xuwei/work/resources/2tracks.mp4'
 		},	
@@ -136,7 +136,7 @@ function Player:onConnectEvent()
 
 	
 
-    	self:connectAuto(mediaSource,videoDecoder)
+    self:connectAuto(mediaSource,videoDecoder)
 	--self:connectAuto(videoDecoder,videoConverter)
 	self:connectAuto(videoDecoder,videoOutput)
 

@@ -25,7 +25,8 @@ int32_t SdmpExample::init(){
     //外部特性信息，比如linux是运行于GLX还是EGL等。一般使用不用太关注
     sdmp::FeatureMap features;
     //engine.lua包含了音频设备信息，如后端是alsa还是winmm，输出采样率，设备关键字等
-    sdmp::Factory::initialnize_engine(base_scipts_dir,(std::filesystem::path(base_scipts_dir)/"engine.lua").string(),features);
+    sdmp::Factory::initialnize_engine(base_scipts_dir,
+    		(std::filesystem::path(base_scipts_dir)/"engine.lua").string(),features);
 
     //使用player.lua创建一个Graph，其中包含了一个播放器逻辑
     auto graph = sdmp::Factory::create_graph_from(std::filesystem::path(base_scipts_dir)/"player.lua",
@@ -40,10 +41,14 @@ int32_t SdmpExample::init(){
                     return 0;
                 }
                 else if(event == kGraphEventCreated){
-                    //脚本加载完成后，会按照脚本内容创建Filter组件，此时我们可以获取并操作Filter，这里我们在Graph中插入了一个视频输出接收器，用于渲染视频（sdmp::GraphHelper::append_video_observer是辅助方法，内部查询了视频输出Filter，并设置观察者接口，同时返回了绑定的render，可用于后续操作）
+                    //脚本加载完成后，会按照脚本内容创建Filter组件，此时我们可以获取并操作Filter，
+		    //这里我们在Graph中插入了一个视频输出接收器，用于渲染视频
+		    //(sdmp::GraphHelper::append_video_observer是辅助方法，内部查询了视频输出Filter，
+		    //并设置观察者接口，同时返回了绑定的render，可用于后续操作)
                     ComPointer<IFilterExtentionVideoOutputProxy> render;
-                    sdmp::GraphHelper::append_video_observer(graph,"",static_cast<IFilterExtentionVideoOutputProxy::Observer*>(this),true,render);
-                    //执行Graph Filter连接命令，sdmp会调用脚本的连接逻辑，然后判断该Graph是否逻辑可用（即有可用的Filter树）
+                    sdmp::GraphHelper::append_video_observer(graph,"",
+		    		static_cast<IFilterExtentionVideoOutputProxy::Observer*>(this),true,render);
+                    //执行Graph Filter连接命令，sdmp会调用脚本的连接逻辑，然后判断该Graph是否逻辑可用
                     graph->execute_command(kGraphCommandConnect);
                     //执行Graph运行命令，开始驱动数据流
                     graph->execute_command(kGraphCommandPlay);
@@ -58,9 +63,11 @@ int32_t SdmpExample::init(){
                 return 0;
             });
 
-    //Graph有自己的master线程，在该线程之外，可以使用execute_command_async进行异步调用，命令将进入执行队列，在master线程中执行
+    //Graph有自己的master线程，在该线程之外，可以使用execute_command_async进行异步调用，
+    //命令将进入执行队列，在master线程中执行
     graph->execute_command_async(kGraphCommandStop);
-    //可以异步调用lua中的方法(kGraphCommandCallLuaFunction命令)，这里调用了lua方法nativeSetVolume，将音量设置到100%
+    //可以异步调用lua中的方法(kGraphCommandCallLuaFunction命令)，
+    //这里调用了lua方法nativeSetVolume，将音量设置到100%
     //格式为 Arguments("lua_function_name").add(param1).add(param2).add(param3)
     //参数可以为数字类型，std::string，char*，bool，void*，std::vector<double>，std::vector<std::string>,详见mr::sdmp::Value
     graph->execute_command_async(kGraphCommandCallLuaFunction,Arguments("nativeSetVolume").add(1.0));
@@ -82,7 +89,8 @@ void SdmpExample::lua_call_native_multi_param(const std::string& call_id,sol::va
             case sol::type::boolean:any_value = value.as<bool>();break;
             ...
         }
-        //或者更简单的赋值给sdmp::Value,注意，请使用指针赋值，为了保持sdmp的api尽量干净少依赖，sol2的类型只有前向声明，所以这里需要指针
+        //或者更简单的赋值给sdmp::Value,注意，请使用指针赋值
+	//为了保持sdmp的api尽量干净少依赖，sol2的类型只有前向声明，所以这里需要指针
         Value value(&v);
         fprintf("value is :%s",StringUtils::printable(value));
     }
@@ -92,9 +100,10 @@ void SdmpExample::lua_call_native_multi_param(const std::string& call_id,sol::va
 
 engine.lua的定义
 ```lua
--- 引擎是全局的，Graph可以有多个实例，但Engine只有一个，其中包含的都是共享资源，如需要音频输出，必须定义一个audioOutputs，里面包含需要开启的媒体设备，在这里我们定义了一个名为两个音频设备，其名称用于Graph中，为音频输出Filter指定使用哪个输出设备，作为音频引擎，多路混音便在其中实现
+-- 引擎是全局的，Graph可以有多个实例，但Engine只有一个，其中包含的都是共享资源
+-- 如需要音频输出，必须定义一个audioOutputs，里面包含需要开启的媒体设备，在这里我们定义了一个名为两个音频设备，
+-- 其名称用于Graph中，为音频输出Filter指定使用哪个输出设备，作为音频引擎，多路混音便在其中实现
 
---
 audioOutputs={
 	defaultAudioPlaybackDevice={ -- 一个名为defaultAudioPlaybackDevice的设备
 		module='miniaudioOutput',-- 使用miniaudioOutput模块，这是sdmp内置的模块，你可以自己实现一个进行注册
@@ -133,31 +142,44 @@ function Player:init()
 
     -- self.filters 是初始化Filter列表，Graph加载的时候，会被默认创建，
 	self.filters={
-		mediaSource={ --模块名，即脚本中的实例名，元表中为模块的初始属性，不同模块有不同的属性，其中module是必须的
-			module='mediaSourceFFmpeg', --模块ID属性是必须的，指定了以哪个模块创建对象，这是注册到sdmp组件仓库中的Filter名
-			exceptionHandler=mediaSoueceException, -- 加载异常的捕获函数
-            uri='http://vfx.mtime.cn/Video/2021/07/10/mp4/210710171112971120.mp4' --初始uri，可以是本地文件，也可以是网络文件或流（视ffmpeg的编译参数）
+		--模块名，即脚本中的实例名，元表中为模块的初始属性，不同模块有不同的属性，其中module是必须的
+		mediaSource={
+		  --模块ID属性是必须的，指定了以哪个模块创建对象，这是注册到sdmp组件仓库中的Filter名
+		  module='mediaSourceFFmpeg', 
+		  -- 加载异常的捕获函数
+		  exceptionHandler=mediaSoueceException, 
+		  --初始uri，可以是本地文件，也可以是网络文件或流（视ffmpeg的编译参数）
+		  uri='http://vfx.mtime.cn/Video/2021/07/10/mp4/210710171112971120.mp4'
 		},	
 
 		videoDecoder={
-			module='videoDecoderFFmpeg', -- 内置ffmpeg视频解码器
-			-- module='videoDecoderRkmpp', -- 内置瑞芯微的rkmpp硬件解码器，在arm linux上使用的，这里演示如何使用不同的解码器，改模块id即可
-			hardwareApi="auto" -- ffmpeg有硬件解码功能 空为不使用，auto为自动，其余包含vaapi，dxva等，（视ffmpeg的编译参数）
+		  -- 内置ffmpeg视频解码器
+		  module='videoDecoderFFmpeg',
+		  -- ffmpeg有硬件解码功能 空为不使用，auto为自动，其余包含vaapi，dxva等，（视ffmpeg的编译参数）
+		  hardwareApi="auto" 
 		},
-        audioDecoder={
+		audioDecoder={
 			module='audioDecoderFFmpeg' -- 内置ffmpeg 音频解码器
 		},
 		videoOutput={
-			module='videoOutputProxy', -- 视频输出代理，sdmp不直接输出视频，这是用户去实现的，视用户如何整合进宿主，这涉及到外部的业务逻辑，当然sdmp包含的textureio库，能替你渲染，不过也需要接入外部的缓存/渲染流程
-			modePullPush=false
+		  -- 视频输出代理，sdmp不直接输出视频，这是用户去实现的，视用户如何整合进宿主，这涉及到外部的业务逻辑，
+		  -- 当然sdmp包含的textureio库，能替你渲染，不过也需要接入外部的缓存/渲染流程
+		  module='videoOutputProxy', 
+          -- 使用push模式，视频帧由sdmp主动触发
+		  modePullPush=false
 		},
-        audioOutput={
-            module='audioOutputParticipant', -- 音频输出Participant，这里叫参与者而不叫设备，是因为设备是共享的，这份音频只是其中一路混音流
-            idEngine='defaultAudioPlaybackDevice', -- 使用哪一个音频设备，即在engine.lua中定义的音频设备id
-            cacheDuration=1500, -- 缓冲区大小，单位为ms，模块会在饥饿时拉取1500ms的缓冲区
-            cacheHungerDuration=500, -- 饥饿阈值，当缓冲区小于500ms时，开始拉取补充数据至1500ms
-            volume=0.5 -- 初始音量大小
-        }
+		audioOutput={
+		    -- 音频输出Participant，这里叫参与者而不叫设备，是因为设备是共享的，这份音频只是其中一路混音流
+		    module='audioOutputParticipant', 
+            -- 使用哪一个音频设备，即在engine.lua中定义的音频设备id
+		    idEngine='defaultAudioPlaybackDevice', 
+            -- 缓冲区大小，单位为ms，模块会在饥饿时拉取1500ms的缓冲区
+		    cacheDuration=1500, 
+            -- 饥饿阈值，当缓冲区小于500ms时，开始拉取补充数据至1500ms
+		    cacheHungerDuration=500,
+            -- 初始音量大小
+		    volume=0.5 
+		}
 	}
 	
 end
@@ -179,7 +201,8 @@ function Player:onConnectEvent()
 			self.tracks = self.tracks + 1
             
             --使用self:createFilter 进行动态创建，包含filter名和属性列表，同Player:init()中的含义
-			local audioDecoder = self:createFilter('audioDecoder'....tostring(self.tracks), params={module='audioDecoderFFmpeg'})
+			local audioDecoder = self:createFilter('audioDecoder'....tostring(self.tracks), 
+                                                params={module='audioDecoderFFmpeg'})
 			local audioOutput = self:createFilter('audioOutput'..tostring(self.tracks), 
                                                 params={module='audioOutputParticipant',
                                                 idEngine='defaultAudioPlaybackDevice',

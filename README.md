@@ -11,7 +11,7 @@
 编译需要三方依赖库，请clone https://github.com/MountainRipper/third_party.git 到同级目录，并运行build.sh进行编译(linux),windows先运行build.bat,这将会首先安装msys2环境并启动，此时项目被挂载到/MountainRipper/third_party，进入该目录运行build.sh即可(会自动安装编译器和所需工具)
 
 ## 预备知识
-需要基础的C++ 11知识以载入和运行脚本，基本LUA知识以编写业务脚本（SDMP并没有重度使用LUA），额外的SOL2库使用经验以更好进行二次开发。 
+需要基础的C++ 11知识以载入和运行脚本，基本LUA知识以编写业务（SDMP并没有重度使用LUA），额外的SOL2库使用经验以更好进行二次开发。 
 
 <img src="./doc/sdl_player.jpg" />
 
@@ -105,7 +105,7 @@ engine.lua的定义
 -- 其名称用于Graph中，为音频输出Filter指定使用哪个输出设备，作为音频引擎，多路混音便在其中实现
 
 audioOutputs={
-	defaultAudioPlaybackDevice={ -- 一个名为defaultAudioPlaybackDevice的设备
+    defaultAudioPlaybackDevice={ -- 一个名为defaultAudioPlaybackDevice的设备
 		module='miniaudioOutput',-- 使用miniaudioOutput模块，这是sdmp内置的模块，你可以自己实现一个进行注册
 		selector='Realtek', -- 设备关键字为Realtek
 		backend='alsa', -- 使用alsa后端进行播放
@@ -153,32 +153,32 @@ function Player:init()
 		},	
 
 		videoDecoder={
-		  -- 内置ffmpeg视频解码器
-		  module='videoDecoderFFmpeg',
-		  -- ffmpeg有硬件解码功能 空为不使用，auto为自动，其余包含vaapi，dxva等，（视ffmpeg的编译参数）
-		  hardwareApi="auto" 
+            -- 内置ffmpeg视频解码器
+            module='videoDecoderFFmpeg',
+            -- ffmpeg有硬件解码功能 空为不使用，auto为自动，其余包含vaapi，dxva等，（视ffmpeg的编译参数）
+            hardwareApi="auto" 
 		},
 		audioDecoder={
 			module='audioDecoderFFmpeg' -- 内置ffmpeg 音频解码器
 		},
 		videoOutput={
-		  -- 视频输出代理，sdmp不直接输出视频，这是用户去实现的，视用户如何整合进宿主，这涉及到外部的业务逻辑，
-		  -- 当然sdmp包含的textureio库，能替你渲染，不过也需要接入外部的缓存/渲染流程
-		  module='videoOutputProxy', 
-          -- 使用push模式，视频帧由sdmp主动触发
-		  modePullPush=false
+            -- 视频输出代理，sdmp不直接输出视频，这是用户去实现的，视用户如何整合进宿主，这涉及到外部的业务逻辑，
+            -- 当然sdmp包含的textureio库，能替你渲染，不过也需要接入外部的缓存/渲染流程
+            module='videoOutputProxy', 
+            -- 使用push模式，视频帧由sdmp主动触发
+            modePullPush=false
 		},
 		audioOutput={
-		    -- 音频输出Participant，这里叫参与者而不叫设备，是因为设备是共享的，这份音频只是其中一路混音流
-		    module='audioOutputParticipant', 
+            -- 音频输出Participant，这里叫参与者而不叫设备，是因为设备是共享的，这份音频只是其中一路混音流
+            module='audioOutputParticipant', 
             -- 使用哪一个音频设备，即在engine.lua中定义的音频设备id
-		    idEngine='defaultAudioPlaybackDevice', 
+            idEngine='defaultAudioPlaybackDevice', 
             -- 缓冲区大小，单位为ms，模块会在饥饿时拉取1500ms的缓冲区
-		    cacheDuration=1500, 
+            cacheDuration=1500, 
             -- 饥饿阈值，当缓冲区小于500ms时，开始拉取补充数据至1500ms
-		    cacheHungerDuration=500,
+            cacheHungerDuration=500,
             -- 初始音量大小
-		    volume=0.5 
+            volume=0.5 
 		}
 	}
 	
@@ -197,23 +197,23 @@ function Player:onConnectEvent()
     --可以参考sdmp/easy/script-easy/player.lua的实现
     self.tracks = 1
     for i = 1, #mediaSource.pinsOutput do --枚举媒体源上的输出pin
-		if(mediaSource.pinsOutput[i].type == "audio") then
-			self.tracks = self.tracks + 1
+	if(mediaSource.pinsOutput[i].type == "audio") then
+		self.tracks = self.tracks + 1
             
-            --使用self:createFilter 进行动态创建，包含filter名和属性列表，同Player:init()中的含义
-			local audioDecoder = self:createFilter('audioDecoder'....tostring(self.tracks), 
-                                                params={module='audioDecoderFFmpeg'})
-			local audioOutput = self:createFilter('audioOutput'..tostring(self.tracks), 
-                                                params={module='audioOutputParticipant',
-                                                idEngine='defaultAudioPlaybackDevice',
-                                                cacheDuration=1500,
-                                                cacheHungerDuration=500,
-                                                volume=0})
+    --使用self:createFilter 进行动态创建，包含filter名和属性列表，同Player:init()中的含义
+	local audioDecoder = self:createFilter('audioDecoder'....tostring(self.tracks), 
+			params={module='audioDecoderFFmpeg'})
+	local audioOutput = self:createFilter('audioOutput'..tostring(self.tracks), 
+			params={module='audioOutputParticipant',
+			idEngine='defaultAudioPlaybackDevice',
+			cacheDuration=1500,
+			cacheHungerDuration=500,
+			volume=0})
 
             -- 连接动态创建的Filter
             self:connectAuto(mediaSource, audioDecoder)
 			self:connectAuto(audioDecoder, audioOutput)
-		end
+	    end
 	end
 
     --调用C++注入的方法luaCallNative，nativeContext是SdmpExample对象实例this指针，后面为参数
@@ -230,32 +230,31 @@ oo.class("Transcoder", Graph)
 function Transcoder:init()
     self.filters={
         mediaSource={ 
-			module='mediaSourceFFmpeg', 
-			exceptionHandler=mediaSoueceException, 
+            module='mediaSourceFFmpeg', 
+            exceptionHandler=mediaSoueceException, 
             uri='http://vfx.mtime.cn/Video/2021/07/10/mp4/210710171112971120.mp4'
-		},	
-
-		videoDecoder={
-			module='videoDecoderFFmpeg', 
-			hardwareApi="" -- 不使用硬解码， 因为需要帧缩放和转码，编码器只支持内存视频帧
-		},
+        },	
+        videoDecoder={
+            module='videoDecoderFFmpeg', 
+            hardwareApi="" -- 不使用硬解码， 因为需要帧缩放和转码，编码器只支持内存视频帧
+        },
         audioDecoder={
-			module='audioDecoderFFmpeg'
-		},
+	    module='audioDecoderFFmpeg'
+        },
         videoConverter={
-			module='videoFrameConvert', -- 视频帧转换模块
-			width=1280, --输出宽度
-			height=720, --输出高度
-			format="i420",--输出格式
-			fillMode="fit"--输出填充模式，AspectFit，保持输出画面比例不变，长边空余部分清空(黑色)
-		},
+            module='videoFrameConvert', -- 视频帧转换模块
+            width=1280, --输出宽度
+            height=720, --输出高度
+            format="i420",--输出格式
+            fillMode="fit"--输出填充模式，AspectFit，保持输出画面比例不变，长边空余部分清空(黑色)
+	},
         videoEncoder={
-			module='videoEncoderFFmpeg', 
+	    module='videoEncoderFFmpeg', 
             bitrate=2048000, -- bitrate 2Mbps
             encoderName='libx264', -- ffmpeg encoder named
             keyframeInterval=30, --关键帧间隔
             preset='fast' -- x264预设参数集
-		},
+	},
         audioEncoder={
             module='audioEncoderFFmpeg', 
             bitrate=128000, 
@@ -271,7 +270,7 @@ end
 
 function Transcoder:onConnectEvent()
     self:connectAuto(mediaSource,videoDecoder)  --连接媒体源和解码器
-	self:connectAuto(videoDecoder,videoConverter) --连接解码器和帧转换器
+    self:connectAuto(videoDecoder,videoConverter) --连接解码器和帧转换器
     self:connectAuto(videoConverter,videoEncoder) --连接转换器和编码器
     self:connectAuto(videoEncoder,mediaFileMuxer) --连接视频编码器和文件输出器
 

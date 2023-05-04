@@ -1,4 +1,5 @@
 # SDMP (script definable multimedia pipeline)
+
 - SDMP是一个使用脚本定义多媒体业务流的轻量级媒体框架，通过组织各个Filter，完成音视频的各种功能，如播放器，转码器，关键帧提取打包，音视频推流等。
 - SDMP设计上类似DirectShow和GStreamer，特别借鉴了COM组件的方式来管理资源，但轻量得多。
 - SDMP的设计是作为音视频开发包来嵌入各个应用场景，各位可以实现自己的Filter，并搭建Graph来实现自己的业务。
@@ -8,15 +9,21 @@
 - SDMP内部包含TextureIO库，来完成视频视频帧到GPU的上传，并提供Shader来直接渲染出画面(你也可以经由获取参考shader，使用宿主自己的图形管线来渲染，也可以绑定一个FrameBuffer，将视频直接渲染到你宿主的纹理)，更多信息请参考https://github.com/MountainRipper/textureio.git 
 
 ## 注意：
+
 编译需要三方依赖库，请clone https://github.com/MountainRipper/third_party.git 到同级目录，并运行build.sh进行编译(linux),windows先运行build.bat,这将会首先安装msys2环境并启动，此时项目被挂载到/MountainRipper/third_party，进入该目录运行build.sh即可(会自动安装编译器和所需工具)
 
 ## 预备知识
+
 需要基础的C++ 11知识以载入和运行脚本，基本LUA知识以编写业务（SDMP并没有重度使用LUA），额外的SOL2库使用经验以更好进行二次开发。 
 
 <img src="./doc/sdl_player.jpg" />
 
-##如何使用
+<img src="./doc/sdl_player_rotate.gif" />
+
+## 如何使用
+
 C++端启动一个引擎
+
 ```cpp
 int32_t SdmpExample::init(){
     std::string base_scipts_dir = "where you deploy you script";
@@ -26,7 +33,7 @@ int32_t SdmpExample::init(){
     sdmp::FeatureMap features;
     //engine.lua包含了音频设备信息，如后端是alsa还是winmm，输出采样率，设备关键字等
     sdmp::Factory::initialnize_engine(base_scipts_dir,
-    		(std::filesystem::path(base_scipts_dir)/"engine.lua").string(),features);
+            (std::filesystem::path(base_scipts_dir)/"engine.lua").string(),features);
 
     //使用player.lua创建一个Graph，其中包含了一个播放器逻辑
     auto graph = sdmp::Factory::create_graph_from(std::filesystem::path(base_scipts_dir)/"player.lua",
@@ -42,12 +49,12 @@ int32_t SdmpExample::init(){
                 }
                 else if(event == kGraphEventCreated){
                     //脚本加载完成后，会按照脚本内容创建Filter组件，此时我们可以获取并操作Filter，
-		    //这里我们在Graph中插入了一个视频输出接收器，用于渲染视频
-		    //(sdmp::GraphHelper::append_video_observer是辅助方法，内部查询了视频输出Filter，
-		    //并设置观察者接口，同时返回了绑定的render，可用于后续操作)
+            //这里我们在Graph中插入了一个视频输出接收器，用于渲染视频
+            //(sdmp::GraphHelper::append_video_observer是辅助方法，内部查询了视频输出Filter，
+            //并设置观察者接口，同时返回了绑定的render，可用于后续操作)
                     ComPointer<IFilterExtentionVideoOutputProxy> render;
                     sdmp::GraphHelper::append_video_observer(graph,"",
-		    		static_cast<IFilterExtentionVideoOutputProxy::Observer*>(this),true,render);
+                    static_cast<IFilterExtentionVideoOutputProxy::Observer*>(this),true,render);
                     //执行Graph Filter连接命令，sdmp会调用脚本的连接逻辑，然后判断该Graph是否逻辑可用
                     graph->execute_command(kGraphCommandConnect);
                     //执行Graph运行命令，开始驱动数据流
@@ -90,15 +97,15 @@ void SdmpExample::lua_call_native_multi_param(const std::string& call_id,sol::va
             ...
         }
         //或者更简单的赋值给sdmp::Value,注意，请使用指针赋值
-	//为了保持sdmp的api尽量干净少依赖，sol2的类型只有前向声明，所以这里需要指针
+    //为了保持sdmp的api尽量干净少依赖，sol2的类型只有前向声明，所以这里需要指针
         Value value(&v);
         fprintf("value is :%s",StringUtils::printable(value));
     }
 }
-
 ```
 
 engine.lua的定义
+
 ```lua
 -- 引擎是全局的，Graph可以有多个实例，但Engine只有一个，其中包含的都是共享资源
 -- 如需要音频输出，必须定义一个audioOutputs，里面包含需要开启的媒体设备，在这里我们定义了一个名为两个音频设备，
@@ -106,27 +113,28 @@ engine.lua的定义
 
 audioOutputs={
     defaultAudioPlaybackDevice={ -- 一个名为defaultAudioPlaybackDevice的设备
-		module='miniaudioOutput',-- 使用miniaudioOutput模块，这是sdmp内置的模块，你可以自己实现一个进行注册
-		selector='Realtek', -- 设备关键字为Realtek
-		backend='alsa', -- 使用alsa后端进行播放
-		samplerate=48000, --采样率
-		channels=2, -- 声道
-		framesize=480, -- 每次请求数据的粒度，这里即为10ms
-		bits=32, -- 位深度，这里为32位FLOAT (miniaudioOutput模块 中 16=short 32=float)
-	}，
+        module='miniaudioOutput',-- 使用miniaudioOutput模块，这是sdmp内置的模块，你可以自己实现一个进行注册
+        selector='Realtek', -- 设备关键字为Realtek
+        backend='alsa', -- 使用alsa后端进行播放
+        samplerate=48000, --采样率
+        channels=2, -- 声道
+        framesize=480, -- 每次请求数据的粒度，这里即为10ms
+        bits=32, -- 位深度，这里为32位FLOAT (miniaudioOutput模块 中 16=short 32=float)
+    }，
     outdoorAudioPlaybackDevice={ -- 第二个输出设备，字段同上
-		module='miniaudioOutput', 
-		selector='HDMI',
-		backend='pulse',
-		samplerate=44100,
-		channels=6, -- 5.1声道
-		framesize=882, -- 20ms
-		bits=16, -- short sample
-	}
-}	
+        module='miniaudioOutput', 
+        selector='HDMI',
+        backend='pulse',
+        samplerate=44100,
+        channels=6, -- 5.1声道
+        framesize=882, -- 20ms
+        bits=16, -- short sample
+    }
+}    
 ```
 
 player.lua的部分关键代码
+
 ```lua
 -- graph 是一个具体的业务逻辑，可以实现为播放器，也可以实现为转码器，
 
@@ -134,41 +142,41 @@ graphModule = require('graph') --载入graph基类，graph包含了和C++端调�
 oo.class("Player", Graph) --派生出一个Player
 
 function mediaSoueceException(objectId,code)
-	-- 处理资源加载错误
+    -- 处理资源加载错误
 end
 
 function Player:init()
-	Player.super.init(self)
+    Player.super.init(self)
 
     -- self.filters 是初始化Filter列表，Graph加载的时候，会被默认创建，
-	self.filters={
-		--模块名，即脚本中的实例名，元表中为模块的初始属性，不同模块有不同的属性，其中module是必须的
-		mediaSource={
-		  --模块ID属性是必须的，指定了以哪个模块创建对象，这是注册到sdmp组件仓库中的Filter名
-		  module='mediaSourceFFmpeg', 
-		  -- 加载异常的捕获函数
-		  exceptionHandler=mediaSoueceException, 
-		  --初始uri，可以是本地文件，也可以是网络文件或流（视ffmpeg的编译参数）
-		  uri='http://vfx.mtime.cn/Video/2021/07/10/mp4/210710171112971120.mp4'
-		},	
+    self.filters={
+        --模块名，即脚本中的实例名，元表中为模块的初始属性，不同模块有不同的属性，其中module是必须的
+        mediaSource={
+          --模块ID属性是必须的，指定了以哪个模块创建对象，这是注册到sdmp组件仓库中的Filter名
+          module='mediaSourceFFmpeg', 
+          -- 加载异常的捕获函数
+          exceptionHandler=mediaSoueceException, 
+          --初始uri，可以是本地文件，也可以是网络文件或流（视ffmpeg的编译参数）
+          uri='http://vfx.mtime.cn/Video/2021/07/10/mp4/210710171112971120.mp4'
+        },    
 
-		videoDecoder={
+        videoDecoder={
             -- 内置ffmpeg视频解码器
             module='videoDecoderFFmpeg',
             -- ffmpeg有硬件解码功能 空为不使用，auto为自动，其余包含vaapi，dxva等，（视ffmpeg的编译参数）
             hardwareApi="auto" 
-		},
-		audioDecoder={
-			module='audioDecoderFFmpeg' -- 内置ffmpeg 音频解码器
-		},
-		videoOutput={
+        },
+        audioDecoder={
+            module='audioDecoderFFmpeg' -- 内置ffmpeg 音频解码器
+        },
+        videoOutput={
             -- 视频输出代理，sdmp不直接输出视频，这是用户去实现的，视用户如何整合进宿主，这涉及到外部的业务逻辑，
             -- 当然sdmp包含的textureio库，能替你渲染，不过也需要接入外部的缓存/渲染流程
             module='videoOutputProxy', 
             -- 使用push模式，视频帧由sdmp主动触发
             modePullPush=false
-		},
-		audioOutput={
+        },
+        audioOutput={
             -- 音频输出Participant，这里叫参与者而不叫设备，是因为设备是共享的，这份音频只是其中一路混音流
             module='audioOutputParticipant', 
             -- 使用哪一个音频设备，即在engine.lua中定义的音频设备id
@@ -179,15 +187,15 @@ function Player:init()
             cacheHungerDuration=500,
             -- 初始音量大小
             volume=0.5 
-		}
-	}
-	
+        }
+    }
+
 end
 
 --filter 连接事件 由C++中graph->execute_command(kGraphCommandConnect);触发
 function Player:onConnectEvent()
     self:connectAuto(mediaSource,videoDecoder) -- 连接媒体源和视频解码器
-	self:connectAuto(videoDecoder,videoOutput) -- 连接视频解码器和视频输出代理
+    self:connectAuto(videoDecoder,videoOutput) -- 连接视频解码器和视频输出代理
 
     self:connectAuto(mediaSource,audioDecoder) -- 连接媒体源和音频解码器
     self:connectAuto(audioDecoder,audioOutput) -- 连接音频解码器和音频设备输出流
@@ -197,24 +205,24 @@ function Player:onConnectEvent()
     --可以参考sdmp/easy/script-easy/player.lua的实现
     self.tracks = 1
     for i = 1, #mediaSource.pinsOutput do --枚举媒体源上的输出pin
-	if(mediaSource.pinsOutput[i].type == "audio") then
-		self.tracks = self.tracks + 1
-            
+    if(mediaSource.pinsOutput[i].type == "audio") then
+        self.tracks = self.tracks + 1
+
     --使用self:createFilter 进行动态创建，包含filter名和属性列表，同Player:init()中的含义
-	local audioDecoder = self:createFilter('audioDecoder'....tostring(self.tracks), 
-			params={module='audioDecoderFFmpeg'})
-	local audioOutput = self:createFilter('audioOutput'..tostring(self.tracks), 
-			params={module='audioOutputParticipant',
-			idEngine='defaultAudioPlaybackDevice',
-			cacheDuration=1500,
-			cacheHungerDuration=500,
-			volume=0})
+    local audioDecoder = self:createFilter('audioDecoder'....tostring(self.tracks), 
+            params={module='audioDecoderFFmpeg'})
+    local audioOutput = self:createFilter('audioOutput'..tostring(self.tracks), 
+            params={module='audioOutputParticipant',
+            idEngine='defaultAudioPlaybackDevice',
+            cacheDuration=1500,
+            cacheHungerDuration=500,
+            volume=0})
 
             -- 连接动态创建的Filter
             self:connectAuto(mediaSource, audioDecoder)
-			self:connectAuto(audioDecoder, audioOutput)
-	    end
-	end
+            self:connectAuto(audioDecoder, audioOutput)
+        end
+    end
 
     --调用C++注入的方法luaCallNative，nativeContext是SdmpExample对象实例this指针，后面为参数
     luaCallNative(nativeContext,"connect-done", "no-error")
@@ -224,6 +232,7 @@ end
 ```
 
 下面演示如何创建一个转码器，并将视频调整到1280x720,如果输入尺寸不是16:9，则包围黑边
+
 ```lua
 graphModule = require('graph')
 oo.class("Transcoder", Graph)
@@ -233,13 +242,13 @@ function Transcoder:init()
             module='mediaSourceFFmpeg', 
             exceptionHandler=mediaSoueceException, 
             uri='http://vfx.mtime.cn/Video/2021/07/10/mp4/210710171112971120.mp4'
-        },	
+        },    
         videoDecoder={
             module='videoDecoderFFmpeg', 
             hardwareApi="" -- 不使用硬解码， 因为需要帧缩放和转码，编码器只支持内存视频帧
         },
         audioDecoder={
-	    module='audioDecoderFFmpeg'
+        module='audioDecoderFFmpeg'
         },
         videoConverter={
             module='videoFrameConvert', -- 视频帧转换模块
@@ -247,14 +256,14 @@ function Transcoder:init()
             height=720, --输出高度
             format="i420",--输出格式
             fillMode="fit"--输出填充模式，AspectFit，保持输出画面比例不变，长边空余部分清空(黑色)
-	},
+    },
         videoEncoder={
-	    module='videoEncoderFFmpeg', 
+        module='videoEncoderFFmpeg', 
             bitrate=2048000, -- bitrate 2Mbps
             encoderName='libx264', -- ffmpeg encoder named
             keyframeInterval=30, --关键帧间隔
             preset='fast' -- x264预设参数集
-	},
+    },
         audioEncoder={
             module='audioEncoderFFmpeg', 
             bitrate=128000, 
@@ -279,3 +288,11 @@ function Transcoder:onConnectEvent()
     self:connectAuto(audioEncoder,mediaFileMuxer) --连接音频编码器和文件输出器
 end
 ```
+
+感兴趣的可以保持关注，欢迎加入讨论群
+
+<img src="./doc/qr-brilliant.jpg" width = "320" height = "450"  />
+
+二维码失效可加我本人
+
+<img src="./doc/qr-myself.jpg" width = "320" height = "435" />

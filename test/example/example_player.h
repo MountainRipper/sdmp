@@ -4,7 +4,7 @@
 #include <mutex>
 #include <queue>
 #include <mr/sdl_runner.h>
-#include <easy/player.h>
+#include <player.h>
 #include "sdmpi_filter_extentions.h"
 
 using namespace mr;

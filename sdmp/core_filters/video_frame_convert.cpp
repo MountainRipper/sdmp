@@ -1,6 +1,5 @@
 #include "video_frame_convert.h"
-#include "textureio/src/convert_manager.h"
-#include "tio/tio_software_frame.h"
+#include <tio/tio_software_frame.h>
 namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(VideoFrameConvert)

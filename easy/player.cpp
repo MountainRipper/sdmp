@@ -1,7 +1,7 @@
 #include <filesystem>
 #include <sol/sol.hpp>
-#include <sdmp/interface/sdmpi_factory.h>
-#include <sdmp/interface/sdmpi_filter_extentions.h>
+#include <sdmpi_factory.h>
+#include <sdmpi_filter_extentions.h>
 #include <mr/logger.h>
 #include "player.h"
 

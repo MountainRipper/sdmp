@@ -28,11 +28,11 @@ include_directories(../third_party/include)
 
 SET(TARGET_ARCH  ${CMAKE_SYSTEM_PROCESSOR})
 
-SET(SEARCHED_LIBS "")
+SET(MR_SEARCHED_LIBS "")
 SET(EXTERNAL_SOURCE "")
 
 add_definitions(-D MR_LOG_DEAULT=MR_DEBUG)
-add_definitions(-D SDMP_LOG_LEVEL=mp::Logger::LogLevel::kLogLevelDebug)
+add_definitions(-D SDMR_LOG_LEVEL=mp::Logger::LogLevel::kLogLevelDebug)
 
 macro(search_library libName macroDefine debugSuffix)
     SET(libVar ${macroDefine}_LIB)
@@ -43,17 +43,17 @@ macro(search_library libName macroDefine debugSuffix)
         LIST(PREPEND libNames ${libName}${debugSuffix})
     endif()
 
-    find_library(${libVar} NAMES ${libNames} HINTS ${SEARCH_LIB_PATHS})
+    find_library(${libVar} NAMES ${libNames} HINTS ${MR_SEARCH_LIB_PATHS})
     if(${libVar} STREQUAL "${libVar}-NOTFOUND")
-        message(STATUS "INFO: SEARCH_LIBRARY NOT Fount ${libNames}")
+        message(STATUS "INFO: MR_SEARCH_LIB_PATHS NOT Fount ${libNames}")
     else()
-        message(STATUS "INFO: SEARCH_LIBRARY Fount ${libNames} : ${${libVar}}")
+        message(STATUS "INFO: MR_SEARCH_LIB_PATHS Fount ${libNames} : ${${libVar}}")
         add_definitions(-D ${macroDefine}=1)
-        LIST(APPEND SEARCHED_LIBS ${${libVar}})
+        LIST(APPEND MR_SEARCHED_LIBS ${${libVar}})
     endif()
 endmacro(search_library)
 
-message("search path is ${SEARCH_LIB_PATHS}")
+message("search path is ${MR_SEARCH_LIB_PATHS}")
 #linux libraries
 search_library(GLX HAVE_GLX "")
 search_library(va HAS_VAAPI "")
@@ -114,12 +114,12 @@ set_target_properties(
 
 target_compile_definitions(sdmp PRIVATE SDP_LIBRARY)
 
-if(${MP_TARGET_OS} MATCHES "linux")
-target_link_libraries(sdmp ${SEARCHED_LIBS})
-elseif(${MP_TARGET_OS} MATCHES "mingw")
-target_link_libraries(sdmp ${SEARCHED_LIBS})
-elseif(${MP_TARGET_OS} MATCHES "darwin" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-target_link_libraries(sdmp ${SEARCHED_LIBS} c++ "-framework Cocoa" "-framework OpenGL" "-framework IOKit" "-framework CoreFoundation" "-framework CoreVideo")
+if(${MR_TARGET_OS} MATCHES "linux")
+target_link_libraries(sdmp ${MR_SEARCHED_LIBS})
+elseif(${MR_TARGET_OS} MATCHES "mingw")
+target_link_libraries(sdmp ${MR_SEARCHED_LIBS})
+elseif(${MR_TARGET_OS} MATCHES "darwin" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+target_link_libraries(sdmp ${MR_SEARCHED_LIBS} c++ "-framework Cocoa" "-framework OpenGL" "-framework IOKit" "-framework CoreFoundation" "-framework CoreVideo")
 endif()
 
 

@@ -32,6 +32,8 @@ COM_INTERFACE("00dbdc6c-a7eb-11eb-b2e1-ffc673986017",IFilterExtentionVideoOutput
 
 COM_INTERFACE("dbb6987a-e274-11ed-a101-d327fd9131b3",IFilterExtentionVideoRenderer)
     struct RenderParam{
+        int32_t view_x = 0;
+        int32_t view_y = 0;
         int32_t view_width = 0;
         int32_t view_height = 0;
         float rotate = 0;

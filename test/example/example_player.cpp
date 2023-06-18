@@ -1,7 +1,7 @@
 #include <filesystem>
 #include <glad/gl.h>
 #include <imgui.h>
-#include <mr/imgui_mr.h>
+#include <mrcommon/imgui_mr.h>
 #include <ttf/IconsFontAwesome6.h>
 #include <libavutil/frame.h>
 #include <spdlog/fmt/fmt.h>
@@ -138,7 +138,7 @@ int32_t PlayerExample::on_frame()
     static int rotate = 0;
     if((++rotate) > 360)
         rotate = 0;
-    sdmp::IFilterExtentionVideoRenderer::RenderParam param = {width_,height_,(float)0,1,1,0,0};
+    sdmp::IFilterExtentionVideoRenderer::RenderParam param = {0,0,width_,height_,(float)0,1,1,0,0};
     if(cache_frame){
         renderer_->render_video_frame(cache_frame,param);
     }

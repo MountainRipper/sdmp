@@ -38,7 +38,9 @@ int32_t VideoGraphicRenderer::render_video_frame(FramePointer frame, IFilterExte
 
     shader_->use();
     return shader_->render(textures,
-                    {param.view_width ,
+                    {param.view_x ,
+                     param.view_y ,
+                     param.view_width ,
                      param.view_height,
                      param.rotate     ,
                      param.scale_x    ,
@@ -55,13 +57,15 @@ int32_t VideoGraphicRenderer::render_current_frame(IFilterExtentionVideoRenderer
 
     shader_->use();
     return shader_->render(textures,
-                    {param.view_width ,
-                     param.view_height,
-                     param.rotate     ,
-                     param.scale_x    ,
-                     param.scale_y    ,
-                     param.offset_x   ,
-                     param.offset_y   });
+                           {param.view_x ,
+                            param.view_y ,
+                            param.view_width ,
+                            param.view_height,
+                            param.rotate     ,
+                            param.scale_x    ,
+                            param.scale_y    ,
+                            param.offset_x   ,
+                            param.offset_y   });
 }
 
 int32_t VideoGraphicRenderer::release()

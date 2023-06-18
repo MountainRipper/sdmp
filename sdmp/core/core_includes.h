@@ -1,7 +1,7 @@
 #ifndef CORE_INCLUDES_H
 #define CORE_INCLUDES_H
 
-#include <mr/logger.h>
+#include <mrcommon/logger.h>
 #include <tio/tio_software_frame.h>
 #include "sdmpi_graph.h"
 #include "sdmpi_factory.h"

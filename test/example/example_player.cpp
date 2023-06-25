@@ -2,12 +2,13 @@
 #include <glad/gl.h>
 #include <imgui.h>
 #include <mrcommon/imgui_mr.h>
+#include <thread>
 #include <ttf/IconsFontAwesome6.h>
 #include <libavutil/frame.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/chrono.h>
 #include <sdmpi_factory.h>
-
+#include <SDL2/SDL.h>
 #include "example_player.h"
 
 MR_MR_SDL_RUNNER_SHOWCASE(PlayerExample)
@@ -45,6 +46,7 @@ int32_t PlayerExample::on_reload()
 
 int32_t PlayerExample::on_playing()
 {
+    stoped_ = false;
     status_string_ = "Playing";
     status_string_history_.push_back(status_string_);
     return 0;
@@ -73,6 +75,7 @@ int32_t PlayerExample::on_resumed()
 
 int32_t PlayerExample::on_stoped()
 {
+    stoped_ = true;
     status_string_ = "Stoped";
     status_string_history_.push_back(status_string_);
     return 0;
@@ -122,6 +125,12 @@ int32_t PlayerExample::on_init(void *window,int width, int height)
 
 int32_t PlayerExample::on_deinit()
 {
+    g_player->stop();
+    while (!stoped_) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    delete g_player;
+    mr::sdmp::Factory::deinitialize();
     renderer_ = nullptr;
     return 0;
 }
@@ -204,7 +213,7 @@ void PlayerExample::render_ui()
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
     {
-        window_flags |= ImGuiWindowFlags_NoMove;
+        //window_flags |= ImGuiWindowFlags_NoMove;
         if(resized_){
             resized_ = false;
             auto pos = ImGui::GetMainViewport()->GetCenter();

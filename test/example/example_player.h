@@ -65,6 +65,8 @@ private:
     bool auto_replay_ = false;
     std::string status_string_ = "Idel";
     std::vector<std::string> status_string_history_;
+
+    bool stoped_ = false;
 };
 
 #endif // PLAYEREXAMPLE_H

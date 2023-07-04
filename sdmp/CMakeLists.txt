@@ -115,11 +115,11 @@ set_target_properties(
 target_compile_definitions(sdmp PRIVATE SDP_LIBRARY)
 
 if(${MR_TARGET_OS} MATCHES "linux")
-target_link_libraries(sdmp ${MR_SEARCHED_LIBS})
+target_link_libraries(sdmp PUBLIC ${MR_SEARCHED_LIBS})
 elseif(${MR_TARGET_OS} MATCHES "mingw")
-target_link_libraries(sdmp ${MR_SEARCHED_LIBS})
+target_link_libraries(sdmp PUBLIC ${MR_SEARCHED_LIBS})
 elseif(${MR_TARGET_OS} MATCHES "darwin" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-target_link_libraries(sdmp ${MR_SEARCHED_LIBS} c++ "-framework Cocoa" "-framework OpenGL" "-framework IOKit" "-framework CoreFoundation" "-framework CoreVideo")
+target_link_libraries(sdmp PUBLIC ${MR_SEARCHED_LIBS} c++ "-framework Cocoa" "-framework OpenGL" "-framework IOKit" "-framework CoreFoundation" "-framework CoreVideo")
 endif()
 
 

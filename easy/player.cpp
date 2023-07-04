@@ -3,6 +3,7 @@
 #include <sdmpi_factory.h>
 #include <sdmpi_filter_extentions.h>
 #include <mrcommon/logger.h>
+#include <thread>
 #include "player.h"
 
 namespace mr {
@@ -63,31 +64,37 @@ private:
             track_ = graph_tb["info"]["track"].get_or<double>(0) - 1;
         }
         else if(type == "playing"){
+            stoped_ = false;
             end_of_stream_ = false;
             if(event_)
                 event_->on_playing();
         }
         else if(type == "replaying"){
+            stoped_ = false;
             end_of_stream_ = false;
             if(event_)
                 event_->on_replaying();
         }
         else if(type == "paused"){
+            stoped_ = false;
             end_of_stream_ = false;
             if(event_)
                 event_->on_paused();
         }
         else if(type == "resume"){
+            stoped_ = false;
             end_of_stream_ = false;
             if(event_)
                 event_->on_resumed();
         }
         else if(type == "end-of-stream"){
+            stoped_ = false;
             end_of_stream_ = true;
             if(event_)
                 event_->on_end();
         }
         else if(type == "stoped"){
+            stoped_ = true;
             end_of_stream_ = false;
             if(event_)
                 event_->on_stoped();
@@ -118,6 +125,7 @@ public:
     float    framerate_ = 0;
     float    volume = 0;
     bool     end_of_stream_ = false;
+    bool     stoped_ = false;
 };
 
 Player::Player(const std::string& base_scipts_dir, const std::string& easy_scipts_dir)
@@ -127,6 +135,15 @@ Player::Player(const std::string& base_scipts_dir, const std::string& easy_scipt
     sdmp::Factory::initialnize_engine(base_scipts_dir,(std::filesystem::path(base_scipts_dir)/"engine.lua").string(),features);
 
     context_ = new PlayerPrivateContex(this,(std::filesystem::path(easy_scipts_dir)/"player.lua").string());
+}
+
+Player::~Player()
+{
+    stop();
+    while (!context_->stoped_) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    delete context_;
 }
 
 int32_t Player::set_event(PlayerEvent *event)

@@ -22,11 +22,11 @@ endif()
 
 if(${MR_TARGET_OS} MATCHES "linux")
     include_directories(/usr/include/drm)
-    target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mrcommon SDL2 freetype drm ssl X11)
+    target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mrcommon mrbundle SDL2 freetype drm ssl X11)
 elseif(${MR_TARGET_OS} MATCHES "windows")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(MR_TARGET_OS "mingw")
-        target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mrcommon SDL2.dll dwmapi luajit-5.1.dll )
+        target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mrcommon mrbundle SDL2.dll dwmapi luajit-5.1.dll )
     endif()
 elseif(${MR_TARGET_OS} MATCHES "darwin")
 

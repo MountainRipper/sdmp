@@ -70,7 +70,7 @@ search_library("swresample" HAS_SW_RESAMPLE "")
 #libyuv
 search_library(yuv HAS_LIBYUV "")
 #luajit
-search_library("luajit" HAS_LUAJIT "")
+search_library("luajit;luajit-5.1" HAS_LUAJIT "")
 #spdlog
 search_library(mrcommon HAS_MRCOMMON "")
 
@@ -116,7 +116,7 @@ target_compile_definitions(sdmp PRIVATE SDP_LIBRARY)
 
 if(${MR_TARGET_OS} MATCHES "linux")
 target_link_libraries(sdmp PUBLIC ${MR_SEARCHED_LIBS})
-elseif(${MR_TARGET_OS} MATCHES "mingw")
+elseif(${MR_TARGET_OS} MATCHES "windows")
 target_link_libraries(sdmp PUBLIC ${MR_SEARCHED_LIBS})
 elseif(${MR_TARGET_OS} MATCHES "darwin" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
 target_link_libraries(sdmp PUBLIC ${MR_SEARCHED_LIBS} c++ "-framework Cocoa" "-framework OpenGL" "-framework IOKit" "-framework CoreFoundation" "-framework CoreVideo")

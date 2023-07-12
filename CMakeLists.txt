@@ -89,3 +89,8 @@ add_subdirectory(textureio)
 add_subdirectory(sdmp)
 add_subdirectory(easy)
 add_subdirectory(test)
+
+
+
+#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/script DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/easy/script_easy/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/script)

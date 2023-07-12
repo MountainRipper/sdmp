@@ -1,7 +1,7 @@
 
 #include "../sdmp/interface/tinycom.h"
 
-#if defined(_MSVC)
+#if defined(_MSC_VER)
 #define __FUNCTION_NAME__ __FUNCTION__
 #else
 #define __FUNCTION_NAME__ __PRETTY_FUNCTION__

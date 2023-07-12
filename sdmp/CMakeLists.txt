@@ -103,7 +103,7 @@ add_library(sdmp STATIC
     ${SOURCE_SDL_MIXER}
     ${EXTERNAL_SOURCE}
 )
-target_include_directories(sdmp PUBLIC ./interface ./interface/core_stubs)
+target_include_directories(sdmp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/interface ${CMAKE_CURRENT_SOURCE_DIR}/interface/core_stubs)
 target_include_directories(sdmp PRIVATE ./core ./core_deps ../textureio/include)
 
 set_target_properties(
@@ -141,8 +141,10 @@ install(
 
 add_custom_command(TARGET sdmp
                     POST_BUILD
-                    COMMAND echo  "copy interface:${CMAKE_CURRENT_SOURCE_DIR}/interface to ${CMAKE_CURRENT_BINARY_DIR}/interface"
-                    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/interface  ${CMAKE_CURRENT_BINARY_DIR}/interface
+                    COMMAND echo  "copy interface headers and scripts"
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/interface"  "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/interface"
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/../script"  "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/script"
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/../easy/script-easy"  "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/script"
                    )
 
 

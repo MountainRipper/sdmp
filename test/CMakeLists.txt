@@ -27,6 +27,8 @@ elseif(${MR_TARGET_OS} MATCHES "windows")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(MR_TARGET_OS "mingw")
         target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mrcommon mrbundle SDL2.dll dwmapi luajit-5.1.dll )
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mrcommon mrbundle SDL2 dwmapi lua51 )
     endif()
 elseif(${MR_TARGET_OS} MATCHES "darwin")
 

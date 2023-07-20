@@ -1,7 +1,6 @@
 #include <filesystem>
 #include <glad/gl.h>
 #include <imgui.h>
-#include <mrcommon/imgui_mr.h>
 #include <thread>
 #include <ttf/IconsFontAwesome6.h>
 #include <libavutil/frame.h>
@@ -208,8 +207,6 @@ void PlayerExample::render_ui()
     if(duration_ == 0)
         duration_ = g_player->duration();
 
-    auto& font_helper = ImGuiHelper::get();
-
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
     {
@@ -296,7 +293,6 @@ void PlayerExample::render_ui()
     }
 
     {
-        font_helper.use_font_scale(0.75);
 
         ImGui::SetNextWindowBgAlpha(0.15f);
         ImGui::Begin("Log Panel",NULL,window_flags);
@@ -309,8 +305,6 @@ void PlayerExample::render_ui()
         }
         ImGui::TextUnformatted(log.begin(), log.end());
         ImGui::End();
-
-        font_helper.restore_font_size();
     }
 
 

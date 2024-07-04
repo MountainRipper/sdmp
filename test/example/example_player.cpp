@@ -9,7 +9,10 @@
 #include <sdmpi_factory.h>
 #include <SDL2/SDL.h>
 #include "example_player.h"
-
+#include <mrcommon/logger.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+#include <stb/stb_image_write.h>
 MR_MR_SDL_RUNNER_SHOWCASE(PlayerExample)
 
 using namespace mr::tio;
@@ -181,6 +184,11 @@ void PlayerExample::cursor_callback(double x, double y)
 }
 
 void PlayerExample::key_callback(int key, int type, int scancode, int mods)
+{
+
+}
+
+void PlayerExample::char_callback(const char *key, int type)
 {
 
 }

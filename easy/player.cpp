@@ -50,11 +50,11 @@ private:
             channels_   = graph_tb["info"]["audioChannels"].get_or<double>(0);
             audio_bits_ = graph_tb["info"]["audioBits"].get_or<double>(0);
             tracks_     = graph_tb["info"]["tracks"].get_or<double>(0);
-            width_  = graph_tb["info"]["videoWidth"].get_or<double>(0);
-            height_ = graph_tb["info"]["videoHeight"].get_or<double>(0);
-            framerate_ = graph_tb["info"]["videoFps"].get_or<double>(0);
-            volume = graph_tb["info"]["volume"].get_or<double>(0);
-            track_ = graph_tb["info"]["track"].get_or<double>(0) - 1;
+            width_      = graph_tb["info"]["videoWidth"].get_or<double>(0);
+            height_     = graph_tb["info"]["videoHeight"].get_or<double>(0);
+            framerate_  = graph_tb["info"]["videoFps"].get_or<double>(0);
+            volume      = graph_tb["info"]["volume"].get_or<double>(0);
+            track_      = graph_tb["info"]["track"].get_or<double>(0) - 1;
 
             auto_replay_ = graph_tb["info"]["autoReplay"];
             if(event_)

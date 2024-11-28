@@ -9,7 +9,8 @@
 namespace mr {
 namespace sdmp {
 
-class PlayerPrivateContex : public IFilterExtentionVideoOutputProxy::Observer{
+class PlayerPrivateContex : public IFilterExtentionVideoOutputProxy::Observer
+    , public sdmp::IFilterHandlerDataGrabber{
 public:
     PlayerPrivateContex(Player* player,const std::string& script)
         :player_(player){
@@ -26,6 +27,8 @@ public:
                 sdmp::GraphHelper::append_video_observer(graph,"",static_cast<IFilterExtentionVideoOutputProxy::Observer*>(this),true,render);
                 graph->execute_command(kGraphCommandConnect);
                 graph->execute_command(kGraphCommandPlay);
+                if(event_)
+                    event_->on_inited();
                 return 0;
             }
             return 0;
@@ -37,6 +40,33 @@ public:
     {
         if(event_)
             return event_->on_video_frame(nullptr,frame);
+        return 0;
+    }
+    // IUnknown interface
+public:
+    virtual int32_t AddRef() override
+    {
+        return 0;
+    }
+    virtual int32_t Release() override
+    {
+        return 0;
+    }
+    virtual int32_t QueryInterface(const tinycom::TGUID &iid, void **interface_ptr) override
+    {
+        return 0;
+    }
+    // IFilterHandlerDataGrabber interface
+public:
+    virtual TRESULT grabber_get_format(const std::string &id, const Format *format) override
+    {
+        return 0;
+    }
+    virtual TRESULT grabber_get_frame(const std::string &id, std::shared_ptr<Frame> frame) override
+    {
+        if(event_){
+            event_->on_audio_frame(player_,frame);
+        }
         return 0;
     }
 private:
@@ -128,6 +158,10 @@ public:
     bool     stoped_ = false;
 };
 
+
+
+
+
 Player::Player(const std::string& base_scipts_dir, const std::string& easy_scipts_dir)
 {
     sdmp::Factory::initialize_factory();
@@ -149,6 +183,20 @@ Player::~Player()
 int32_t Player::set_event(PlayerEvent *event)
 {
     context_->event_ = event;
+    return 0;
+}
+
+int32_t Player::grabber_audio(bool enable)
+{
+    void* grabber = static_cast<sdmp::IFilterHandlerDataGrabber*>(context_);
+    sdmp::Value ptr(enable?grabber:nullptr);
+    sdmp::GraphHelper::set_filter_property(context_->graph.get(),"audioOutput1","grabber",ptr);
+    return 0;
+}
+
+int32_t Player::open(const std::string &uri)
+{
+    context_->graph->execute_command_async(kGraphCommandCallLuaFunction,Arguments("nativeSetMedia").add(uri));
     return 0;
 }
 

@@ -22,6 +22,16 @@ PlayerExample::PlayerExample()
 {
 }
 
+int32_t PlayerExample::on_inited()
+{
+    return 0;
+}
+
+int32_t PlayerExample::on_audio_frame(sdmp::Player *player, sdmp::FramePointer frame)
+{
+    return 0;
+}
+
 int32_t PlayerExample::on_video_frame(sdmp::Player *player, sdmp::FramePointer frame){
 
     std::lock_guard<std::mutex> lock(cache_mutex_);
@@ -184,11 +194,6 @@ void PlayerExample::cursor_callback(double x, double y)
 }
 
 void PlayerExample::key_callback(int key, int type, int scancode, int mods)
-{
-
-}
-
-void PlayerExample::char_callback(const char *key, int type)
 {
 
 }

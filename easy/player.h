@@ -17,6 +17,8 @@ enum SdpPlayerCannelMode{
 class Player;
 class PlayerEvent{
 public:
+    virtual int32_t on_inited() = 0;
+    virtual int32_t on_audio_frame(Player* player,sdmp::FramePointer frame) = 0;
     virtual int32_t on_video_frame(Player* player,sdmp::FramePointer frame) = 0;
     virtual int32_t on_end() = 0;
     virtual int32_t on_playing() = 0;
@@ -34,6 +36,7 @@ public:
     Player(const std::string& base_scipts_dir, const std::string& easy_scipts_dir);
     ~Player();
     int32_t set_event(PlayerEvent* event);
+    int32_t grabber_audio(bool enable);
 
     int32_t open(const std::string& uri);
     int32_t play(int32_t position_ms = kPositionCurrent);

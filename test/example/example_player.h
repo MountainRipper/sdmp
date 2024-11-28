@@ -16,6 +16,8 @@ class PlayerExample : public SDLShowcaseBase
 public:
     PlayerExample();
 
+    virtual int32_t on_inited() override;
+    virtual int32_t on_audio_frame(sdmp::Player *player, sdmp::FramePointer frame) override;
     virtual int32_t on_video_frame(sdmp::Player *player, sdmp::FramePointer frame) override;
     virtual int32_t on_end() override;
     virtual int32_t on_reload() override;
@@ -38,7 +40,6 @@ public:
     virtual void button_callback(int bt,int type,int clicks,double x,double y) override;
     virtual void cursor_callback(double x, double y) override;
     virtual void key_callback(int key, int type,int scancode,int mods) override;
-    virtual void char_callback(const char* key, int type) override;
     virtual void error_callback(int err, const char *desc) override;
     virtual void resize_callback(int width, int height) override;
     virtual void command(std::string command) override;

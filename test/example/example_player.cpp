@@ -6,7 +6,7 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/chrono.h>
 #include <sdmpi_factory.h>
-
+#include <mrcommon/logger.h>
 #include "example_player.h"
 
 MR_MR_SDL_RUNNER_SHOWCASE(PlayerExample)
@@ -198,7 +198,7 @@ void PlayerExample::render_ui()
     if(duration_ == 0)
         duration_ = g_player->duration();
 
-    auto& font_helper = ImGuiHelper::get();
+    //auto& font_helper = ImGuiHelper::get();
 
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
@@ -286,7 +286,7 @@ void PlayerExample::render_ui()
     }
 
     {
-        font_helper.use_font_scale(0.75);
+       // font_helper.use_font_scale(0.75);
 
         ImGui::SetNextWindowBgAlpha(0.15f);
         ImGui::Begin("Log Panel",NULL,window_flags);
@@ -300,7 +300,7 @@ void PlayerExample::render_ui()
         ImGui::TextUnformatted(log.begin(), log.end());
         ImGui::End();
 
-        font_helper.restore_font_size();
+       // font_helper.restore_font_size();
     }
 
 

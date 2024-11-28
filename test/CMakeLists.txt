@@ -29,7 +29,11 @@ elseif(${MR_TARGET_OS} MATCHES "windows")
         target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mrcommon SDL2.dll dwmapi luajit-5.1.dll )
     endif()
 elseif(${MR_TARGET_OS} MATCHES "darwin")
-
+    if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+        target_link_libraries(sdl_player sdmp-easy sdmp textureio mrcommon luajit avformat avcodec swresample swscale avutil glad imgui_stb SDL2 ssl)
+    elseif(${MR_TARGET_OS} MATCHES "Release")
+        target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mrcommon SDL2 ssl)
+    endif()
 elseif(${MR_TARGET_OS} MATCHES "android")
 
 elseif(${MR_TARGET_OS} MATCHES "ios")

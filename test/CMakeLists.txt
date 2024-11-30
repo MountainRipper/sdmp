@@ -31,7 +31,7 @@ elseif(${MR_TARGET_OS} MATCHES "windows")
         target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mrcommon imgui_stb SDL2 dwmapi lua51 )
     endif()
 elseif(${MR_TARGET_OS} MATCHES "darwin")
-
+    target_link_libraries(sdl_player sdmp-easy sdmp avcodec avformat avutil swscale swresample yuv textureio glad mrcommon spdlogd imgui_stb luajit SDL2 ssl)
 elseif(${MR_TARGET_OS} MATCHES "android")
 
 elseif(${MR_TARGET_OS} MATCHES "ios")

@@ -262,7 +262,7 @@ const char* sdmp_arch(){
 
 int32_t ValueUtils::arguments_to_lua_values(const Arguments& args,sol::state& state,std::vector<sol::lua_value>& lua_values){
     for(const auto& item : args.params()){
-        sol::lua_value v =sol::nil;
+        sol::lua_value v =sol::lua_nil;
         item.to_lua_value(&state,&v);
         lua_values.push_back(v);
     }

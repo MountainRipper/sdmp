@@ -131,7 +131,6 @@ FramePointer SdpAudioResampler::pull(int32_t samples)
     AVFrame* av_frame = av_frame_alloc();
     av_frame->format = format_;
     av_frame->sample_rate = samplerate_;
-    av_frame->channels = channel_layout_.nb_channels;
     av_frame->nb_samples = samples;
     av_frame->ch_layout = channel_layout_;
     av_frame_get_buffer(av_frame,1);

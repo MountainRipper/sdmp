@@ -35,7 +35,7 @@ endif()
 
 
 if(${MR_TARGET_OS} MATCHES "linux")
-    include_directories(/usr/include/drm)
+    # include_directories(/usr/include/drm)
 elseif(${MR_TARGET_OS} MATCHES "windows")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(MR_COMPILER_VER "mingw")

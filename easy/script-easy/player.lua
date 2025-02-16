@@ -35,7 +35,7 @@ function Player:init()
 			customIO='f7b723d0-bd48-11eb-9155-4bbb70c16e00',
 			customIOCheckHandler=mediaSoueceCustomIOCheck,
 			exceptionHandler=mediaSoueceException,
-                        uri='/Volumes/data/Download/桃花笑.mp4',
+                        uri='c:/Users/xiaox/Downloads/test.mp4',
                         -- uri='http://devmedia.aimymusic.com/02aebbde6571c5d9006a4bb7bfd62c1f'
                        -- uri = 'http://media.aimymusic.com/0042faffe7a8fad051a4107c96d806b3'
                        -- uri='/home/xuwei/work/resources/nonono.mp4'

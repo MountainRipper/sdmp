@@ -22,7 +22,7 @@ endif()
 
 if(${MR_TARGET_OS} MATCHES "linux")
     # include_directories(/usr/include/drm)
-    target_link_libraries(sdl_player sdmp-easy sdmp textureio glad mrcommon imgui_stb SDL2 freetype drm ssl X11)
+    target_link_libraries(sdl_player sdmp-easy sdmp avcodec avformat avutil swscale swresample yuv textureio glad mrcommon imgui_stb luajit SDL2 freetype drm ssl crypto x264 X11)
 elseif(${MR_TARGET_OS} MATCHES "windows")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(MR_TARGET_OS "mingw")

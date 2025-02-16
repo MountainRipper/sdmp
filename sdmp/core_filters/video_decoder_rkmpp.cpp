@@ -155,7 +155,7 @@ int32_t VideoDecoderRkmppFilter::receive(IPin* input_pin,FramePointer frame)
             //decode eos frame
             decode_a_frame(frame);
             Value status((double)kStatusEos);
-            set_property_async(kFilterPropertyStatus, status);
+            set_property(kFilterPropertyStatus, status);
             deliver_eos_frame();
             return kSuccessed;
         }
@@ -229,7 +229,7 @@ int32_t VideoDecoderRkmppFilter::open_decoder(const Format& format)
     format_out_.width = params_->width;
     format_out_.height = params_->height;
     format_out_.fps = format.fps;
-    update_pin_format(kOutputPin,0,0,format_out_);
+    sync_update_pin_format(kOutputPin,0,0,format_out_);
 
     if(params_->codec_id ==  AV_CODEC_ID_H264)
         bitstream_converter_ = std::shared_ptr<BitStreamConvert>(new BitStreamConvert("h264_mp4toannexb"));

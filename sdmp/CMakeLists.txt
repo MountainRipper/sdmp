@@ -59,7 +59,7 @@ search_library(GLX HAVE_GLX "")
 search_library(va HAS_VAAPI "")
 search_library(va-glx HAS_VAAPI_GLX "")
 #rockchip mpp for linux
-search_library(rockchip_mpp HAS_ROCKCHIP_MPP "")
+search_library(rockchip_mpp HAS_ROCKCHIP_MPP_ "")
 #ffmpeg
 search_library("avutil" HAS_AVUTIL "")
 search_library("avdevice" HAS_AVUTIL "")

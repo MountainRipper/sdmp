@@ -225,7 +225,7 @@ int32_t MediaSourceFFmpegFilter::requare(int32_t duration,const std::vector<PinI
     if(want_read_to > request_read_to_)
         request_read_to_ = want_read_to;
     read_condition_.notify_one();
-    //MR_LOG_DEAULT("MediaSourceFFmpegFilter::requare: cur:{} need {} pre-buffer:{} read to:{}", current_read_pts_,duration,pre_buffer,request_read_to_);
+    MR_LOG_DEAULT("MediaSourceFFmpegFilter::requare: cur:{} need {} pre-buffer:{} read to:{}", current_read_pts_,duration,pre_buffer,request_read_to_);
     return 0;
 }
 
@@ -314,7 +314,6 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
             continue;
 
         int32_t first_pts = -1;
-        request_read_to_ = 0;
         while(true){
             if(network_timeout_) {
                 MR_LOG_DEAULT("WARNING:Network timeout...");
@@ -382,10 +381,10 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                     MR_LOG_DEAULT("WARNNING:ffmpeg read skip frame at[need:{} read:{}]\n",skip_read_pts_to_,pts);
                 continue;
             }
-//            MR_WARN(">>>stream {}[{}] read packet pts:{} dts:{} timebase:{}/{}",packet->stream_index,
-//                      av_get_media_type_string(stream->codecpar->codec_type),
-//                      pts,dts,
-//                      stream->time_base.num,stream->time_base.den);
+           MR_WARN(">>>stream {}[{}] read packet pts:{} dts:{} timebase:{}/{}",packet->stream_index,
+                     av_get_media_type_string(stream->codecpar->codec_type),
+                     pts,dts,
+                     stream->time_base.num,stream->time_base.den);
             // A/V PTS maybe large diff, so use max(A/V) to get read-to pts
             if(seeked_){
                 //seek maybe back forward, so set current pts when seek
@@ -423,8 +422,10 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                     break;
                 }
             }
-            else if(current_read_pts_ >= request_read_to_)
+            else if(current_read_pts_ >= request_read_to_){
+                request_read_to_ = 0;
                 break;
+            }
 
             if(pause_wait_.check())
                 break;

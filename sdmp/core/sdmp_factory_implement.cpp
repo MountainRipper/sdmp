@@ -33,6 +33,7 @@ COM_MODULE_BEGINE("5b8aab92-a452-11ed-bcb9-9b38750c5c76",SDMP_INTERNAL_FILTERS)
     COM_MODULE_OBJECT_ENTRY(AudioOutputParticipantFilter)
     COM_MODULE_OBJECT_ENTRY(VideoOutputProxyFilter)
     COM_MODULE_OBJECT_ENTRY(MediaMuxerFFmpegFilter)
+    COM_MODULE_OBJECT_ENTRY(NullOutput)
 COM_MODULE_END()
 
 COM_MODULE_BEGINE("bd32bb24-e27c-11ed-995a-3bfee4287c74",SDMP_INTERNAL_ATTENDANTS)
@@ -127,7 +128,6 @@ const FilterDelear *Factory::filter_declear(const TGUID &clsid)
 {
     return factory_->filter_declear(clsid);
 }
-
 
 FactoryImplement::FactoryImplement(){
     COM_MODULE_IMPORT(SDMP_INTERNAL_FILTERS);

@@ -146,7 +146,12 @@ int32_t AudioOutputParticipantFilter::receive(IPin* input_pin,FramePointer frame
     if(frame->frame->format != format_input_.format)
         return -2;
     std::lock_guard<std::mutex> lock(mutex_);
-    resampler_.push_audio_samples(frame->frame);
+    // resampler_.push_audio_samples(frame->frame);
+
+    auto av_frame = frame->frame;
+    resampler_.push_audio_samples(av_frame->sample_rate,av_frame->ch_layout.nb_channels,
+                          (AVSampleFormat)av_frame->format,av_frame->nb_samples,av_frame->data);
+
     last_push_pts_ = frame->frame->pts + frame->frame->nb_samples * 1000 / format_input_.samplerate;
     //MR_LOG_DEAULT("audio last_push_pts_:{}",last_push_pts_);
     return 0;

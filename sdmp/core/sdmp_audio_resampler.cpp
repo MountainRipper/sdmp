@@ -40,9 +40,11 @@ int32_t SdpAudioResampler::push_audio_samples(int32_t samplerate, int32_t channe
 {
 
     AVFrame audio_frame_in;
+    memset(&audio_frame_in, 0, sizeof(AVFrame));
     audio_frame_in.sample_rate = samplerate;
     audio_frame_in.nb_samples = samples;
     audio_frame_in.format = format;
+
     av_channel_layout_default(&audio_frame_in.ch_layout,channels);
     int32_t linesize = av_get_bytes_per_sample(format) * samples;
     if(av_sample_fmt_is_planar(format)){
@@ -56,53 +58,62 @@ int32_t SdpAudioResampler::push_audio_samples(int32_t samplerate, int32_t channe
         audio_frame_in.data[0] = pcm[0];
         audio_frame_in.linesize[0] = linesize * channels;
     }
-
+    //simplely set to data
+    audio_frame_in.extended_data = audio_frame_in.data;
     return push_audio_samples(&audio_frame_in);
 }
 
 int32_t SdpAudioResampler::push_audio_samples(const AVFrame *sample)
 {
-    int32_t samplerate = sample->sample_rate;
-    int32_t channels = sample->ch_layout.nb_channels;
-    AVSampleFormat format = (AVSampleFormat)sample->format;
-
-    if( samplerate_in_ != samplerate ||
-        channels_in_ != channels ||
-        format_in_ != format)
-    {
-        need_create_resample_ = true;
-    }
-
     int ret = 0;
-    if(need_create_resample_)
-    {
-        av_channel_layout_default(&channel_layout_in_,channels);
-        resampler_ = swr_alloc();
-        ret = swr_alloc_set_opts2(&resampler_,
-                            &channel_layout_,   // out_ch_layout
-                            format_,            // out_sample_fmt
-                            samplerate_,        // out_sample_rate
-                            &channel_layout_in_,// in_ch_layout
-                            format,         // in_sample_fmt
-                            samplerate,     // in_sample_rate
-                            0,                  // log_offset
-                            NULL);              // log_ctx
-        if(ret < 0){
-            return ret;
+    if(sample){
+        int32_t samplerate = sample->sample_rate;
+        int32_t channels = sample->ch_layout.nb_channels;
+        AVSampleFormat format = (AVSampleFormat)sample->format;
+
+        if( samplerate_in_ != samplerate ||
+            channels_in_ != channels ||
+            format_in_ != format)
+        {
+            need_create_resample_ = true;
         }
-        ret = swr_init(resampler_);
-        if(ret < 0){
-            return ret;
+
+        if(need_create_resample_)
+        {
+            av_channel_layout_default(&channel_layout_in_,channels);
+            resampler_ = swr_alloc();
+            ret = swr_alloc_set_opts2(&resampler_,
+                                      &channel_layout_,   // out_ch_layout
+                                      format_,            // out_sample_fmt
+                                      samplerate_,        // out_sample_rate
+                                      &channel_layout_in_,// in_ch_layout
+                                      format,         // in_sample_fmt
+                                      samplerate,     // in_sample_rate
+                                      0,                  // log_offset
+                                      NULL);              // log_ctx
+            if(ret < 0){
+                return ret;
+            }
+            ret = swr_init(resampler_);
+            if(ret < 0){
+                return ret;
+            }
+            samplerate_in_ = samplerate;
+            channels_in_   = channels;
+            format_in_     = format;
+            need_create_resample_ = false;
         }
-        samplerate_in_ = samplerate;
-        channels_in_   = channels;
-        format_in_     = format;
-        need_create_resample_ = false;
+
+    }
+    else{
+        //clear tailer samples
+        MR_INFO("");
     }
     if(!swr_is_initialized(resampler_))
         return -2;
 
     ret = swr_convert_frame(resampler_,nullptr,sample);
+
     if(ret < 0)
         return ret;
 

@@ -109,22 +109,23 @@ Error Codes
 /*
  * commands for execute
 */
-#define kGraphCommandConnect            "cmdConnect"
-#define kGraphCommandDisconnect         "cmdDisconnect"
-#define kGraphCommandPlay               "cmdPlay"
-#define kGraphCommandPause              "cmdPause"
-#define kGraphCommandStop               "cmdStop"
-#define kGraphCommandSeek               "cmdSeek"
-#define kGraphCommandClose              "cmdClose"
-#define kGraphCommandCallLuaFunction    "cmdCallLuaFunction"
-#define kGraphCommandRunLuaScript       "cmdRunLuaScript"
+#define kGraphCommandConnect                "cmdConnect"
+#define kGraphCommandDisconnect             "cmdDisconnect"
+#define kGraphCommandPlay                   "cmdPlay"
+#define kGraphCommandPause                  "cmdPause"
+#define kGraphCommandStop                   "cmdStop"
+#define kGraphCommandSeek                   "cmdSeek"
+#define kGraphCommandClose                  "cmdClose"
+#define kGraphCommandCallLuaFunction        "cmdCallLuaFunction"
+#define kGraphCommandCallLuaSelfFunction    "cmdCallLuaSelfFunction"
+#define kGraphCommandRunLuaScript           "cmdRunLuaScript"
 
-#define kGraphOperatorExecuteCommand    "optExecuteCommand"
-#define kGraphOperatorCreateFilter      "optCreateFilter"
-#define kGraphOperatorRemoveFilter      "optRemoveFilter"
-#define kGraphOperatorConnectFilter     "optConnectFilter"
-#define kGraphOperatorSetFilterProperty "optSetFilterProperty"
-#define kGraphOperatorCallFilterMethod  "optCallFilterMethod"
+#define kGraphOperatorExecuteCommand        "optExecuteCommand"
+#define kGraphOperatorCreateFilter          "optCreateFilter"
+#define kGraphOperatorRemoveFilter          "optRemoveFilter"
+#define kGraphOperatorConnectFilter         "optConnectFilter"
+#define kGraphOperatorSetFilterProperty     "optSetFilterProperty"
+#define kGraphOperatorCallFilterMethod      "optCallFilterMethod"
 
 #define kGraphInvalidPts         INT32_MIN
 

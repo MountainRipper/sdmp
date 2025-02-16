@@ -109,19 +109,19 @@ int32_t MediaMuxerFFmpegFilter::open_muxer()
     const char* url = properties_["uri"].as_string().c_str();
     {
         //get protocol
-        char proto[16];
-        av_url_split(proto,16,0,0,0,0,0,0,0,url);
-        if(proto[0] == '\0')
-            strcpy(proto,"file");
-        set_property("protocol",std::string(proto));
-        if(std::string(proto) == "rtmp"  ||
-            std::string(proto) == "rtmpe"||
-            std::string(proto) == "rtmps"||
-            std::string(proto) == "rtmpt"||
-            std::string(proto) == "rtmpte"||
-            std::string(proto) == "rtmpts"){
-            format_name = "flv";
-        }
+        // char proto[16];
+        // av_url_split(proto,16,0,0,0,0,0,0,0,url);
+        // if(proto[0] == '\0')
+        //     strcpy(proto,"file");
+        // set_property("protocol",std::string(proto));
+        // if(std::string(proto) == "rtmp"  ||
+        //     std::string(proto) == "rtmpe"||
+        //     std::string(proto) == "rtmps"||
+        //     std::string(proto) == "rtmpt"||
+        //     std::string(proto) == "rtmpte"||
+        //     std::string(proto) == "rtmpts"){
+        //     format_name = "flv";
+        // }
     }
 
     auto ret = avformat_alloc_output_context2(&muxer_,nullptr,format_name,url);

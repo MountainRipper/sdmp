@@ -24,7 +24,7 @@ FramePointer avframe_transfer_drm(AVFrame* frame){
 //    }
     sw_frame->pts = frame->pts;
     sdp_frame = Frame::make_frame(sw_frame);
-    sdp_frame->releaser = sdp_frame_free_frame_releaser;
+    sdp_frame->releaser = sdmp_frame_free_frame_releaser;
     return sdp_frame;
 }
 #endif

@@ -1,12 +1,11 @@
 #include "null_output.h"
-
 namespace mr::sdmp {
 
 COM_REGISTER_OBJECT(NullOutput)
 
 NullOutput::NullOutput()
 {
-
+    start_point_ = std::chrono::steady_clock::time_point();
 }
 
 
@@ -34,11 +33,34 @@ int32_t NullOutput::connect_match_input_format(IPin *sender_pin,IPin *input_pin)
 
 int32_t NullOutput::receive(IPin *input_pin, FramePointer frame)
 {
+    if(frame->frame){
+        current_recv_ms_ = frame->frame->pts;
+    }
+    else if(frame->packet){
+        current_recv_ms_ = frame->packet->pts;
+    }
     return 0;
 }
 
 int32_t NullOutput::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
 {
+    auto now = std::chrono::steady_clock::now();
+    if(start_point_.time_since_epoch().count() == 0){
+        start_point_ = now;
+        last_ms_linear_ = 0;
+    }
+    auto ms_linear = std::chrono::duration_cast<std::chrono::milliseconds>(now-start_point_).count();
+    auto diff = ms_linear - last_ms_linear_;
+
+    if(diff < 500)
+        return 0;
+    last_ms_linear_ = ms_linear;
+
+    duration = diff;
+    static int a = 0;
+    if(a++ % 100 == 0)
+        MR_INFO(">>>>>>> ms:{}",diff);
+
     (void)output_pins;
     return duration;
 }

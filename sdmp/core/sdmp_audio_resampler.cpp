@@ -144,6 +144,7 @@ FramePointer SdpAudioResampler::pull(int32_t samples)
     av_frame->sample_rate = samplerate_;
     av_frame->nb_samples = samples;
     av_frame->ch_layout = channel_layout_;
+    av_frame->nb_samples = samples;
     av_frame_get_buffer(av_frame,1);
     int ret = swr_convert_frame(resampler_,av_frame,nullptr);
     if(ret < 0){

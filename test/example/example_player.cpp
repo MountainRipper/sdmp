@@ -1,12 +1,14 @@
 #include <filesystem>
 #include <glad/gl.h>
 #include <imgui.h>
+
 #include <thread>
 #include <ttf/IconsFontAwesome6.h>
 #include <libavutil/frame.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/fmt/chrono.h>
 #include <sdmpi_factory.h>
+
 #include <SDL2/SDL.h>
 #include "example_player.h"
 #include <mrcommon/logger.h>
@@ -220,6 +222,7 @@ void PlayerExample::render_ui()
     if(duration_ == 0)
         duration_ = g_player->duration();
 
+
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
     {
@@ -318,6 +321,7 @@ void PlayerExample::render_ui()
         }
         ImGui::TextUnformatted(log.begin(), log.end());
         ImGui::End();
+
     }
 
 

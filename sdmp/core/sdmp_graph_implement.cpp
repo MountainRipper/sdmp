@@ -147,6 +147,14 @@ int32_t GraphImplement::execute_command(const std::string &command,const  Argume
             func(sol::as_args(lua_values));
         }
     }
+    else if(command == kGraphCommandCallLuaSelfFunction){
+        std::vector<sol::lua_value> lua_values;
+        ValueUtils::arguments_to_lua_values(param,graph_vm_.state(),lua_values);
+        sol::protected_function func = graph_vm_.get_member_function(graph_context_,param.method());
+        if(func){
+            func(graph_context_,sol::as_args(lua_values));
+        }
+    }
     else if(command == kGraphCommandRunLuaScript){
         std::string script;
         if(!param.params().empty())
@@ -186,16 +194,16 @@ int32_t GraphImplement::master_requare_shot()
 {
     async_queue_.process();
 
-    event_(this,kGraphEventMasterLoop,0);
+    int32_t ret = event_(this,kGraphEventMasterLoop,0);
 
-    if(lua_master_function_.valid())
+    if(ret >= 0 && lua_master_function_.valid())
         lua_master_function_(graph_context_);    
 
     if(status_ != kStatusRunning){
         return 0;
     }
 
-    int32_t ret = filters_flow_.request_flow_stream_shot();
+    ret = filters_flow_.request_flow_stream_shot();
     if(ret == kStatusEos){
         switch_status(kStatusEos);
     }

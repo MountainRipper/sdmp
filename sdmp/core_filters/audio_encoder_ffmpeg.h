@@ -64,6 +64,8 @@ private:
     AVCodecParameters* parameters_ = nullptr;
     //FrameCache  frames_;
     SdpAudioResampler resampler_;
+    uint8_t           sample_bytes_ = 0;
+    uint64_t          samples_totle_ = 0;
 //    std::thread     encode_thread_;
 //    std::mutex      encode_mutex_;
 //    std::condition_variable encode_condition_;

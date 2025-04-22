@@ -37,6 +37,8 @@ private:
     int32_t         sample_bytes_           = 0;
     bool            need_create_resample_   = true;
 
+    uint64_t        pts_in_                 = 0;
+
     SwrContext      *resampler_ = nullptr;
 };
 }

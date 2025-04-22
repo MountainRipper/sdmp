@@ -18,7 +18,7 @@ R"({
   "type": "sdp-filter"
 })",
 VideoDecoderRkmppFilter)
- , public GeneralFilterObjectRoot<VideoDecoderRkmppFilter>
+ , public GeneralFilterTypedAs<VideoDecoderRkmppFilter>
 {
 public:
     VideoDecoderRkmppFilter();

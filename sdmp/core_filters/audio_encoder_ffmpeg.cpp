@@ -56,9 +56,10 @@ int32_t sdmp::AudioEncoderFFmpegFilter::connect_chose_output_format(IPin *output
 int32_t sdmp::AudioEncoderFFmpegFilter::receive(IPin *input_pin, FramePointer frame)
 {
     auto av_frame = frame->frame;
-    resampler_.push_audio_samples(av_frame->sample_rate,av_frame->ch_layout.nb_channels,
-                          (AVSampleFormat)av_frame->format,av_frame->nb_samples,av_frame->data);
+    // resampler_.push_audio_samples(av_frame->sample_rate,av_frame->ch_layout.nb_channels,
+    //                       (AVSampleFormat)av_frame->format,av_frame->nb_samples,av_frame->data);
 
+    resampler_.push_audio_samples(av_frame);
     while(resampler_.samples() >= codec_context->frame_size){
         auto audio = resampler_.pull(codec_context->frame_size);
         encode_a_frame(audio->frame);
@@ -95,6 +96,7 @@ int32_t AudioEncoderFFmpegFilter::open_encoder(const Format& format)
     codec_context->time_base.num = 1;
     codec_context->time_base.den = format.samplerate;
     codec_context->bit_rate = properties_["bitrate"];
+    // codec_context->frame_size = 480;
 
     int max_bytes = 0;
     const enum AVSampleFormat *support_format = codec->sample_fmts;
@@ -144,6 +146,7 @@ int32_t AudioEncoderFFmpegFilter::open_encoder(const Format& format)
     sync_update_pin_format(kOutputPin,0,0,format_out_);
 
     resampler_.reset(format.samplerate,format.channels,(AVSampleFormat)codec_context->sample_fmt);
+    sample_bytes_ = av_get_bytes_per_sample((AVSampleFormat)codec_context->sample_fmt);
     return 0;
 }
 
@@ -162,6 +165,11 @@ int32_t AudioEncoderFFmpegFilter::close_encoder()
 
 int32_t AudioEncoderFFmpegFilter::encode_a_frame(AVFrame *frame)
 {
+    //add 1 to avoid div by zero
+    samples_totle_ += (frame->linesize[0] / sample_bytes_);
+    frame->time_base = {1,frame->sample_rate};
+    frame->pts = samples_totle_;
+
     int ret = avcodec_send_frame(codec_context, frame);
     if (ret < 0) {
         return ret;
@@ -179,8 +187,8 @@ int32_t AudioEncoderFFmpegFilter::encode_a_frame(AVFrame *frame)
             return ret;
         }
 
-        if(encode_packet->pts < 0)
-            continue;
+        // if(encode_packet->pts < 0)
+        //     continue;
         auto new_frame = Frame::make_packet(encode_packet);
         new_frame->releaser = sdmp_frame_free_packet_releaser;
         get_pin(kOutputPin,0)->deliver(new_frame);

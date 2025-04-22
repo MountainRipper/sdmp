@@ -40,6 +40,9 @@ public:
     virtual int32_t property_changed(const std::string &property, Value &symbol) override;
 private:
     IFilterHandlerDataGrabber* handler_ = nullptr;
+    std::chrono::steady_clock::time_point start_point_;
+    int64_t last_ms_linear_ = 0;
+    int64_t current_recv_ms_ = 0;
 };
 
 };

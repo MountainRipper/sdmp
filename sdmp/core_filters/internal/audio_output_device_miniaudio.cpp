@@ -104,7 +104,7 @@ AudioOutputDeviceMiniaudioFilter::~AudioOutputDeviceMiniaudioFilter()
         ma_pcm_rb_uninit(&pull_ring_buffer_);
     }
     //static resource release in c++ runtime, logger_xxx call spdlog::set_pattern will crash
-    MR_INFO("MiniAudio Stopped");
+    // MR_INFO("MiniAudio Stopped");
 }
 
 int32_t AudioOutputDeviceMiniaudioFilter::initialize(sdmp::IGraph *graph, const Value &filter_values)

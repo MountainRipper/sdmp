@@ -33,6 +33,8 @@ class PlayerPrivateContex;
 class Player
 {
 public:
+    static int32_t sdmp_deinit();
+
     Player(const std::string& base_scipts_dir, const std::string& easy_scipts_dir);
     ~Player();
     int32_t set_event(PlayerEvent* event);

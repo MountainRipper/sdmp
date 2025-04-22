@@ -162,6 +162,11 @@ public:
 
 
 
+int32_t Player::sdmp_deinit()
+{
+   return sdmp::Factory::deinitialize();
+}
+
 Player::Player(const std::string& base_scipts_dir, const std::string& easy_scipts_dir)
 {
     sdmp::Factory::initialize_factory();

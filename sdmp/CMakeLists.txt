@@ -70,10 +70,11 @@ search_library("swresample" HAS_SW_RESAMPLE "")
 #libyuv
 search_library(yuv HAS_LIBYUV "")
 #luajit
-search_library("luajit;luajit-5.1" HAS_LUAJIT "")
+# search_library("luajit;luajit-5.1" HAS_LUAJIT "")
 #spdlog
-search_library(mrcommon HAS_MRCOMMON "")
+search_library(spdlog HAS_SPDLOG "")
 
+LIST(APPEND MR_SEARCHED_LIBS "lua")
 
 message(STATUS "INFO: LINK LIBRARIES:${SEARCHED_LIBS}")
 

@@ -13,8 +13,8 @@ VideoFrameConvert::VideoFrameConvert()
 
 int32_t sdmp::VideoFrameConvert::initialize(IGraph *graph, const Value &filter_values)
 {
-    create_general_pin(AVMEDIA_TYPE_UNKNOWN,kInputPin);
-    create_general_pin(AVMEDIA_TYPE_UNKNOWN,kOutputPin);
+    create_general_pin(AVMEDIA_TYPE_VIDEO,kInputPin);
+    create_general_pin(AVMEDIA_TYPE_VIDEO,kOutputPin);
 
     auto ret = GeneralFilter::initialize(graph,filter_values);
 

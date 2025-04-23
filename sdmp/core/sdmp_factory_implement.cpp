@@ -42,7 +42,8 @@ COM_MODULE_END()
 
 int32_t sdmp::Factory::initialize_factory()
 {
-    mr::Logger::set_level(mr::Logger::LogLevel::kLogLevelDebug);
+    Logger::instance().init();
+    Logger::instance().logger()->set_level(spdlog::level::warn);
     //spdlog::set_level(spdlog::level::trace);
     MR_LOG_DEAULT("Factory::initialize_factory");
     factory_.reset(new FactoryImplement());

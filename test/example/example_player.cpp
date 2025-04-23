@@ -9,7 +9,7 @@
 #include <spdlog/fmt/chrono.h>
 #include <sdmpi_factory.h>
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "example_player.h"
 #include <mrcommon/logger.h>
 #define STB_IMAGE_IMPLEMENTATION

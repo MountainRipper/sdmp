@@ -46,6 +46,7 @@ int32_t sdmp::Factory::initialize_factory()
     Logger::instance().logger()->set_level(spdlog::level::warn);
     //spdlog::set_level(spdlog::level::trace);
     MR_LOG_DEAULT("Factory::initialize_factory");
+    MR_ERROR("Factory::initialize_factory");
     factory_.reset(new FactoryImplement());
     return 0;
 }

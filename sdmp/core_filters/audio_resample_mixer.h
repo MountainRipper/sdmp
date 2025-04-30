@@ -2,7 +2,7 @@
 #define DATAGRABBER_H
 #include "sdmp_audio_resampler.h"
 #include "sdmp_general_filter.h"
-
+#include "sdmp_audio_mixer.h"
 namespace mr::sdmp {
 
 
@@ -18,7 +18,7 @@ R"({
       "name": "format",
       "type": "string",
       "value": "s16",
-      "describe":"s16,s32,f32,f64"
+      "describe":"s16,s32,s64,flt,dbl, av_get_sample_fmt from samplefmt.c"
     },
     {
       "name": "channels",
@@ -64,6 +64,10 @@ private:
     int32_t output_fillmode_ = kStretchFill;
     Format  format_out_;
     std::vector<std::shared_ptr<SdpAudioResampler>> resamplers_;
+    AudioMixer mixer_;
+
+    std::shared_ptr<uint8_t> pcm_mixer_src_;
+    int32_t pcm_mixer_src_size_ = 0;
 };
 
 };

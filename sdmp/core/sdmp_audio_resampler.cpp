@@ -107,7 +107,7 @@ int32_t SdpAudioResampler::push_audio_samples(const AVFrame *sample)
     }
     else{
         //clear tailer samples
-        MR_INFO("");
+        MR_INFO("sdp resampler {} clear tailer samples",(void*)this);
     }
     if(!swr_is_initialized(resampler_))
         return -2;
@@ -144,7 +144,6 @@ FramePointer SdpAudioResampler::pull(int32_t samples)
     av_frame->sample_rate = samplerate_;
     av_frame->nb_samples = samples;
     av_frame->ch_layout = channel_layout_;
-    av_frame->nb_samples = samples;
     av_frame_get_buffer(av_frame,1);
     int ret = swr_convert_frame(resampler_,av_frame,nullptr);
     if(ret < 0){
@@ -182,6 +181,14 @@ AVSampleFormat SdpAudioResampler::format()
 int32_t SdpAudioResampler::sample_bytes()
 {
     return sample_bytes_;
+}
+
+int32_t SdpAudioResampler::duration()
+{
+    float count = samples();
+    if(samplerate_ <= 0 || count <= 0)
+        return 0;
+    return count * 1000 / samplerate_;
 }
 
 int32_t SdpAudioResampler::clear()

@@ -1,9 +1,5 @@
-#include "audio_mixer_input_pin.h"
 #include "core_includes.h"
-extern "C"
-{
-#include "sdl_mixer/SDL_mixer.h"
-}
+#include "audio_mixer_input_pin.h"
 
 namespace mr::sdmp {
 
@@ -25,14 +21,6 @@ int32_t AudioMixerInputPin::initialize(FilterPointer filter, const std::vector<F
     channels_ = format.channels;
     format_ = format.format;
     sample_bytes_chs_ = channels_ * av_get_bytes_per_sample((AVSampleFormat)format_);
-
-    sdl_format_ = 0;
-    if(format_ == AV_SAMPLE_FMT_S16)
-        sdl_format_ = AUDIO_S16;
-    if(format_ == AV_SAMPLE_FMT_FLT)
-        sdl_format_ = AUDIO_F32;
-    if(format_ == AV_SAMPLE_FMT_S32)
-        sdl_format_ = AUDIO_S32;
 
     return 0;
 }
@@ -79,22 +67,25 @@ int32_t AudioMixerInputPin::requare(void *pcm, int32_t frames)
     int32_t bytes = frames * sample_bytes_chs_;
     memset(pcm,0,bytes);
 
-    if(sdl_format_ == 0)
+    if(av_sample_fmt_is_planar((AVSampleFormat)format_))
         return 0;
 
     pcm_mixer_dest_ = (uint8_t*)pcm;
+
 
     if(pcm_mixer_src_size_ < bytes){
         pcm_mixer_src_size_ = bytes + 128;
         pcm_mixer_src_ = sdmp::BufferUtils::create_shared_buffer(pcm_mixer_src_size_);
     }
+
     std::lock_guard<std::mutex> lock(sender_mutex_);
     for(auto pin : sender_pins_){
         memset(pcm_mixer_src_.get(),0,pcm_mixer_src_size_);
         int32_t volume = pin->requare_samples(pcm_mixer_src_.get(),frames);
-        int sdl_mix_volume = volume/100.0*SDL_MIX_MAXVOLUME;
-        SDL_MixAudioFormat(pcm_mixer_dest_,pcm_mixer_src_.get(),sdl_format_,bytes,sdl_mix_volume);
+
+        mixer_.input_stream((AudioMixer::Format)format_, pcm_mixer_src_.get(),frames*channels_, volume/100.0);
     }
+    mixer_.get_output( (AudioMixer::Format)format_, pcm_mixer_dest_, frames*channels_);
     return 0;
 }
 

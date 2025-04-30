@@ -81,7 +81,6 @@ message(STATUS "INFO: LINK LIBRARIES:${SEARCHED_LIBS}")
 file( GLOB SOURCE_INTERFACE interface/*.h)
 
 file( GLOB SOURCE_DEPS core_deps/*.cpp core_deps/*.c core_deps/*.h)
-file( GLOB SOURCE_SDL_MIXER core_deps/sdl_mixer/*.cpp core_deps/sdl_mixer/*.c core_deps/sdl_mixer/*.h)
 
 file( GLOB SOURCE_CORE core/*.cpp core/*.c core/*.h)
 file( GLOB SOURCE_CORE_FILTERS core_filters/*.cpp core_filters/*.c core_filters/*.h)
@@ -101,7 +100,6 @@ add_library(sdmp STATIC
     ${SOURCE_CORE_FILTERS_INTERNAL}
     ${SOURCE_CORE_ATTENDANT}
     ${SOURCE_DEPS}
-    ${SOURCE_SDL_MIXER}
     ${EXTERNAL_SOURCE}
 )
 target_include_directories(sdmp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/interface ${CMAKE_CURRENT_SOURCE_DIR}/interface/core_stubs)

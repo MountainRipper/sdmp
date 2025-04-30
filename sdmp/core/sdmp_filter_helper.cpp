@@ -161,4 +161,17 @@ int32_t FilterHelper::disconnect_output(sdmp::FilterPointer filter)
     }
     return 0;
 }
+
+
+int32_t FilterHelper::disconnect_input(FilterPointer filter,int32_t input_pin){
+
+    auto pin = filter->get_pin(kInputPin,input_pin);
+    if(pin == nullptr)
+        return kErrorInvalidParameter;
+
+    filter->disconnect_input(input_pin);
+    return 0;
+}
+
+
 }

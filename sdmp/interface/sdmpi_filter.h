@@ -87,6 +87,10 @@ namespace FilterHelper{
     int32_t disconnect_output(FilterPointer filter,int32_t output_pin);
     //disconnect all output pin's all receivers, use [IFilter::disconnect]
     int32_t disconnect_output(FilterPointer filter);
+    //disconnect a input pin's all senders, use [IFilter::disconnect]
+    int32_t disconnect_input(FilterPointer filter,int32_t input_pin);
+    //disconnect all input pin's all senders, use [IFilter::disconnect]
+    int32_t disconnect_intput(FilterPointer filter);
 
 };
 

@@ -426,13 +426,13 @@ int32_t GraphImplement::do_connect(IFilter *sender, IFilter *receiver, int32_t s
     PinVector sender_pins;
     PinVector receiver_pins;
 
-    if(sender_pin_index>= 0){
+    if(sender_pin_index >= 0){
         auto pin = sender->get_pin(kOutputPin,sender_pin_index);
         if(pin)
             sender_pins.push_back(pin);
     }
 
-    if(sender_pin_index>= 0){
+    if(sender_pin_index >= 0){
         auto pin = receiver->get_pin(kInputPin,sender_pin_index);
         if(pin && pin->sender() == nullptr)
             receiver_pins.push_back(pin);
@@ -512,15 +512,21 @@ int32_t GraphImplement::do_connect(IFilter *sender, IFilter *receiver, int32_t s
     return emit_error("graph",kErrorConnectFailedNotMatchFormat);
 }
 
-int32_t GraphImplement::do_disconnet_sender(IFilter *receiver, int32_t receiver_pin_index)
+int32_t GraphImplement::do_disconnect(IFilter *filter, PinDirection direction, int32_t pin_index)
 {
+    auto id = filter->id();
+    MR_LOG_DEAULT("Disconnect Filter {}.{}[{}]", id, direction == kInputPin ? "input" : "output" ,pin_index);
+
+    if(direction == kInputPin){
+        FilterHelper::disconnect_input(filter,pin_index);
+    }
+    else{
+        FilterHelper::disconnect_output(filter,pin_index);
+    }
+
     return 0;
 }
 
-int32_t GraphImplement::do_disconnet_receiver(IFilter *receiver, int32_t receiver_pin_index)
-{
-    return 0;
-}
 
 int32_t GraphImplement::do_disconnet_all()
 {

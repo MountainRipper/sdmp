@@ -4,6 +4,7 @@
 #include "sdmp_general_pin.h"
 #include "sdmpi_objects.h"
 #include "sdmpi_filter_extentions.h"
+#include "sdmp_audio_mixer.h"
 namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT("0ef73af8-a212-11ed-b92f-775b7675e60a", "", AudioMixerInputPin)
@@ -29,9 +30,10 @@ private:
     int32_t channels_ = 0;
     int32_t format_ = 0;
     int32_t sample_bytes_chs_ = 0;
-    int32_t sdl_format_ = 0;
 
     uint8_t* pcm_mixer_dest_ = nullptr;
+
+    AudioMixer mixer_;
 
     std::shared_ptr<uint8_t> pcm_mixer_src_;
     int32_t pcm_mixer_src_size_ = 0;

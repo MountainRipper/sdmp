@@ -30,6 +30,7 @@ public:
     virtual int32_t in_master_loop();
 
     virtual int32_t do_connect(IFilter* sender, IFilter* receiver, int32_t sender_pin_index, int32_t receiver_pin_index);
+    virtual int32_t do_disconnect(IFilter* filter, PinDirection direction, int32_t pin_index);
 
     virtual const std::map<std::string, FilterPointer> &filters();
     virtual int32_t create_filter(const std::string& id, const Value &filter_config);
@@ -46,8 +47,6 @@ private:
     int32_t cmd_seek(int64_t millisecond);
     int32_t cmd_close();
 
-    int32_t do_disconnet_sender(IFilter* receiver,int32_t receiver_pin_index = 0);
-    int32_t do_disconnet_receiver(IFilter* receiver,int32_t receiver_pin_index = 0);
     int32_t do_disconnet_all();
 
     int32_t execute_command_lua(const std::string& command,sol::variadic_args args);

@@ -31,8 +31,7 @@ SET(TARGET_ARCH  ${CMAKE_SYSTEM_PROCESSOR})
 SET(MR_SEARCHED_LIBS "")
 SET(EXTERNAL_SOURCE "")
 
-add_definitions(-D MR_LOG_DEAULT=MR_DEBUG)
-add_definitions(-D SDMR_LOG_LEVEL=mp::Logger::LogLevel::kLogLevelDebug)
+add_definitions(-DMR_LOG_DEAULT=MR_TRACE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
 
 macro(search_library libName macroDefine debugSuffix)
     SET(libVar ${macroDefine}_LIB)
@@ -70,17 +69,21 @@ search_library("swresample" HAS_SW_RESAMPLE "")
 #libyuv
 search_library(yuv HAS_LIBYUV "")
 #luajit
+<<<<<<< HEAD
 search_library("lua" HAS_LUAJIT "")
+=======
+# search_library("luajit;luajit-5.1" HAS_LUAJIT "")
+>>>>>>> 1bf3cc9acc091941ed97260fec663c5df387cf4a
 #spdlog
-search_library(mrcommon HAS_MRCOMMON "")
+search_library(spdlog HAS_SPDLOG "")
 
+LIST(APPEND MR_SEARCHED_LIBS "lua")
 
 message(STATUS "INFO: LINK LIBRARIES:${SEARCHED_LIBS}")
 
 file( GLOB SOURCE_INTERFACE interface/*.h)
 
 file( GLOB SOURCE_DEPS core_deps/*.cpp core_deps/*.c core_deps/*.h)
-file( GLOB SOURCE_SDL_MIXER core_deps/sdl_mixer/*.cpp core_deps/sdl_mixer/*.c core_deps/sdl_mixer/*.h)
 
 file( GLOB SOURCE_CORE core/*.cpp core/*.c core/*.h)
 file( GLOB SOURCE_CORE_FILTERS core_filters/*.cpp core_filters/*.c core_filters/*.h)
@@ -100,7 +103,6 @@ add_library(sdmp STATIC
     ${SOURCE_CORE_FILTERS_INTERNAL}
     ${SOURCE_CORE_ATTENDANT}
     ${SOURCE_DEPS}
-    ${SOURCE_SDL_MIXER}
     ${EXTERNAL_SOURCE}
 )
 target_include_directories(sdmp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/interface ${CMAKE_CURRENT_SOURCE_DIR}/interface/core_stubs)

@@ -227,6 +227,28 @@ int32_t MediaSourceFFmpegFilter::requare(int32_t duration,const std::vector<PinI
         request_read_to_ = want_read_to;
     read_condition_.notify_one();
     MR_LOG_DEAULT("MediaSourceFFmpegFilter::requare: cur:{} need {} pre-buffer:{} read to:{}", current_read_pts_,duration,pre_buffer,request_read_to_);
+
+    int32_t first_frame = INT32_MIN;
+    int32_t get_duration = INT32_MIN;
+
+    while(get_duration < duration){
+        FramePointer frame;
+        auto get = readed_cache_.try_dequeue(frame);
+        if(get){
+            if(first_frame == INT32_MIN){
+                first_frame = frame->packet->pts;
+            }
+            get_duration = frame->packet->pts - first_frame;
+
+            auto it = stream_pins_map_.find(frame->packet->stream_index);
+            if(it != stream_pins_map_.end()){
+                it->second->deliver(frame);
+            }
+        }
+        else
+            break;
+    }
+
     return 0;
 }
 
@@ -370,8 +392,6 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                 continue;
             }
 
-            PinPointer& output_pin = it->second;
-
             int64_t pts = 1000.0 * packet->pts * av_q2d(stream->time_base);
             int64_t dts = 1000.0 * packet->dts * av_q2d(stream->time_base);
 
@@ -400,7 +420,7 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
             auto new_frame = Frame::make_packet(packet);
             new_frame->releaser = sdmp_frame_free_packet_releaser;
 
-            output_pin->deliver(new_frame);
+            readed_cache_.enqueue(new_frame);
 
             // MR_LOG_DEAULT("reading proc: {} {} {}", pts, current_read_pts_, request_read_to_);
 

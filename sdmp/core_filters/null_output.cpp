@@ -65,6 +65,9 @@ int32_t NullOutput::requare(int32_t duration, const std::vector<PinIndex> &outpu
     // if(a++ % 100 == 0)
     MR_INFO(">>>>>>> NullOutput::request {} ms",diff);
 
+    if(duration > 0)
+        get_pin(kInputPin,0)->require(duration);
+
     (void)output_pins;
     return duration;
 }

@@ -74,7 +74,8 @@ int32_t sdmp::AudioEncoderFFmpegFilter::receive(IPin *input_pin, FramePointer fr
 }
 
 int32_t sdmp::AudioEncoderFFmpegFilter::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
-{    
+{
+    get_pin(kInputPin,0)->require(duration);
     return duration;
 }
 

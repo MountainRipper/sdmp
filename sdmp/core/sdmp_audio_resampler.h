@@ -21,6 +21,7 @@ public:
     int32_t channles();
     AVSampleFormat format();
     int32_t sample_bytes();
+    int32_t duration();
 
     int32_t clear();
 private:

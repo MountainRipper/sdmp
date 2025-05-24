@@ -247,7 +247,6 @@ int32_t GeneralFilter::disconnect_input(int32_t input_pin)
 }
 
 
-
 int32_t GeneralFilter::get_property(const std::string &property, Value &value)
 {
     if(property == kFilterPropertyStatus){

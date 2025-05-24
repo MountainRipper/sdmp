@@ -105,6 +105,9 @@ int32_t FilterLinksFlow::request_flow_stream_shot()
                 auto& pin_indexs = link[count].output_pins_;
                 requare_ret = filter->requare(requare_ret,pin_indexs);
 
+                //just requare output filter now
+                break;
+
                 if(requare_ret > 0){
                     continue;
                 }

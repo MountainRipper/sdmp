@@ -26,6 +26,7 @@ COM_MODULE_BEGINE("5b8aab92-a452-11ed-bcb9-9b38750c5c76",SDMP_INTERNAL_FILTERS)
     COM_MODULE_OBJECT_ENTRY(VideoDecoderFFmpegFilter)
     COM_MODULE_OBJECT_ENTRY(DataGrabber)
     COM_MODULE_OBJECT_ENTRY(VideoFrameConvert)
+    COM_MODULE_OBJECT_ENTRY(AudioResampleMixer)
     #if defined(HAS_ROCKCHIP_MPP)
     COM_MODULE_OBJECT_ENTRY(VideoDecoderRkmppFilter)
     #endif
@@ -43,7 +44,7 @@ COM_MODULE_END()
 int32_t sdmp::Factory::initialize_factory()
 {
     Logger::instance().init();
-    Logger::instance().logger()->set_level(spdlog::level::warn);
+    Logger::instance().logger()->set_level(spdlog::level::trace);
     //spdlog::set_level(spdlog::level::trace);
     MR_LOG_DEAULT("Factory::initialize_factory");
     MR_ERROR("Factory::initialize_factory");

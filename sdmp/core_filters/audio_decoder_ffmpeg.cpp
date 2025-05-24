@@ -113,6 +113,7 @@ int32_t AudioDecoderFFmpegFilter::receive(IPin* input_pin,FramePointer frame)
 int32_t AudioDecoderFFmpegFilter::requare(int32_t duration,const std::vector<PinIndex>& output_pins)
 {
     //decoder no cache ,request sender
+    get_pin(kInputPin,0)->require(duration);
     return duration;
 }
 

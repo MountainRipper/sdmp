@@ -163,12 +163,19 @@ int32_t AudioOutputParticipantFilter::requare(int32_t duration,const std::vector
 {
     if(status_ == kStatusEos)
         return kErrorFilterEos;
-    std::lock_guard<std::mutex> lock(mutex_);
-    int32_t samples_ms = resampler_.samples() * 1000.0 / format_output_.samplerate;
-    if(samples_ms < hunger_need_ms_){
-        return cache_need_ms_ - samples_ms;
+
+    auto duration_need = 0;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        int32_t samples_ms = resampler_.samples() * 1000.0 / format_output_.samplerate;
+        if(samples_ms < hunger_need_ms_){
+            duration_need = cache_need_ms_ - samples_ms;
+        }
     }
-    return 0;
+    if(duration_need > 0)
+        get_pin(kInputPin,0)->require(duration_need);
+
+    return duration_need;
 }
 
 int32_t AudioOutputParticipantFilter::disconnect_output(int32_t output_pin, IPin *input_pin)

@@ -59,13 +59,16 @@ IPin *GeneralPin::sender()
 
 int32_t GeneralPin::require(int32_t milliseconds)
 {
-    PinIndex index;
-    index.direction = direction_;
-    index.index = index_;
-    index.pin = this;
-    std::vector<PinIndex> indexs;
-    indexs.push_back(index);
-    return  filter_->requare(milliseconds,indexs);
+    if(direction_ == kInputPin && sender_){
+        PinIndex index;
+        index.direction = direction_;
+        index.index = index_;
+        index.pin = this;
+        std::vector<PinIndex> indexs = {};
+        indexs.push_back(index);
+        sender_->filter()->requare(milliseconds,indexs);
+    }
+    return  0;
 }
 
 FilterPointer GeneralPin::filter(){

@@ -51,6 +51,8 @@ int32_t AudioResampleMixer::connect_match_input_format(IPin *sender_pin,IPin *in
     for(auto pin : pins){
         if(pin->sender() || pin->index() == input_pin->index())
             continue;
+        has_unconnected = true;
+        break;
     }
     if(!has_unconnected){
         create_general_pin(AVMEDIA_TYPE_AUDIO,kInputPin);
@@ -65,6 +67,7 @@ int32_t AudioResampleMixer::connect_match_input_format(IPin *sender_pin,IPin *in
 int32_t AudioResampleMixer::receive(IPin *input_pin, FramePointer frame)
 {
     auto pin_index = input_pin->index();
+
     if(pin_index >= resamplers_.size())
         return kErrorResourceNotFound;
 
@@ -82,6 +85,12 @@ int32_t AudioResampleMixer::receive(IPin *input_pin, FramePointer frame)
 
 int32_t AudioResampleMixer::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
 {
+    for(auto pin : get_pins(kInputPin)){
+        pin->require(duration);
+    }
+
+    //std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
     int32_t pull_duration = 0;
     for(auto& item : resamplers_){
         auto duration = item->duration();
@@ -93,11 +102,16 @@ int32_t AudioResampleMixer::requare(int32_t duration, const std::vector<PinIndex
     if(pull_duration <= 0)
         return duration;
 
-    int samples = duration * format_out_.samplerate / 1000;
+    int samples = pull_duration * format_out_.samplerate / 1000;
 
     AVFrame* av_frame = av_frame_alloc();
+    av_frame->sample_rate = format_out_.samplerate;
+    av_frame->format = format_out_.format;
+    av_frame->nb_samples = samples;
+    av_channel_layout_default(&av_frame->ch_layout,format_out_.channels);
+    av_frame_get_buffer(av_frame,1);
+
     auto dest = Frame::make_frame(av_frame);
-    av_samples_alloc(av_frame->data, av_frame->linesize, format_out_.channels, samples , (AVSampleFormat)format_out_.format,1);
     dest->releaser = sdmp_frame_free_frame_releaser;
 
     auto pcm_mixer_dest = av_frame->data[0];
@@ -113,16 +127,21 @@ int32_t AudioResampleMixer::requare(int32_t duration, const std::vector<PinIndex
     for(auto& item : resamplers_){
         memset(pcm_mixer_src_.get(),0,pcm_mixer_src_size_);
         auto frame = item->pull(samples);
+        if(!frame)
+            continue;
 
         auto av_frame = frame->frame;
         if(av_frame){
-            mixer_.input_stream((AudioMixer::Format)av_frame->format, av_frame->data[0], av_frame->nb_samples * format_out_.channels);
+
+            mixer_.input_stream((AudioMixer::Format)av_frame->format, av_frame->data[0], av_frame->nb_samples * format_out_.channels,0.5);
         }
     }
 
     mixer_.get_output((AudioMixer::Format)format_out_.format, pcm_mixer_dest, samples * format_out_.channels);
 
-    (void)output_pins;
+    get_pin(kOutputPin,0)->deliver(dest);
+
+
     return duration;
 }
 
@@ -142,6 +161,7 @@ int32_t AudioResampleMixer::property_changed(const std::string &property, Value 
 
 void AudioResampleMixer::refresh_property()
 {
+    format_out_.type = AVMEDIA_TYPE_AUDIO;
     format_out_.channels = properties_["channels"];
     format_out_.samplerate = properties_["samplerate"];
     std::string fmt = properties_["format"];

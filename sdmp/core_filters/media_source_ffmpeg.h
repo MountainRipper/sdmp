@@ -4,6 +4,9 @@
 #include <mutex>
 #include <condition_variable>
 #include "sdmp_general_filter.h"
+#include <lfqueue/readerwriterqueue.h>
+
+using namespace moodycamel;
 namespace mr::sdmp {
 
 COM_MULTITHREADED_OBJECT(
@@ -158,6 +161,7 @@ private:
     bool                destructor_             = false;
     bool                caching_mode_           = false;
 
+    ReaderWriterQueue<FramePointer>   readed_cache_;
     int32_t             keyframes_read_         = 0;
     ComPointer<IFilterHandleMediaSourceCustomIO> custom_io_;
     MR_TIMER_DEFINE(timeout_timer_);

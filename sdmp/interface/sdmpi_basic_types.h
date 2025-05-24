@@ -250,6 +250,20 @@ enum PinDirection{
     kOutputPin
 };
 struct PinIndex{
+    PinIndex(){
+
+    }
+    PinIndex(const PinIndex& v){
+        pin = v.pin;
+        direction = v.direction;
+        index = v.index;
+    }
+    PinIndex(IPin *pin, PinDirection direction, int32_t index){
+        this->pin = pin;
+        this->direction = direction;
+        this->index = index;
+    }
+
     IPin *pin = nullptr;
     PinDirection direction = kInputPin;
     int32_t index = -1;

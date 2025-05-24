@@ -57,6 +57,7 @@ int32_t DataGrabber::receive(IPin *input_pin, FramePointer frame)
 
 int32_t DataGrabber::requare(int32_t duration, const std::vector<PinIndex> &output_pins)
 {
+    get_pin(kInputPin,0)->require(duration);
     (void)output_pins;
     return duration;
 }

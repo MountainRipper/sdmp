@@ -31,8 +31,7 @@ SET(TARGET_ARCH  ${CMAKE_SYSTEM_PROCESSOR})
 SET(MR_SEARCHED_LIBS "")
 SET(EXTERNAL_SOURCE "")
 
-add_definitions(-D MR_LOG_DEAULT=MR_DEBUG)
-add_definitions(-D SDMR_LOG_LEVEL=mp::Logger::LogLevel::kLogLevelDebug)
+add_definitions(-DMR_LOG_DEAULT=MR_TRACE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
 
 macro(search_library libName macroDefine debugSuffix)
     SET(libVar ${macroDefine}_LIB)

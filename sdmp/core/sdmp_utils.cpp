@@ -101,8 +101,8 @@ int32_t Value::any_to_lua(const std::any& any_value,sol::state* state,sol::lua_v
     if(type_id == typeid(double)) *lua_value_ptr = sol::lua_value(lua_state,ANY2F64(any_value));
     else if(type_id == typeid(std::string)) *lua_value_ptr = sol::lua_value(lua_state,ANY2STR(any_value));
     else if(type_id == typeid(bool)) *lua_value_ptr = sol::lua_value(lua_state,ANY2BOOL(any_value));
-    else if(type_id == typeid(std::vector<double>)) *lua_value_ptr = sol::lua_value(lua_state,ANY2F64ARR(any_value));
-    else if(type_id == typeid(std::vector<std::string>)) *lua_value_ptr = sol::lua_value(lua_state,ANY2STRARR(any_value));
+    else if(type_id == typeid(std::vector<double>)) *lua_value_ptr = sol::lua_value(lua_state,sol::as_table(ANY2F64ARR(any_value)));
+    else if(type_id == typeid(std::vector<std::string>)) *lua_value_ptr = sol::lua_value(lua_state,sol::as_table(ANY2STRARR(any_value)));
     else if(type_id == typeid(void*)) *lua_value_ptr = sol::lua_value(lua_state,ANY2PTR(any_value));
     else if(type_id == typeid(sol::function)) *lua_value_ptr = sol::lua_value(lua_state,ANY2LUAFUN(any_value));
     else if(type_id == typeid(sol::table)) *lua_value_ptr = sol::lua_value(lua_state,ANY2LUATABLE(any_value));

@@ -109,16 +109,16 @@ public:
     COM_MAP_END()
     // FilterBase interface
 public:
-    virtual int32_t initialize(IGraph *graph, const Value &filter_values);
-    virtual int32_t process_command(const std::string &command, const Value& param);
-    virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin);
-    virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index);
-    virtual int32_t receive(IPin* input_pin,FramePointer frame);
-    virtual int32_t requare(int32_t duration,const std::vector<PinIndex>& output_pins);
+    virtual int32_t initialize(IGraph *graph, const Value &filter_values) override;
+    virtual int32_t process_command(const std::string &command, const Value& param) override;
+    virtual int32_t connect_match_input_format(IPin *sender_pin,IPin *input_pin) override;
+    virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index) override;
+    virtual int32_t receive(IPin* input_pin,FramePointer frame) override;
+    virtual int32_t requare(int32_t duration,const std::vector<PinIndex>& output_pins) override;
 
     // FilterGeneral interface
 public:
-    virtual int32_t property_changed(const std::string& name, Value &symbol);
+    virtual int32_t property_changed(const std::string& name, Value &symbol) override;
 
     // IFilterExtentionMediaCacheSource interface
 public:

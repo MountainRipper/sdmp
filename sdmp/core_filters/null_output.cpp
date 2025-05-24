@@ -33,6 +33,10 @@ int32_t NullOutput::connect_match_input_format(IPin *sender_pin,IPin *input_pin)
 
 int32_t NullOutput::receive(IPin *input_pin, FramePointer frame)
 {
+    if(frame->flag & kFrameFlagEos){
+        switch_status(kStatusEos);
+        return 0;
+    }
     if(frame->frame){
         current_recv_ms_ = frame->frame->pts;
     }
@@ -58,8 +62,8 @@ int32_t NullOutput::requare(int32_t duration, const std::vector<PinIndex> &outpu
 
     duration = diff;
     static int a = 0;
-    if(a++ % 100 == 0)
-        MR_INFO(">>>>>>> ms:{}",diff);
+    // if(a++ % 100 == 0)
+    MR_INFO(">>>>>>> NullOutput::request {} ms",diff);
 
     (void)output_pins;
     return duration;
@@ -76,6 +80,14 @@ int32_t NullOutput::connect_chose_output_format(IPin *output_pin, int32_t index)
 int32_t NullOutput::property_changed(const std::string &property, Value &symbol)
 {
     return 0;
+}
+
+int32_t NullOutput::process_command(const std::string &command, const Value &param)
+{
+    if(command == kGraphCommandPlay){
+        start_point_ = std::chrono::steady_clock::time_point();
+    }
+    return GeneralFilter::process_command(command,param);
 }
 
 

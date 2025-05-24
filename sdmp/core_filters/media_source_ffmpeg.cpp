@@ -145,6 +145,7 @@ int32_t MediaSourceFFmpegFilter::open_media(const std::string &uri, bool reconne
         reading_thread_ = std::thread(&MediaSourceFFmpegFilter::reading_proc,this);
     }
     reconnect_count_ = 10;
+    request_read_to_ = 0;
     media_loaded_ = true;
     return 0;
 }
@@ -381,10 +382,10 @@ int32_t MediaSourceFFmpegFilter::reading_proc()
                     MR_LOG_DEAULT("WARNNING:ffmpeg read skip frame at[need:{} read:{}]\n",skip_read_pts_to_,pts);
                 continue;
             }
-           MR_WARN(">>>stream {}[{}] read packet pts:{} dts:{} timebase:{}/{}",packet->stream_index,
-                     av_get_media_type_string(stream->codecpar->codec_type),
-                     pts,dts,
-                     stream->time_base.num,stream->time_base.den);
+           // MR_WARN(">>>stream {}[{}] read packet pts:{} dts:{} timebase:{}/{}",packet->stream_index,
+           //           av_get_media_type_string(stream->codecpar->codec_type),
+           //           pts,dts,
+           //           stream->time_base.num,stream->time_base.den);
             // A/V PTS maybe large diff, so use max(A/V) to get read-to pts
             if(seeked_){
                 //seek maybe back forward, so set current pts when seek

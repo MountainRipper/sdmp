@@ -66,7 +66,7 @@ if(NOT DEFINED MR_THIRD_PARTY_ROOT)
         "${MR_THIRD_PARTY_ROOT}/include"
         "${MR_THIRD_PARTY_ROOT}/include/imgui"
         "${MR_THIRD_PARTY_TARGET}/include"
-        "${MR_THIRD_PARTY_TARGET}/include/luajit"
+        "${MR_THIRD_PARTY_TARGET}/include/lua"
         "${MR_THIRD_PARTY_TARGET}/include/freetype2")
     link_directories("${MR_THIRD_PARTY_TARGET}/lib")
     SET(MR_SEARCH_LIB_PATHS "${MR_THIRD_PARTY_TARGET}/lib")

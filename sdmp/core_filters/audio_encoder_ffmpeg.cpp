@@ -55,6 +55,12 @@ int32_t sdmp::AudioEncoderFFmpegFilter::connect_chose_output_format(IPin *output
 
 int32_t sdmp::AudioEncoderFFmpegFilter::receive(IPin *input_pin, FramePointer frame)
 {
+    if(frame->flag & kFrameFlagEos){
+        encode_a_frame(nullptr);
+        switch_status(kStatusEos);
+        deliver_eos_frame();
+        return 0;
+    }
     auto av_frame = frame->frame;
     // resampler_.push_audio_samples(av_frame->sample_rate,av_frame->ch_layout.nb_channels,
     //                       (AVSampleFormat)av_frame->format,av_frame->nb_samples,av_frame->data);
@@ -166,9 +172,12 @@ int32_t AudioEncoderFFmpegFilter::close_encoder()
 int32_t AudioEncoderFFmpegFilter::encode_a_frame(AVFrame *frame)
 {
     //add 1 to avoid div by zero
-    samples_totle_ += (frame->linesize[0] / sample_bytes_);
-    frame->time_base = {1,frame->sample_rate};
-    frame->pts = samples_totle_;
+    if(frame)
+    {
+        samples_totle_ += (frame->linesize[0] / sample_bytes_);
+        frame->time_base = {1,frame->sample_rate};
+        frame->pts = samples_totle_;
+    }
 
     int ret = avcodec_send_frame(codec_context, frame);
     if (ret < 0) {

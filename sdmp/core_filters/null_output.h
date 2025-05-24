@@ -35,9 +35,11 @@ public:
     virtual int32_t connect_chose_output_format(IPin *output_pin, int32_t index) override;
     virtual int32_t receive(IPin *input_pin, FramePointer frame) override;
     virtual int32_t requare(int32_t duration, const std::vector<PinIndex> &output_pins) override;
+    virtual int32_t process_command(const std::string &command, const Value& param) override;
     // GeneralFilter interface
 public:
-    virtual int32_t property_changed(const std::string &property, Value &symbol) override;
+    virtual int32_t property_changed(const std::string &property, Value &symbol) override;    // FilterGeneral interface
+
 private:
     IFilterHandlerDataGrabber* handler_ = nullptr;
     std::chrono::steady_clock::time_point start_point_;

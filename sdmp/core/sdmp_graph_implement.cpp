@@ -394,7 +394,7 @@ int32_t GraphImplement::switch_status(GraphStatus status)
     MR_LOG_DEAULT("==== GraphImplement::switch_status {}", (int)status);
     if(status_ != status){
         status_ = status;
-        lua_status_function_(graph_context_,status);
+        lua_status_function_(graph_context_,(int)status);
     }
     return 0;
 }

@@ -45,7 +45,7 @@ int32_t DataGrabber::receive(IPin *input_pin, FramePointer frame)
 {
     static int c = 0;
     c++;
-    fprintf(stderr,"grabber_get_frame size:%d pts:%.2f\n",frame->packet->size,c*1024.0/48000);
+    // fprintf(stderr,"grabber_get_frame size:%d pts:%.2f\n",frame->packet->size,c*1024.0/48000);
 
     (void)input_pin;
     get_pin(kOutputPin,0)->deliver(frame);

@@ -70,7 +70,7 @@ search_library("swresample" HAS_SW_RESAMPLE "")
 #libyuv
 search_library(yuv HAS_LIBYUV "")
 #luajit
-search_library("luajit;luajit-5.1" HAS_LUAJIT "")
+search_library("lua" HAS_LUAJIT "")
 #spdlog
 search_library(mrcommon HAS_MRCOMMON "")
 
